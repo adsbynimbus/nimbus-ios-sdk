@@ -1,0 +1,13 @@
+# AppCode
+.idea/
+
+# Xcode
+xcuserdata/
+
+# Build
+.build/
+build/
+DerivedData/
+
+# macOS
+.DS_Store
