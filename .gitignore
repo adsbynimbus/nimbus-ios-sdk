@@ -1,13 +1,15 @@
 # AppCode
 .idea/
 
-# Xcode
-xcuserdata/
-
 # Build
-.build/
-build/
+*build/
 DerivedData/
 
 # macOS
 .DS_Store
+
+# Swift Package Manager
+Package.resolved
+
+# Xcode
+xcuserdata/
