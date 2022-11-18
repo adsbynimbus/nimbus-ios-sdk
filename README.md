@@ -17,11 +17,11 @@ Documentation can be found at https://docs.adsbynimbus.com/docs/sdk/ios
 1. Navigate to Frameworks, Libraries, and Embedded Content for an iOS application target 
 2. Click the + button and select Add Package Dependency... under the Add Other dropdown
 3. Enter https://github.com/timehop/nimbus-ios-sdk in the package URL and select the main branch
-4. Select all the libraries required by your integration type
+4. Select all the frameworks required by your integration type
 
 ### Nimbus Standalone
 
-- NimbusKit: The main library of the Nimbus SDK
+- NimbusKit: The main framework of the Nimbus SDK
 - NimbusRenderKit: Adds support for rendering Nimbus Ads
   - NimbusRenderStaticKit: Renderer for Nimbus static ads (display / banner ads)
   - NimbusRenderVideoKit: Renderer for Nimbus video ads
@@ -32,7 +32,7 @@ Documentation can be found at https://docs.adsbynimbus.com/docs/sdk/ios
 
 - [NimbusFANKit](Sources/NimbusFANKit): Adds support for Meta Audience Network ads
 - [NimbusGAMKit](Sources/NimbusGAMKit): Mediation adapters and Dynamic Price support for Google Ad Manager
-- [NimbusLiveRampKit](Sources/NimbusLiveRampKit): Integrates LiveRamp id support for Nimbus using the LiveRamp SDK 
+- [NimbusLiveRampKit](Sources/NimbusLiveRampKit): Adds support for passing IDs using the LiveRamp SDK 
 - [NimbusRequestAPSKit](Sources/NimbusRequestAPSKit): Adds support for including Amazon demand in the Nimbus auction
 - [NimbusUnityKit](Sources/NimbusUnityKit): Adds support for Unity Rewarded Video Ads
 
