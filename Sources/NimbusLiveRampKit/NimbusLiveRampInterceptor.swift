@@ -47,9 +47,6 @@ public final class NimbusLiveRampInterceptor {
         set { LRAts.shared.hasConsentForNoLegislation = newValue }
     }
     
-    /// Minimum number of days for refreshing cache
-    private let refreshPeriod = 2
-
     /// Delegate for listening LiveRamp callbacks
     public var delegate: NimbusLiveRampInterceptorDelegate?
     
@@ -79,7 +76,7 @@ public final class NimbusLiveRampInterceptor {
         self.phoneNumber = phoneNumber
         self.hasConsentForNoLegislation = hasConsentForNoLegislation
         self.delegate = delegate
-                
+        
         let configuration = LRAtsConfiguration(
             appId: configId,
             isTestMode: isTestMode,
@@ -157,7 +154,7 @@ public final class NimbusLiveRampInterceptor {
             delegate?.didInitializeLiveRamp(error: NimbusLiveRampError.identifierNotFound)
             return
         }
-                
+        
         LRAts.shared.getEnvelope(identifierData) { [weak self] data, error in
             self?.liveRampEnvelope = data?.envelope
             self?.delegate?.didFetchLiveRampEnvelope(error: error)
@@ -184,32 +181,45 @@ public final class NimbusLiveRampInterceptor {
 // MARK: NimbusRequestInterceptor
 /// :nodoc:
 extension NimbusLiveRampInterceptor: NimbusRequestInterceptor {
-       
+    
     /// :nodoc:
     public func modifyRequest(request: NimbusRequest) {
         Nimbus.shared.logger.log("Modifying NimbusRequest for LiveRamp", level: .debug)
         
         guard let payload = liveRampPayload else { return }
         
+        let eidsToAppend: Array<Any>
         if var eids = request.user?.extensions?["eids"]?.value as? Array<Any> {
             if let index = getLiveRampDictIndex(array: eids) {
                 eids[index] = payload
             } else {
                 eids.append(payload)
             }
-            request.user?.extensions?["eids"] = NimbusCodable(eids)
+            eidsToAppend = eids
         } else {
-            request.user?.extensions = ["eids": NimbusCodable([payload])]
+            eidsToAppend = [payload]
         }
+        
+        createUserAndExtIfNecessary(request: request)
+        request.user?.extensions?["eids"] = NimbusCodable(eidsToAppend)
     }
     
     private func getLiveRampDictIndex(array: Array<Any>) -> Int? {
-        return array.enumerated().first(where: {
+        array.enumerated().first(where: {
             if let dict = $0.element as? [String: Any], let value = dict["source"] as? String {
                 return value == "liveramp.com"
             }
             return false
         })?.offset
+    }
+    
+    private func createUserAndExtIfNecessary(request: NimbusRequest) {
+        if request.user == nil {
+            request.user = .init()
+        }
+        if request.user?.extensions == nil {
+            request.user?.extensions = [:]
+        }
     }
     
     /// :nodoc:

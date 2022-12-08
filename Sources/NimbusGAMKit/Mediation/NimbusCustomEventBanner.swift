@@ -31,13 +31,12 @@ public final class NimbusCustomEventBanner: NSObject, GADCustomEventBanner {
             network: "GAM",
             isBanner: true
         )
-        let nimbusRequest = NimbusRequest.forBannerAd(
-            position: position,
-            format: .init(
-                width: Int(adSize.size.width),
-                height: Int(adSize.size.height)
-            )
-        )
+
+        let width = Int(adSize.size.width)
+        let height = Int(adSize.size.height)
+        let adSizeToNimbusFormat = NimbusSizeToFormatMapper().map(width: width, height: height)
+
+        let nimbusRequest = NimbusRequest.forBannerAd(position: position, format: adSizeToNimbusFormat)
 
         requestManager.delegate = self
         requestManager.performRequest(request: nimbusRequest)

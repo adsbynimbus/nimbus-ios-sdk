@@ -36,7 +36,7 @@ class NimbusLiveRampKitTests: XCTestCase {
         XCTAssertTrue(delegate.didTryToFetchLiveRampEnvelope)
         XCTAssertNil(delegate.didFetchLiveRampEnvelopeError)
     }
-
+    
     func testInitInterceptorWithPhoneNumber() {
         let delegate = MockNimbusLiveRampInterceptorDelegate()
         let interceptor = NimbusLiveRampInterceptor(
@@ -59,7 +59,7 @@ class NimbusLiveRampKitTests: XCTestCase {
     
     func testHasConsentForNoLegislation() {
         XCTAssertEqual(LRAts.shared.hasConsentForNoLegislation, false)
-
+        
         let _ = NimbusLiveRampInterceptor(
             configId: configId,
             email: email,
@@ -73,7 +73,7 @@ class NimbusLiveRampKitTests: XCTestCase {
     func testModifyRequestWithNoExtensions() {
         let request = NimbusRequest.forInterstitialAd(position: "position")
         request.user = NimbusUser()
-         
+        
         XCTAssertNil(request.user?.extensions)
         
         let interceptor = NimbusLiveRampInterceptor(
@@ -83,7 +83,6 @@ class NimbusLiveRampKitTests: XCTestCase {
         )
         interceptor.liveRampEnvelope = "envelope"
         interceptor.modifyRequest(request: request)
-        
         
         guard let extensionsJsonDict = request.user?.extensions?.jsonDict() else {
             XCTFail("Could not find extensions for request")
@@ -122,7 +121,7 @@ class NimbusLiveRampKitTests: XCTestCase {
         
         user.extensions = ["eids": NimbusCodable(originalEids)]
         request.user = user
-                
+        
         let interceptor = NimbusLiveRampInterceptor(
             configId: configId,
             phoneNumber: phoneNumber,
@@ -166,7 +165,7 @@ class NimbusLiveRampKitTests: XCTestCase {
         
         user.extensions = ["eids": NimbusCodable(originalEids)]
         request.user = user
-                
+        
         let interceptor = NimbusLiveRampInterceptor(
             configId: configId,
             phoneNumber: phoneNumber,
@@ -195,6 +194,65 @@ class NimbusLiveRampKitTests: XCTestCase {
                     ]
                 ]
             ]
+        ]
+        
+        XCTAssertTrue(extensionsJsonDict.isEqual(to: expectedJsonDict))
+    }
+    
+    func testModifyRequestWithNoUserPresent() {
+        let request = NimbusRequest.forInterstitialAd(position: "position")
+        
+        let interceptor = NimbusLiveRampInterceptor(
+            configId: configId,
+            phoneNumber: phoneNumber,
+            isTestMode: true
+        )
+        interceptor.liveRampEnvelope = "envelope"
+        interceptor.modifyRequest(request: request)
+        
+        guard let extensionsJsonDict = request.user?.extensions?.jsonDict() else {
+            XCTFail("Could not find extensions for request")
+            return
+        }
+        
+        let expectedJsonDict = [
+            "eids": [[
+                "source": "liveramp.com",
+                "uids": [[
+                    "id": "envelope",
+                    "ext": ["rtiPartner": "idl"]
+                ]]
+            ]]
+        ]
+        
+        XCTAssertTrue(extensionsJsonDict.isEqual(to: expectedJsonDict))
+    }
+    
+    func testModifyRequestWithNoUserExtensionsPresent() {
+        let request = NimbusRequest.forInterstitialAd(position: "position")
+        request.user = .init()
+        
+        let interceptor = NimbusLiveRampInterceptor(
+            configId: configId,
+            phoneNumber: phoneNumber,
+            isTestMode: true
+        )
+        interceptor.liveRampEnvelope = "envelope"
+        interceptor.modifyRequest(request: request)
+        
+        guard let extensionsJsonDict = request.user?.extensions?.jsonDict() else {
+            XCTFail("Could not find extensions for request")
+            return
+        }
+        
+        let expectedJsonDict = [
+            "eids": [[
+                "source": "liveramp.com",
+                "uids": [[
+                    "id": "envelope",
+                    "ext": ["rtiPartner": "idl"]
+                ]]
+            ]]
         ]
         
         XCTAssertTrue(extensionsJsonDict.isEqual(to: expectedJsonDict))
