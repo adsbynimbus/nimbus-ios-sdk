@@ -6,10 +6,9 @@
 //  Copyright © 2022 Timehop. All rights reserved.
 //
 
-import XCTest
-import LRAtsSDK
-@testable import NimbusRequestKit
 @testable import NimbusLiveRampKit
+import LRAtsSDK
+import XCTest
 
 final class NimbusLiveRampKitTests: XCTestCase {
     

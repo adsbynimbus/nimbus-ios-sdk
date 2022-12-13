@@ -6,9 +6,9 @@
 //  Copyright © 2019 Timehop. All rights reserved.
 //
 
-import XCTest
 @testable import NimbusRequestAPSKit
-@testable import DTBiOSSDK
+import DTBiOSSDK
+import XCTest
 
 final class NimbusRequestingAPSTests: XCTestCase {
     

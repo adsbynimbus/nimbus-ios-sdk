@@ -6,8 +6,8 @@
 //  Copyright © 2021 Timehop. All rights reserved.
 //
 
-import XCTest
 @testable import NimbusGAMKit
+import XCTest
 
 final class NimbusGAMLinearPriceMappingTests: XCTestCase {
 

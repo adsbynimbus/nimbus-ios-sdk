@@ -6,9 +6,8 @@
 //  Copyright © 2022 Timehop. All rights reserved.
 //
 
-@testable import GoogleMobileAds
 @testable import NimbusGAMKit
-@testable import NimbusKit
+import GoogleMobileAds
 import XCTest
 
 class NimbusAdTargetingTests: XCTestCase {

@@ -6,7 +6,7 @@
 //  Copyright © 2019 Timehop. All rights reserved.
 //
 
-import XCTest
+import Foundation
 
 extension Encodable {
     

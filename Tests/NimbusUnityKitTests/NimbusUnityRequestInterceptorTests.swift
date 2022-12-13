@@ -6,9 +6,9 @@
 //  Copyright © 2021 Timehop. All rights reserved.
 //
 
-import XCTest
+@testable import NimbusUnityKit
 import UnityAds
-@testable import NimbusRequestKit
+import XCTest
 
 final class NimbusUnityRequestInterceptorTests: XCTestCase {
 

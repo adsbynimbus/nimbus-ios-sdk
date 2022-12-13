@@ -6,8 +6,8 @@
 //  Copyright © 2022 Timehop. All rights reserved.
 //
 
-@testable import DTBiOSSDK
 @testable import NimbusRequestAPSKit
+import DTBiOSSDK
 import XCTest
 
 class NimbusAPSRequestHelperTests: XCTestCase {

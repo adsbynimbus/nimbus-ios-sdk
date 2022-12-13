@@ -6,8 +6,8 @@
 //  Copyright © 2022 Timehop. All rights reserved.
 //
 
-import DTBiOSSDK
 @testable import NimbusRequestAPSKit
+import DTBiOSSDK
 
 final class MockAPSRequestManager: APSRequestManagerType {
     

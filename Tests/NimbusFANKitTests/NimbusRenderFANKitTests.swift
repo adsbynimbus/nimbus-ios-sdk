@@ -6,10 +6,8 @@
 //  Copyright © 2020 Timehop. All rights reserved.
 //
 
+@testable import NimbusFANKit
 import XCTest
-@testable import NimbusCoreKit
-@testable import NimbusRenderKit
-@testable import NimbusRenderFANKit
 
 class NimbusRenderFANKitTests: XCTestCase {
 
@@ -30,7 +28,7 @@ class NimbusRenderFANKitTests: XCTestCase {
         let _ = NimbusFANAdController(
             ad: ad,
             container: view,
-            logger: NimbusLogger(),
+            logger: Nimbus.shared.logger,
             delegate: delegate,
             adRendererDelegate: nil,
             adPresentingViewController: viewController
@@ -60,7 +58,7 @@ class NimbusRenderFANKitTests: XCTestCase {
         let controller = NimbusFANAdController(
             ad: ad,
             container: view,
-            logger: NimbusLogger(),
+            logger: Nimbus.shared.logger,
             delegate: delegate,
             adRendererDelegate: nil,
             adPresentingViewController: viewController
@@ -90,7 +88,7 @@ class NimbusRenderFANKitTests: XCTestCase {
         let _ = NimbusFANAdController(
             ad: ad,
             container: view,
-            logger: NimbusLogger(),
+            logger: Nimbus.shared.logger,
             delegate: delegate,
             adRendererDelegate: nil,
             adPresentingViewController: viewController
@@ -120,7 +118,7 @@ class NimbusRenderFANKitTests: XCTestCase {
         let controller = NimbusFANAdController(
             ad: ad,
             container: view,
-            logger: NimbusLogger(),
+            logger: Nimbus.shared.logger,
             delegate: delegate,
             adRendererDelegate: nil,
             adPresentingViewController: viewController
@@ -150,7 +148,7 @@ class NimbusRenderFANKitTests: XCTestCase {
         let _ = NimbusFANAdController(
             ad: ad,
             container: view,
-            logger: NimbusLogger(),
+            logger: Nimbus.shared.logger,
             delegate: delegate,
             adRendererDelegate: nil,
             adPresentingViewController: viewController
@@ -180,7 +178,7 @@ class NimbusRenderFANKitTests: XCTestCase {
         let controller = NimbusFANAdController(
             ad: ad,
             container: view,
-            logger: NimbusLogger(),
+            logger: Nimbus.shared.logger,
             delegate: delegate,
             adRendererDelegate: nil,
             adPresentingViewController: viewController
@@ -211,7 +209,7 @@ class NimbusRenderFANKitTests: XCTestCase {
         let _ = NimbusFANAdController(
             ad: ad,
             container: view,
-            logger: NimbusLogger(),
+            logger: Nimbus.shared.logger,
             delegate: delegate,
             adRendererDelegate: nil,
             adPresentingViewController: viewController
@@ -234,7 +232,7 @@ class NimbusRenderFANKitTests: XCTestCase {
         let controller = NimbusFANAdController(
             ad: ad,
             container: view,
-            logger: NimbusLogger(),
+            logger: Nimbus.shared.logger,
             delegate: MockAdControllerDelegate(),
             adRendererDelegate: nil,
             adPresentingViewController: viewController
@@ -255,7 +253,7 @@ class NimbusRenderFANKitTests: XCTestCase {
         let controller = NimbusFANAdController(
             ad: ad,
             container: view,
-            logger: NimbusLogger(),
+            logger: Nimbus.shared.logger,
             delegate: MockAdControllerDelegate(),
             adRendererDelegate: nil,
             adPresentingViewController: viewController
@@ -276,7 +274,7 @@ class NimbusRenderFANKitTests: XCTestCase {
         let controller = NimbusFANAdController(
             ad: ad,
             container: view,
-            logger: NimbusLogger(),
+            logger: Nimbus.shared.logger,
             delegate: MockAdControllerDelegate(),
             adRendererDelegate: nil,
             adPresentingViewController: viewController
@@ -297,7 +295,7 @@ class NimbusRenderFANKitTests: XCTestCase {
         let controller = NimbusFANAdController(
             ad: ad,
             container: view,
-            logger: NimbusLogger(),
+            logger: Nimbus.shared.logger,
             delegate: MockAdControllerDelegate(),
             adRendererDelegate: nil,
             adPresentingViewController: viewController
