@@ -8,28 +8,19 @@ let package = Package(
     products: [
         .library(
             name: "NimbusKit",
-            targets: ["NimbusKit", "NimbusRenderKit", "NimbusRequestKit", "NimbusCoreKit"]),
+            targets: ["NimbusTarget"]),
         .library(
             name: "NimbusRenderKit",
-            targets: ["NimbusRenderKit", "NimbusCoreKit", "OMSDK_Adsbynimbus"]),
+            targets: ["NimbusRenderTarget"]),
         .library(
             name: "NimbusRenderStaticKit",
-            targets: [
-                "NimbusRenderKit",
-                "NimbusRenderStaticKit",
-                "NimbusCoreKit",
-            ]),
+            targets: ["NimbusRenderStaticTarget"]),
         .library(
             name: "NimbusRenderVideoKit",
-            targets: [
-                "NimbusRenderKit",
-                "NimbusRenderVideoKit",
-                "NimbusCoreKit",
-                "GoogleInteractiveMediaAds",
-            ]),
+            targets: ["NimbusRenderVideoTarget"]),
         .library(
             name: "NimbusRequestKit",
-            targets: ["NimbusRequestKit", "NimbusCoreKit"]),
+            targets: ["NimbusRequestTarget"]),
         .library(
             name: "NimbusGAMKit",
             targets: ["NimbusGAMKit"]),
@@ -52,9 +43,24 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "NimbusRenderTarget",
+            dependencies: ["NimbusRenderKit", "NimbusCoreKit", "OMSDK_Adsbynimbus"]),
+        .target(
+            name: "NimbusRenderStaticTarget",
+            dependencies: ["NimbusRenderStaticKit", "NimbusRenderTarget"]),
+        .target(
+            name: "NimbusRenderVideoTarget",
+            dependencies: ["NimbusRenderVideoKit", "NimbusRenderTarget"]),
+        .target(
+            name: "NimbusRequestTarget",
+            dependencies: ["NimbusRequestKit", "NimbusCoreKit"]),
+        .target(
+            name: "NimbusTarget",
+            dependencies: ["NimbusKit", "NimbusRequestTarget", "NimbusRenderTarget"]),
+        .target(
             name: "NimbusGAMKit",
             dependencies: [
-                "NimbusKit",
+                "NimbusTarget",
                 .product(name: "GoogleMobileAds", package: "swift-package-manager-google-mobile-ads")]),
         .testTarget(
             name: "NimbusGAMKitTests",
@@ -69,19 +75,19 @@ let package = Package(
             dependencies: ["NimbusLiveRampKit"]),
         .target(
             name: "NimbusFANKit",
-            dependencies: ["NimbusRenderKit", "NimbusRequestKit", "FBAudienceNetwork"]),
+            dependencies: ["NimbusRenderTarget", "NimbusRequestTarget", "FBAudienceNetwork"]),
         .testTarget(
             name: "NimbusFANKitTests",
             dependencies: ["NimbusFANKit"]),
         .target(
             name: "NimbusRequestAPSKit",
-            dependencies: ["NimbusRequestKit", "DTBiOSSDK"]),
+            dependencies: ["NimbusRequestTarget", "DTBiOSSDK"]),
         .testTarget(
             name: "NimbusRequestAPSKitTests",
             dependencies: ["NimbusRequestAPSKit"]),
         .target(
             name: "NimbusUnityKit",
-            dependencies: ["NimbusRenderKit", "NimbusRequestKit", "UnityAds"]),
+            dependencies: ["NimbusRenderTarget", "NimbusRequestTarget", "UnityAds"]),
         .testTarget(
             name: "NimbusUnityKitTests",
             dependencies: ["NimbusUnityKit"]),
