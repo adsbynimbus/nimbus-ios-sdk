@@ -20,6 +20,7 @@ final class NimbusAPSRequestManager: APSRequestManagerType {
     private let requestsTimeoutInSeconds: Double
     private let logger: Logger
     private let logLevel: NimbusLogLevel
+    
     private var adLoadersDict: [String: DTBAdLoader] = [:]
     var usPrivacyString: String?
 
@@ -70,7 +71,7 @@ final class NimbusAPSRequestManager: APSRequestManagerType {
         
         let adLoader = DTBAdLoader()
         adLoader.setAdSizes([adSize as Any])
-        if let usPrivacyString = usPrivacyString {
+        if let usPrivacyString {
             adLoader.putCustomTarget(usPrivacyString, withKey: "us_privacy")
         }
         

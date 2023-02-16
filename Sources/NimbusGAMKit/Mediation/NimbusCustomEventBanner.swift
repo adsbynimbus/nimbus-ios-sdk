@@ -52,7 +52,7 @@ public final class NimbusCustomEventBanner: NSObject, GADCustomEventBanner {
         adView?.start()
 
         // This needs to be sent here for .loaded event to trigger correctly
-        guard let adView = adView else { return }
+        guard let adView else { return }
         delegate?.customEventBanner(self, didReceiveAd: adView)
     }
 

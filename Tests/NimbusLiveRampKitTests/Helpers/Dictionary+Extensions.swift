@@ -6,6 +6,9 @@
 //  Copyright © 2022 Timehop. All rights reserved.
 //
 
+import Foundation
+@testable import NimbusRequestKit
+
 extension Dictionary where Value: Any {
     func isEqual(to otherDict: [Key: Any]) -> Bool {
         guard count == otherDict.count else {
@@ -50,6 +53,8 @@ extension Dictionary where Value: Any {
                         return false
                     }
                 }
+            case (let v1 as [String: Any], let v2 as [String: Any]):
+                return (v1 as NSDictionary) == (v2 as NSDictionary)
             default:
                 return false
             }

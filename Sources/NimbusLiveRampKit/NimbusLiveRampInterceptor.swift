@@ -146,9 +146,9 @@ public final class NimbusLiveRampInterceptor {
     private func getEnvelope() {
         let identifierData: LRIdentifierData
         
-        if let email = email {
+        if let email {
             identifierData = LREmailIdentifier(email)
-        } else if let phoneNumber = phoneNumber {
+        } else if let phoneNumber {
             identifierData = LRPhoneNumberIdentifier(phoneNumber)
         } else {
             delegate?.didInitializeLiveRamp(error: NimbusLiveRampError.identifierNotFound)
@@ -161,20 +161,12 @@ public final class NimbusLiveRampInterceptor {
         }
     }
     
-    private var liveRampPayload: [String: Any]? {
-        guard let envelope = liveRampEnvelope else { return nil }
-        
-        return [
-            "source": "liveramp.com",
-            "uids": [
-                [
-                    "id": envelope,
-                    "ext": [
-                        "rtiPartner": "idl"
-                    ]
-                ]
-            ]
-        ]
+    private var liveRampExtendedId: NimbusExtendedId? {
+        guard let liveRampEnvelope else { return nil }
+
+        var extendedId = NimbusExtendedId(source: "liveramp.com", id: liveRampEnvelope)
+        extendedId.extensions = ["rtiPartner": NimbusCodable("idl")]
+        return extendedId
     }
 }
 
@@ -186,42 +178,11 @@ extension NimbusLiveRampInterceptor: NimbusRequestInterceptor {
     public func modifyRequest(request: NimbusRequest) {
         Nimbus.shared.logger.log("Modifying NimbusRequest for LiveRamp", level: .debug)
         
-        guard let payload = liveRampPayload else { return }
-        
-        let eidsToAppend: Array<Any>
-        if var eids = request.user?.extensions?["eids"]?.value as? Array<Any> {
-            if let index = getLiveRampDictIndex(array: eids) {
-                eids[index] = payload
-            } else {
-                eids.append(payload)
-            }
-            eidsToAppend = eids
-        } else {
-            eidsToAppend = [payload]
-        }
-        
-        createUserAndExtIfNecessary(request: request)
-        request.user?.extensions?["eids"] = NimbusCodable(eidsToAppend)
-    }
-    
-    private func getLiveRampDictIndex(array: Array<Any>) -> Int? {
-        array.enumerated().first(where: {
-            if let dict = $0.element as? [String: Any], let value = dict["source"] as? String {
-                return value == "liveramp.com"
-            }
-            return false
-        })?.offset
-    }
-    
-    private func createUserAndExtIfNecessary(request: NimbusRequest) {
-        if request.user == nil {
-            request.user = .init()
-        }
-        if request.user?.extensions == nil {
-            request.user?.extensions = [:]
+        if let liveRampExtendedId {
+            request.addExtendedId(liveRampExtendedId)
         }
     }
-    
+
     /// :nodoc:
     public func didCompleteNimbusRequest(with ad: NimbusAd) {}
     

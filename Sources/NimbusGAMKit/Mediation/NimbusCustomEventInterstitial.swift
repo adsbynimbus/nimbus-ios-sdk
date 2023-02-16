@@ -34,7 +34,7 @@ public final class NimbusCustomEventInterstitial: NSObject, GADCustomEventInters
     }
     
     public func present(fromRootViewController rootViewController: UIViewController) {
-        guard let ad = ad else { return }
+        guard let ad else { return }
         render(ad: ad, rootViewController: rootViewController)
     }
     
@@ -42,7 +42,7 @@ public final class NimbusCustomEventInterstitial: NSObject, GADCustomEventInters
         adView = NimbusAdView(adPresentingViewController: nil)
         adView?.delegate = self
         
-        guard let adView = adView else { return }
+        guard let adView else { return }
         let nimbusVC = NimbusAdViewController(adView: adView, ad: ad, companionAd: nil)
         nimbusVC.delegate = self
         adView.adPresentingViewController = nimbusVC

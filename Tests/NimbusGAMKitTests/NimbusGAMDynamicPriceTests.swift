@@ -6,10 +6,9 @@
 //  Copyright © 2020 Timehop. All rights reserved.
 //
 
-import XCTest
-@testable import NimbusKit
 @testable import NimbusGAMKit
-@testable import GoogleMobileAds
+import XCTest
+import GoogleMobileAds
 
 final class NimbusGAMDynamicPriceTests: XCTestCase {
     

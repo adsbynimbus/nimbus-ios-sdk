@@ -6,9 +6,8 @@
 //  Copyright © 2019 Timehop. All rights reserved.
 //
 
+@testable import NimbusFANKit
 import XCTest
-@testable import NimbusRequestKit
-@testable import NimbusRequestFANKit
 
 final class NimbusFANRequestInterceptorTests: XCTestCase {
     

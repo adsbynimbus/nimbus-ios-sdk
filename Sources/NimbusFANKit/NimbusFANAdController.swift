@@ -124,7 +124,12 @@ final class NimbusFANAdController: NSObject {
             }
             
             loadBannerAd()
+            
+        default:
+            logger.log("Unknown case for FAN", level: .error)
+            return
         }
+        
 
         self.visibilityManager?.startListeningForVisibilityChanges()
 
@@ -143,7 +148,8 @@ final class NimbusFANAdController: NSObject {
     }
 
     private func triggerImpressionDelegateIfNecessary() {
-        guard let container = container else { return }
+        guard let container else { return }
+
         container.visibilityDelegate?.didChangeVisibility(
             controller: container,
             isVisible: isAdVisible,
@@ -153,7 +159,7 @@ final class NimbusFANAdController: NSObject {
     
     private func loadBannerAd() {
         // This is caught at init before this function ever gets called
-        guard let placementId = ad.placementId, let fbAdSize = fbAdSize else { return }
+        guard let placementId = ad.placementId, let fbAdSize else { return }
         
         fbAdView = FBAdView(
             placementID: placementId,
@@ -182,9 +188,9 @@ final class NimbusFANAdController: NSObject {
 
 extension NimbusFANAdController: AdController {
 
-    var adView: UIView? { return nil }
+    var adView: UIView? { nil }
 
-    var adDuration: CGFloat { return 0 }
+    var adDuration: CGFloat { 0 }
 
     func start() {}
 
@@ -242,7 +248,7 @@ extension NimbusFANAdController: FBNativeAdDelegate {
             return
         }
 
-        guard let container = container else {
+        guard let container else {
             delegate?.didReceiveNimbusError(
                 controller: self,
                 error: NimbusRenderError.adRenderingFailed(message: "Container view not found for FBNativeAd")
@@ -362,7 +368,7 @@ extension NimbusFANAdController: FBAdViewDelegate {
             return
         }
 
-        guard let container = container else {
+        guard let container else {
             delegate?.didReceiveNimbusError(
                 controller: self,
                 error: NimbusRenderError.adRenderingFailed(message: "Container view not found for FBAdView")

@@ -1,15 +1,27 @@
-# AppCode
+# AppCode / Xcode
 .idea/
+*.xcworkspace
+xcuserdata/
 
 # Build
-*build/
-DerivedData/
+build/
+DerivedData
+*.generated.swift
+*.hmap
+*.ipa
+*.xcframework
 
-# macOS
-.DS_Store
+# CocoaPods
+Podfile.lock
+Pods/
 
 # Swift Package Manager
+.build/
+Packages/
 Package.resolved
 
-# Xcode
-xcuserdata/
+# Secrets
+secrets.json
+
+# Windows / MacOS
+.DS_Store

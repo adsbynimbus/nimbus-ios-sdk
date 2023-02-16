@@ -38,7 +38,7 @@ public final class NimbusFANAdRenderer: AdRenderer {
         adPresentingViewController: UIViewController?,
         delegate: AdControllerDelegate
     ) -> AdController {
-        return NimbusFANAdController(
+        NimbusFANAdController(
             ad: ad,
             container: container,
             logger: Nimbus.shared.logger,

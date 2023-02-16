@@ -24,7 +24,7 @@ public extension NimbusAd {
         if auctionType == .video {
             request.customTargeting?["na_bid_video"] = mapping.getKeywords(ad: self)
 
-            if let duration = duration {
+            if let duration {
                 request.customTargeting?["na_duration"] = String(duration)
             }
         } else {
