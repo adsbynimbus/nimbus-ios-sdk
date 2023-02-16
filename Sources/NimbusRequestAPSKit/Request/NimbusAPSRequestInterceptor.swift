@@ -15,6 +15,7 @@ import NimbusRequestKit
 public final class NimbusAPSRequestInterceptor {
     
     private let adSizes: [DTBAdSize]
+    private let viewabilityManager = NimbusAPSViewabilityManager()
     var requestManager: APSRequestManagerType
     
     /**
@@ -26,7 +27,7 @@ public final class NimbusAPSRequestInterceptor {
      */
     public init(appKey: String, adSizes: [DTBAdSize]) {
         self.adSizes = adSizes
-        
+
         requestManager = NimbusAPSRequestManager(
             appKey: appKey,
             logger: Nimbus.shared.logger,
@@ -64,6 +65,8 @@ extension NimbusAPSRequestInterceptor: NimbusRequestInterceptor {
     public func modifyRequest(request: NimbusRequest) {
         Nimbus.shared.logger.log("Modifying NimbusRequest for APS", level: .debug)
         
+        viewabilityManager.setup(for: request)
+
         guard let impression = request.impressions[safe: 0] else {
             Nimbus.shared.logger.log("Request malformed. Ignoring APS demand", level: .error)
             

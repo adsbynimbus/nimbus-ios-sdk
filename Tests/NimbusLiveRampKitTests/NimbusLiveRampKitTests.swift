@@ -11,7 +11,7 @@ import LRAtsSDK
 @testable import NimbusRequestKit
 @testable import NimbusLiveRampKit
 
-class NimbusLiveRampKitTests: XCTestCase {
+final class NimbusLiveRampKitTests: XCTestCase {
     
     let configId = "012345"
     let email = "test@email.com"
@@ -84,6 +84,8 @@ class NimbusLiveRampKitTests: XCTestCase {
         interceptor.liveRampEnvelope = "envelope"
         interceptor.modifyRequest(request: request)
         
+        NimbusRequestModifier().insertExtendedIds(for: request, globalIds: nil)
+        
         guard let extensionsJsonDict = request.user?.extensions?.jsonDict() else {
             XCTFail("Could not find extensions for request")
             return
@@ -92,10 +94,14 @@ class NimbusLiveRampKitTests: XCTestCase {
         let expectedJsonDict = [
             "eids": [[
                 "source": "liveramp.com",
-                "uids": [[
-                    "id": "envelope",
-                    "ext": ["rtiPartner": "idl"]
-                ]]
+                "uids": [
+                    [
+                        "id": "envelope",
+                        "ext": [
+                            "rtiPartner": "idl"
+                        ]
+                    ]
+                ]
             ]]
         ]
         
@@ -104,23 +110,10 @@ class NimbusLiveRampKitTests: XCTestCase {
     
     func testModifyRequestWithExistingLiveRampDataInExtensions() {
         let request = NimbusRequest.forInterstitialAd(position: "position")
-        var user = NimbusUser()
         
-        let originalEids = [
-            ["source": "extra.eid"],
-            [
-                "source": "liveramp.com",
-                "uids": [
-                    [
-                        "id": "123456789",
-                        "ext": ["rtiPartner": "idl"]
-                    ]
-                ]
-            ]
-        ]
-        
-        user.extensions = ["eids": NimbusCodable(originalEids)]
-        request.user = user
+        var originalLiveRampExtendedId = NimbusExtendedId(source: "liveramp.com", id: "id1")
+        originalLiveRampExtendedId.extensions = ["rtiPartner": "idl"]
+        request.addExtendedId(originalLiveRampExtendedId)
         
         let interceptor = NimbusLiveRampInterceptor(
             configId: configId,
@@ -130,6 +123,8 @@ class NimbusLiveRampKitTests: XCTestCase {
         interceptor.liveRampEnvelope = "envelope"
         interceptor.modifyRequest(request: request)
         
+        NimbusRequestModifier().insertExtendedIds(for: request, globalIds: nil)
+        
         guard let extensionsJsonDict = request.user?.extensions?.jsonDict() else {
             XCTFail("Could not find extensions for request")
             return
@@ -137,13 +132,14 @@ class NimbusLiveRampKitTests: XCTestCase {
         
         let expectedJsonDict = [
             "eids": [
-                ["source": "extra.eid"],
                 [
                     "source": "liveramp.com",
                     "uids": [
                         [
-                            "id": "envelope",
-                            "ext": ["rtiPartner": "idl"]
+                            "id": "id1",
+                            "ext": [
+                                "rtiPartner": "idl"
+                            ]
                         ]
                     ]
                 ]
@@ -155,16 +151,8 @@ class NimbusLiveRampKitTests: XCTestCase {
     
     func testModifyRequestWithNoLiveRampDataInExtensions() {
         let request = NimbusRequest.forInterstitialAd(position: "position")
-        var user = NimbusUser()
         
-        let originalEids = [
-            ["source": "extra1.eid"],
-            ["source": "extra2.eid"],
-            ["source": "extra3.eid"]
-        ]
-        
-        user.extensions = ["eids": NimbusCodable(originalEids)]
-        request.user = user
+        request.addExtendedId(NimbusExtendedId(source: "source", id: "extra1.eid"))
         
         let interceptor = NimbusLiveRampInterceptor(
             configId: configId,
@@ -174,6 +162,8 @@ class NimbusLiveRampKitTests: XCTestCase {
         interceptor.liveRampEnvelope = "envelope"
         interceptor.modifyRequest(request: request)
         
+        NimbusRequestModifier().insertExtendedIds(for: request, globalIds: nil)
+        
         guard let extensionsJsonDict = request.user?.extensions?.jsonDict() else {
             XCTFail("Could not find extensions for request")
             return
@@ -181,15 +171,22 @@ class NimbusLiveRampKitTests: XCTestCase {
         
         let expectedJsonDict = [
             "eids": [
-                ["source": "extra1.eid"],
-                ["source": "extra2.eid"],
-                ["source": "extra3.eid"],
+                [
+                    "source": "source",
+                    "uids": [
+                        [
+                            "id": "extra1.eid"
+                        ]
+                    ]
+                ],
                 [
                     "source": "liveramp.com",
                     "uids": [
                         [
                             "id": "envelope",
-                            "ext": ["rtiPartner": "idl"]
+                            "ext": [
+                                "rtiPartner": "idl"
+                            ]
                         ]
                     ]
                 ]
@@ -210,19 +207,27 @@ class NimbusLiveRampKitTests: XCTestCase {
         interceptor.liveRampEnvelope = "envelope"
         interceptor.modifyRequest(request: request)
         
+        NimbusRequestModifier().insertExtendedIds(for: request, globalIds: nil)
+        
         guard let extensionsJsonDict = request.user?.extensions?.jsonDict() else {
             XCTFail("Could not find extensions for request")
             return
         }
         
         let expectedJsonDict = [
-            "eids": [[
-                "source": "liveramp.com",
-                "uids": [[
-                    "id": "envelope",
-                    "ext": ["rtiPartner": "idl"]
-                ]]
-            ]]
+            "eids": [
+                [
+                    "source": "liveramp.com",
+                    "uids": [
+                        [
+                            "id": "envelope",
+                            "ext": [
+                                "rtiPartner": "idl"
+                            ]
+                        ]
+                    ]
+                ]
+            ]
         ]
         
         XCTAssertTrue(extensionsJsonDict.isEqual(to: expectedJsonDict))
@@ -240,6 +245,8 @@ class NimbusLiveRampKitTests: XCTestCase {
         interceptor.liveRampEnvelope = "envelope"
         interceptor.modifyRequest(request: request)
         
+        NimbusRequestModifier().insertExtendedIds(for: request, globalIds: nil)
+        
         guard let extensionsJsonDict = request.user?.extensions?.jsonDict() else {
             XCTFail("Could not find extensions for request")
             return
@@ -248,10 +255,14 @@ class NimbusLiveRampKitTests: XCTestCase {
         let expectedJsonDict = [
             "eids": [[
                 "source": "liveramp.com",
-                "uids": [[
-                    "id": "envelope",
-                    "ext": ["rtiPartner": "idl"]
-                ]]
+                "uids": [
+                    [
+                        "id": "envelope",
+                        "ext": [
+                            "rtiPartner": "idl"
+                        ]
+                    ]
+                ]
             ]]
         ]
         

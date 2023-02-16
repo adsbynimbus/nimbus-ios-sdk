@@ -11,8 +11,8 @@ import Foundation
 extension Encodable {
     
     func jsonDict() -> [String: Any] {
-        guard let data = try? JSONEncoder().encode(self) else { return [:] }
         do {
+            let data = try JSONEncoder().encode(self)
             return try data.dict()
         } catch {
             return [:]

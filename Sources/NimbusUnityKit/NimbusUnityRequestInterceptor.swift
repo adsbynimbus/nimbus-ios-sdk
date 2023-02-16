@@ -67,7 +67,7 @@ extension NimbusUnityRequestInterceptor: NimbusRequestInterceptor {
             return
         }
         
-        guard let token = token else {
+        guard let token else {
             Nimbus.shared.logger.log("UnityAds token absent", level: .error)
             return
         }

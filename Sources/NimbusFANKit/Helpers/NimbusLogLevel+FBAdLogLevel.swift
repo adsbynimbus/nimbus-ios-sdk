@@ -16,6 +16,7 @@ public extension NimbusLogLevel {
         case .error: return .error
         case .debug: return .debug
         case .info: return .verbose
+        default: return .none
         }
     }
 }

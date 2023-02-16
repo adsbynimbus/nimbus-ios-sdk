@@ -16,6 +16,7 @@ extension NimbusLogLevel {
         case .error: return DTBLogLevelError
         case .debug: return DTBLogLevelDebug
         case .info: return DTBLogLevelAll
+        default: return DTBLogLevelOff
         }
     }
 }

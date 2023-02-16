@@ -53,14 +53,14 @@ final class NimbusUnityAdController: NSObject {
         let loadOptions = UADSLoadOptions()
         loadOptions?.adMarkup = ad.markup
         loadOptions?.objectId = adObjectId
-        guard let options = loadOptions, let placementId = ad.placementId else {
+        guard let loadOptions, let placementId = ad.placementId else {
             return
         }
         
         isLoaded = false
         shouldStart = false
         
-        UnityAds.load(placementId, options: options, loadDelegate: self)
+        UnityAds.load(placementId, options: loadOptions, loadDelegate: self)
     }
 }
 
@@ -73,7 +73,7 @@ extension NimbusUnityAdController: AdController {
     var adDuration: CGFloat { 0 }
 
     func start() {
-        guard let adPresentingViewController = adPresentingViewController,
+        guard let adPresentingViewController,
               let placementId = ad.placementId else {
             Nimbus.shared.logger.log("UnityAds not initialized", level: .error)
             return
@@ -102,7 +102,7 @@ extension NimbusUnityAdController: AdController {
 extension NimbusUnityAdController: UnityAdsLoadDelegate {
     
     func unityAdsAdLoaded(_ placementId: String) {
-        guard let adPresentingViewController = adPresentingViewController else {
+        guard let adPresentingViewController else {
             Nimbus.shared.logger.log("UnityAds not initialized", level: .error)
             return
         }
