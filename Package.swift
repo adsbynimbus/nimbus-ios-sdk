@@ -36,6 +36,9 @@ let package = Package(
         .library(
             name: "NimbusUnityKit",
             targets: ["NimbusUnityKit"]),
+        .library(
+            name: "NimbusRenderVideoKit-WithDeps",
+            targets: ["NimbusRenderVideoTarget", "GoogleInteractiveMediaAds"]),
     ],
     dependencies: [
         .package(url: "https://github.com/faktorio/ats-sdk-ios-prod", from: "1.4.0"),
