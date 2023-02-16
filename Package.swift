@@ -17,7 +17,7 @@ let package = Package(
             targets: ["NimbusRenderStaticTarget"]),
         .library(
             name: "NimbusRenderVideoKit",
-            targets: ["NimbusRenderVideoTarget"]),
+            targets: ["NimbusRenderVideoTarget", "GoogleInteractiveMediaAds"]),
         .library(
             name: "NimbusRequestKit",
             targets: ["NimbusRequestTarget"]),
@@ -26,19 +26,28 @@ let package = Package(
             targets: ["NimbusGAMKit"]),
         .library(
             name: "NimbusFANKit",
-            targets: ["NimbusFANKit"]),
+            targets: ["NimbusFANKit", "FBAudienceNetwork"]),
         .library(
             name: "NimbusLiveRampKit",
             targets: ["NimbusLiveRampKit"]),
         .library(
             name: "NimbusRequestAPSKit",
-            targets: ["NimbusRequestAPSKit"]),
+            targets: ["NimbusRequestAPSKit", "DTBiOSSDK"]),
         .library(
             name: "NimbusUnityKit",
-            targets: ["NimbusUnityKit"]),
+            targets: ["NimbusUnityKit", "UnityAds"]),
         .library(
-            name: "NimbusRenderVideoKit-WithDeps",
-            targets: ["NimbusRenderVideoTarget", "GoogleInteractiveMediaAds"]),
+            name: "NimbusRenderVideoKit-WithoutGoogleInteractiveMediaAds",
+            targets: ["NimbusRenderVideoTarget"]),
+        .library(
+            name: "NimbusRequestAPSKit-WithoutDTBiOSSDK",
+            targets: ["NimbusRequestAPSKit"]),
+        .library(
+            name: "NimbusFANKit-WithoutFBAudienceNetwork",
+            targets: ["NimbusFANKit"]),
+        .library(
+            name: "NimbusUnityKit-WithoutUnityAds",
+            targets: ["NimbusUnityKit"]),
     ],
     dependencies: [
         .package(url: "https://github.com/faktorio/ats-sdk-ios-prod", from: "1.4.0"),
@@ -78,22 +87,22 @@ let package = Package(
             dependencies: ["NimbusLiveRampKit"]),
         .target(
             name: "NimbusFANKit",
-            dependencies: ["NimbusRenderTarget", "NimbusRequestTarget", "FBAudienceNetwork"]),
+            dependencies: ["NimbusRenderTarget", "NimbusRequestTarget"]),
         .testTarget(
             name: "NimbusFANKitTests",
-            dependencies: ["NimbusFANKit"]),
+            dependencies: ["NimbusFANKit", "FBAudienceNetwork"]),
         .target(
             name: "NimbusRequestAPSKit",
-            dependencies: ["NimbusRequestTarget", "DTBiOSSDK"]),
+            dependencies: ["NimbusRequestTarget"]),
         .testTarget(
             name: "NimbusRequestAPSKitTests",
-            dependencies: ["NimbusRequestAPSKit"]),
+            dependencies: ["NimbusRequestAPSKit", "DTBiOSSDK"]),
         .target(
             name: "NimbusUnityKit",
-            dependencies: ["NimbusRenderTarget", "NimbusRequestTarget", "UnityAds"]),
+            dependencies: ["NimbusRenderTarget", "NimbusRequestTarget"]),
         .testTarget(
             name: "NimbusUnityKitTests",
-            dependencies: ["NimbusUnityKit"]),
+            dependencies: ["NimbusUnityKit", "UnityAds"]),
         .binaryTarget(
             name: "NimbusKit",
             url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.4.1/NimbusKit-2.4.1.zip",
