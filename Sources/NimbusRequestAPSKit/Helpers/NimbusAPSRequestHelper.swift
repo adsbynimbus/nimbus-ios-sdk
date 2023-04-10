@@ -6,28 +6,26 @@
 //  Copyright © 2022 Timehop. All rights reserved.
 //
 
+@_exported import NimbusRequestKit
 import DTBiOSSDK
 import Foundation
-@_exported import NimbusRequestKit
 
 /// Internal class, DO NOT USE
 /// :nodoc:
-public final class NimbusAPSRequestHelper {
-    let requestManager: APSRequestManagerType
+final class NimbusAPSRequestHelper {
+    let requestManager: APSLegacyRequestManagerType
     var adSizes: [DTBAdSize] = []
     
     public init(
         appKey: String,
-        requestManager: APSRequestManagerType? = nil,
-        timeoutInSeconds: Double,
-        enableTestMode: Bool = false
+        requestManager: APSLegacyRequestManagerType? = nil,
+        timeoutInSeconds: Double
     ) {
-        self.requestManager = requestManager ?? NimbusAPSRequestManager(
+        self.requestManager = requestManager ?? NimbusAPSLegacyRequestManager(
             appKey: appKey,
             logger: Nimbus.shared.logger,
             logLevel: Nimbus.shared.logLevel,
-            timeoutInSeconds: timeoutInSeconds,
-            enableTestMode: enableTestMode
+            timeoutInSeconds: timeoutInSeconds
         )
     }
     

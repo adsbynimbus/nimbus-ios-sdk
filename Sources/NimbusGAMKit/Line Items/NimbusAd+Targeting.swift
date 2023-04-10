@@ -6,11 +6,12 @@
 //  Copyright © 2022 Timehop. All rights reserved.
 //
 
-import GoogleMobileAds
 @_exported import NimbusRequestKit
+import GoogleMobileAds
 
 public extension NimbusAd {
-
+    
+    
     /// Add keywords for custom targeting from Nimbus ad to GAMRequest
     /// - Parameters:
     ///   - request: GAMRequest to add keywords to

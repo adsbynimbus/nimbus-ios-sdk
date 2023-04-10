@@ -6,8 +6,8 @@
 //  Copyright © 2020 Timehop. All rights reserved.
 //
 
-import Foundation
 @_exported import NimbusRequestKit
+import Foundation
 
 /// A mapping composed of multiple LinearPriceGranularities in ascending order
 public struct NimbusGAMLinearPriceMapping: NimbusDynamicPriceMapping {
