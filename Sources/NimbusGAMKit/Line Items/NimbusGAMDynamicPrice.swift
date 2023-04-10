@@ -6,8 +6,8 @@
 //  Copyright © 2020 Timehop. All rights reserved.
 //
 
-import GoogleMobileAds
 @_exported import NimbusRequestKit
+import GoogleMobileAds
 
 /// Nimbus Dynamice Price implementation for GAM which applies keywords to a `GADRequest`
 public class NimbusGAMDynamicPrice {

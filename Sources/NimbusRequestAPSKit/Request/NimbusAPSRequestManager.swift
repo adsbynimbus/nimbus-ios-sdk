@@ -2,94 +2,71 @@
 //  NimbusAPSRequestManager.swift
 //  NimbusRequestAPSKit
 //
-//  Created by Inder Dhir on 7/14/22.
-//  Copyright © 2022 Timehop. All rights reserved.
+//  Created by Inder Dhir on 3/22/23.
+//  Copyright © 2023 Timehop. All rights reserved.
 //
 
-import DTBiOSSDK
+import Foundation
 @_exported import NimbusRequestKit
+import DTBiOSSDK
 
 public protocol APSRequestManagerType {
-    var usPrivacyString: String? { get set }
-    func loadAdsSync(for adSizes: [DTBAdSize]) -> [[AnyHashable: Any]]
+    func loadAdsSync(with loaders: [DTBAdLoader]) ->  ([DTBAdLoader], [DTBAdResponse])
 }
-
 
 final class NimbusAPSRequestManager: APSRequestManagerType {
     private let requestsDispatchGroup = DispatchGroup()
-    private let requestsTimeoutInSeconds: Double
+    private let requestsTimeoutInSeconds: Double = 0.5
     private let logger: Logger
     private let logLevel: NimbusLogLevel
     
-    private var adLoadersDict: [String: DTBAdLoader] = [:]
-    var usPrivacyString: String?
-
     init(
-        appKey: String,
-        logger: Logger,
-        logLevel: NimbusLogLevel,
-        timeoutInSeconds: Double = 0.5,
-        enableTestMode: Bool = false
+        logger: Logger = Nimbus.shared.logger,
+        logLevel: NimbusLogLevel = Nimbus.shared.logLevel
     ) {
         self.logger = logger
         self.logLevel = logLevel
-        self.requestsTimeoutInSeconds = timeoutInSeconds
-        
-        DTBAds.sharedInstance().setAppKey(appKey)
-        DTBAds.sharedInstance().mraidPolicy = CUSTOM_MRAID
-        DTBAds.sharedInstance().mraidCustomVersions = ["1.0", "2.0", "3.0"]
-        DTBAds.sharedInstance().setLogLevel(logLevel.apsLogLevel)
-        DTBAds.sharedInstance().testMode = enableTestMode
     }
     
-    func loadAdsSync(for adSizes: [DTBAdSize]) -> [[AnyHashable: Any]] {
-        var callbacks: [DTBCallback] = []
-        adSizes.forEach { adSize in
-            let adLoader = reuseOrCreateAdLoader(for: adSize)
-            
+    func loadAdsSync(with loaders: [DTBAdLoader]) -> ([DTBAdLoader], [DTBAdResponse]) {
+        var callbacks: [DTBLoadingCallback] = []
+
+        loaders.forEach { loader in
             requestsDispatchGroup.enter()
-            let callback = DTBCallback(loaders: adLoadersDict, requestsDispatchGroup: requestsDispatchGroup)
+            
+            let callback = DTBLoadingCallback(
+                loader: loader,
+                requestsDispatchGroup: requestsDispatchGroup
+            )
             callbacks.append(callback)
-            adLoader.loadAd(callback)
+            loader.loadAd(callback)
         }
         
         let result = requestsDispatchGroup.wait(timeout: .now() + requestsTimeoutInSeconds)
         switch result {
         case .success:
-            logger.log("APS requests completed successfully", level: logLevel)
+            logger.log("APS requests completed successfully", level: .debug)
         case .timedOut:
-            logger.log("APS requests timed out", level: logLevel)
+            logger.log("APS requests timed out", level: .debug)
         }
         
-        return callbacks.compactMap { $0.payload }
-    }
-    
-    private func reuseOrCreateAdLoader(for adSize: DTBAdSize) -> DTBAdLoader {
-        if let existingAdLoader = adLoadersDict.removeValue(forKey: adSize.slotUUID) {
-            return existingAdLoader
-        }
-        
-        let adLoader = DTBAdLoader()
-        adLoader.setAdSizes([adSize as Any])
-        if let usPrivacyString {
-            adLoader.putCustomTarget(usPrivacyString, withKey: "us_privacy")
-        }
-        
-        return adLoader
+        let adLoaders = callbacks.compactMap { $0.loader }
+        let successfulResponses = callbacks.compactMap { $0.response }
+        return (adLoaders, successfulResponses)
     }
 }
 
 // MARK: DTBAdCallback
 
 /// :nodoc:
-final class DTBCallback: DTBAdCallback {
+final class DTBLoadingCallback: DTBAdCallback {
     
     private let requestsDispatchGroup: DispatchGroup
-    private var adLoadersDict: [String: DTBAdLoader]
-    var payload: [AnyHashable: Any]?
+    var loader: DTBAdLoader
+    var response: DTBAdResponse?
     
-    init(loaders: [String: DTBAdLoader], requestsDispatchGroup: DispatchGroup) {
-        self.adLoadersDict = loaders
+    init(loader: DTBAdLoader, requestsDispatchGroup: DispatchGroup) {
+        self.loader = loader
         self.requestsDispatchGroup = requestsDispatchGroup
     }
 
@@ -103,8 +80,12 @@ final class DTBCallback: DTBAdCallback {
     /// :nodoc:
     public func onSuccess(_ adResponse: DTBAdResponse!) {
         Nimbus.shared.logger.log("APS ad fetching succeeded", level: .debug)
-        adLoadersDict[adResponse.adSize().slotUUID] = adResponse.dtbAdLoader
-        payload = adResponse.customTargeting()
+                
+        if let adloader = adResponse.dtbAdLoader {
+            loader = adloader
+        }
+        response = adResponse
+        
         requestsDispatchGroup.leave()
     }
 }

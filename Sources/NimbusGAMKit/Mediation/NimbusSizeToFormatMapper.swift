@@ -6,7 +6,7 @@
 //  Copyright © 2022 Timehop. All rights reserved.
 //
 
-import NimbusRequestKit
+@_exported import NimbusRequestKit
 
 final class NimbusSizeToFormatMapper {
 

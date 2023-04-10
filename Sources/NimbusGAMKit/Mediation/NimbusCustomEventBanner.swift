@@ -6,8 +6,8 @@
 //  Copyright © 2020 Timehop. All rights reserved.
 //
 
+@_exported import NimbusKit
 import GoogleMobileAds
-import NimbusKit
 
 /// :nodoc:
 public final class NimbusCustomEventBanner: NSObject, GADCustomEventBanner {
@@ -84,7 +84,6 @@ extension NimbusCustomEventBanner: AdControllerDelegate {
     public func didReceiveNimbusEvent(controller: AdController, event: NimbusEvent) {
         if event == .clicked {
             delegate?.customEventBannerWasClicked(self)
-            delegate?.customEventBannerWillLeaveApplication(self)
         }
     }
 

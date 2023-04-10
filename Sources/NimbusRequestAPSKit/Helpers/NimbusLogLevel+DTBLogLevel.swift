@@ -7,7 +7,6 @@
 //
 
 import DTBiOSSDK
-import NimbusCoreKit
 
 extension NimbusLogLevel {
     var apsLogLevel: DTBLogLevel {

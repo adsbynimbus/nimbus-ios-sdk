@@ -6,8 +6,8 @@
 //  Copyright © 2020 Timehop. All rights reserved.
 //
 
+@_exported import NimbusKit
 import GoogleMobileAds
-import NimbusKit
 
 /// :nodoc:
 public final class NimbusCustomEventInterstitial: NSObject, GADCustomEventInterstitial {
@@ -77,7 +77,6 @@ extension NimbusCustomEventInterstitial: AdControllerDelegate {
     public func didReceiveNimbusEvent(controller: AdController, event: NimbusEvent) {
         if event == .clicked {
             delegate?.customEventInterstitialWasClicked(self)
-            delegate?.customEventInterstitialWillLeaveApplication(self)
         }
     }
 

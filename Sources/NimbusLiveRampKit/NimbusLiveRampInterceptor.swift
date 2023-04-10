@@ -6,8 +6,8 @@
 //  Copyright © 2022 Timehop. All rights reserved.
 //
 
-import LRAtsSDK
 @_exported import NimbusRequestKit
+import LRAtsSDK
 
 /// Delegate for listening LiveRamp's initialization and envelope fetching
 public protocol NimbusLiveRampInterceptorDelegate {
