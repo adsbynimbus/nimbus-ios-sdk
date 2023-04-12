@@ -24,21 +24,26 @@ let package = Package(
            targets: ["NimbusRequestTarget"]),
         .library(
            name: "NimbusGAMKit",
+           type: .dynamic,
            targets: ["NimbusGAMKit"]),
         .library(
            name: "NimbusFANKit",
+           type: .dynamic,
            targets: ["NimbusRenderFANKit", "NimbusRequestFANKit"]),
         .library(
            name: "NimbusLiveRampKit",
            targets: ["NimbusLiveRampKit"]),
         .library(
            name: "NimbusRequestAPSKit",
+           type: .dynamic,
            targets: ["NimbusRequestAPSKit"]),
         .library(
            name: "NimbusUnityKit",
+           type: .dynamic,
            targets: ["NimbusUnityKit"]),
         .library(
            name: "NimbusVungleKit",
+           type: .dynamic,
            targets: ["NimbusVungleKit"]),
         .library(
            name: "NimbusRenderVideoKit-WithoutGoogleInteractiveMediaAds",
