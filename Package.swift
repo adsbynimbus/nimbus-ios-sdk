@@ -39,7 +39,7 @@ let package = Package(
            targets: ["NimbusUnityKit", "UnityAds"]),
         .library(
            name: "NimbusVungleKit",
-           targets: ["NimbusVungleKit", "VungleSDK"]),
+           targets: ["NimbusVungleKit"]),
         .library(
            name: "NimbusRenderVideoKit-WithoutGoogleInteractiveMediaAds",
            targets: ["NimbusRenderVideoTarget"]),
@@ -97,7 +97,7 @@ let package = Package(
             dependencies: ["NimbusRenderTarget", "NimbusRequestTarget"]),
         .target(
             name: "NimbusVungleKit",
-            dependencies: ["NimbusRenderTarget", "NimbusRequestTarget"]),
+            dependencies: ["NimbusRenderTarget", "NimbusRequestTarget", "VungleSDK"]),
         .binaryTarget(
             name: "GoogleInteractiveMediaAds",
             url: "https://imasdk.googleapis.com/native/downloads/ima-ios-v3.16.3.zip",
