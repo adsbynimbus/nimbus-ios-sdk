@@ -12,13 +12,13 @@ let package = Package(
            targets: ["NimbusTarget"]),
         .library(
            name: "NimbusRenderKit",
-           targets: ["NimbusRenderTarget", "OMSDK_Adsbynimbus"]),
+           targets: ["NimbusRenderTarget"]),
         .library(
            name: "NimbusRenderStaticKit",
            targets: ["NimbusRenderStaticTarget"]),
         .library(
            name: "NimbusRenderVideoKit",
-           targets: ["NimbusRenderVideoTarget", "GoogleInteractiveMediaAds"]),
+           targets: ["NimbusRenderVideoTarget"]),
         .library(
            name: "NimbusRequestKit",
            targets: ["NimbusRequestTarget"]),
@@ -27,19 +27,19 @@ let package = Package(
            targets: ["NimbusGAMKit"]),
         .library(
            name: "NimbusFANKit",
-           targets: ["NimbusRenderFANKit", "NimbusRequestFANKit", "FBAudienceNetwork"]),
+           targets: ["NimbusRenderFANKit", "NimbusRequestFANKit"]),
         .library(
            name: "NimbusLiveRampKit",
            targets: ["NimbusLiveRampKit"]),
         .library(
            name: "NimbusRequestAPSKit",
-           targets: ["NimbusRequestAPSKit", "DTBiOSSDK"]),
+           targets: ["NimbusRequestAPSKit"]),
         .library(
            name: "NimbusUnityKit",
-           targets: ["NimbusUnityKit", "UnityAds"]),
+           targets: ["NimbusUnityKit"]),
         .library(
            name: "NimbusVungleKit",
-           targets: ["NimbusVungleKit", "VungleSDK"]),
+           targets: ["NimbusVungleKit"]),
         .library(
            name: "NimbusRenderVideoKit-WithoutGoogleInteractiveMediaAds",
            targets: ["NimbusRenderVideoTarget"]),
@@ -64,7 +64,7 @@ let package = Package(
     targets: [
         .framework(
             name: "NimbusRenderTarget",
-            dependencies: ["NimbusCoreKit", "NimbusRenderKit"]),
+            dependencies: ["NimbusCoreKit", "NimbusRenderKit", "OMSDK_Adsbynimbus"]),
         .framework(
             name: "NimbusRequestTarget",
             dependencies: ["NimbusCoreKit", "NimbusRequestKit"]),
@@ -76,13 +76,13 @@ let package = Package(
             dependencies: ["NimbusRenderTarget", "NimbusRenderStaticKit"]),
         .framework(
             name: "NimbusRenderVideoTarget",
-            dependencies: ["NimbusRenderTarget", "NimbusRenderVideoKit"]),
+            dependencies: ["NimbusRenderTarget", "NimbusRenderVideoKit", "GoogleInteractiveMediaAds"]),
         .target(
             name: "NimbusRenderFANKit",
-            dependencies: ["NimbusRenderTarget"]),
+            dependencies: ["NimbusRenderTarget", "FBAudienceNetwork"]),
         .target(
             name: "NimbusRequestFANKit",
-            dependencies: ["NimbusRequestTarget"]),
+            dependencies: ["NimbusRequestTarget", "FBAudienceNetwork"]),
         .target(
             name: "NimbusGAMKit",
             dependencies: ["NimbusTarget", .GoogleMobileAds]),
@@ -91,13 +91,13 @@ let package = Package(
             dependencies: [ "NimbusRequestTarget", .LiveRamp]),
         .target(
             name: "NimbusRequestAPSKit",
-            dependencies: ["NimbusRequestTarget"]),
+            dependencies: ["NimbusRequestTarget", "DTBiOSSDK"]),
         .target(
             name: "NimbusUnityKit",
-            dependencies: ["NimbusRenderTarget", "NimbusRequestTarget"]),
+            dependencies: ["NimbusRenderTarget", "NimbusRequestTarget", "UnityAds"]),
         .target(
             name: "NimbusVungleKit",
-            dependencies: ["NimbusRenderTarget", "NimbusRequestTarget"]),
+            dependencies: ["NimbusRenderTarget", "NimbusRequestTarget", "VungleSDK"]),
         .binaryTarget(
             name: "GoogleInteractiveMediaAds",
             url: "https://imasdk.googleapis.com/native/downloads/ima-ios-v3.16.3.zip",
