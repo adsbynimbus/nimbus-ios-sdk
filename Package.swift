@@ -12,13 +12,13 @@ let package = Package(
            targets: ["NimbusTarget"]),
         .library(
            name: "NimbusRenderKit",
-           targets: ["NimbusRenderTarget"]),
+           targets: ["NimbusRenderTarget", "OMSDK_Adsbynimbus"]),
         .library(
            name: "NimbusRenderStaticKit",
            targets: ["NimbusRenderStaticTarget"]),
         .library(
            name: "NimbusRenderVideoKit",
-           targets: ["NimbusRenderVideoTarget"]),
+           targets: ["NimbusRenderVideoTarget", "GoogleInteractiveMediaAds"]),
         .library(
            name: "NimbusRequestKit",
            targets: ["NimbusRequestTarget"]),
@@ -29,37 +29,22 @@ let package = Package(
         .library(
            name: "NimbusFANKit",
            type: .dynamic,
-           targets: ["NimbusRenderFANKit", "NimbusRequestFANKit"]),
+           targets: ["NimbusRenderFANKit", "NimbusRequestFANKit", "FBAudienceNetwork"]),
         .library(
            name: "NimbusLiveRampKit",
            targets: ["NimbusLiveRampKit"]),
         .library(
            name: "NimbusRequestAPSKit",
            type: .dynamic,
-           targets: ["NimbusRequestAPSKit"]),
+           targets: ["NimbusRequestAPSKit", "DTBiOSSDK"]),
         .library(
            name: "NimbusUnityKit",
            type: .dynamic,
-           targets: ["NimbusUnityKit"]),
+           targets: ["NimbusUnityKit", "UnityAds"]),
         .library(
            name: "NimbusVungleKit",
            type: .dynamic,
-           targets: ["NimbusVungleKit"]),
-        .library(
-           name: "NimbusRenderVideoKit-WithoutGoogleInteractiveMediaAds",
-           targets: ["NimbusRenderVideoTarget"]),
-        .library(
-           name: "NimbusRequestAPSKit-WithoutDTBiOSSDK",
-           targets: ["NimbusRequestAPSKit"]),
-        .library(
-           name: "NimbusFANKit-WithoutFBAudienceNetwork",
-           targets: ["NimbusRenderFANKit", "NimbusRequestFANKit"]),
-        .library(
-           name: "NimbusUnityKit-WithoutUnityAds",
-           targets: ["NimbusUnityKit"]),
-        .library(
-           name: "NimbusVungleKit-WithoutVungleSDK",
-           targets: ["NimbusVungleKit"]),
+           targets: ["NimbusVungleKit", "VungleSDK"]),
     ],
     dependencies: [
         .package(url: "https://github.com/LiveRamp/ats-sdk-ios.git", from: "1.4.0"),
