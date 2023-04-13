@@ -120,8 +120,8 @@ let package = Package(
             checksum: "8196b13a0a5eae6ba817e2e7fc9096a584f22aedb1958980d2064955e448d5ad"),
         .binaryTarget(
             name: "VungleSDK",
-            url: "https://vungle2-sdk-dev-scratch.s3.amazonaws.com/ios/6.12.x/vungle6123.zip",
-            checksum: "1fe502a94d7ea03a750f0e5a5922610ebceb93b862f6d9e1baca4c43c5f3cad1"),
+            url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/external/vungle/6.12.3/VungleSDK-6.12.3.zip",
+            checksum: "60800dd6659d54865f3ca2606a1a1e6905421f46993f1e5ac113a6f5a9694ffd"),
     ]
 )
 
