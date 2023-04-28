@@ -41,8 +41,7 @@ Documentation can be found at https://docs.adsbynimbus.com/docs/sdk/ios
 
 ### Nimbus Dynamic Price
 
-Only NimbusKit and NimbusGAMKit are required for a Dynamic Price integration. For additional information integrating
-Dynamic Price please see our [documentation](https://docs.adsbynimbus.com/docs/sdk/dynamic-price).
+For additional information integrating Dynamic Price please see our [documentation](https://docs.adsbynimbus.com/docs/sdk/dynamic-price).
 
 ## License
 
