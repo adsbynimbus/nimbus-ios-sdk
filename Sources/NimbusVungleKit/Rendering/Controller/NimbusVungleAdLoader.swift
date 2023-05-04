@@ -18,7 +18,7 @@ final class NimbusVungleAdLoader {
     private let vungleProxyType: NimbusVungleProxyType
     private let logger: Logger
     private(set) var isLoaded = false
-    var isAllowedToStart = false
+    private(set) var isAllowedToStart = false
         
     init(
         vungleProxyType: NimbusVungleProxyType,
@@ -68,8 +68,6 @@ final class NimbusVungleAdLoader {
     
     private func loadBannerAd(placementId: String, markup: String, adSize: VungleAdSize) throws {
         do {
-            // Vungle triggers adPlayabilityUpdate before loadPlacement returns so this bool needs to be set first
-            isAllowedToStart = true
             try vungleProxyType.loadPlacement(id: placementId, markup: markup, with: adSize)
         } catch {
             logger.log("Vungle failed to play banner ad. Error: \(error)", level: .debug)
@@ -80,8 +78,6 @@ final class NimbusVungleAdLoader {
     
     private func loadMrecAd(placementId: String, markup: String) throws {
         do {
-            // Vungle triggers adPlayabilityUpdate before loadPlacement returns so this bool needs to be set first
-            isAllowedToStart = true
             try vungleProxyType.loadPlacement(id: placementId, markup: markup)
         } catch {
             logger.log("Vungle failed to play MREC ad. Error: \(error)", level: .debug)
@@ -92,8 +88,6 @@ final class NimbusVungleAdLoader {
     
     private func loadInterstitialAd(placementId: String, markup: String) throws {
         do {
-            // Vungle triggers adPlayabilityUpdate before loadPlacement returns so this bool needs to be set first
-            isAllowedToStart = true
             try vungleProxyType.loadPlacement(id: placementId, markup: markup)
         } catch {
             logger.log("Vungle failed to play interstitial ad. Error: \(error)", level: .debug)
