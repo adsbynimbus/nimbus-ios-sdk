@@ -67,9 +67,25 @@ final class NimbusFANAdController: NSObject {
         super.init()
 
         self.visibilityManager?.delegate = self
-        
+        self.visibilityManager?.startListeningForVisibilityChanges()
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appDidBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillResignActive),
+            name: UIApplication.willResignActiveNotification,
+            object: nil
+        )
+    }
+    
+    func load() {
         guard let placementId = ad.placementId else {
-            self.delegate?.didReceiveNimbusError(
+            delegate?.didReceiveNimbusError(
                 controller: self,
                 error: NimbusRenderError.adRenderingFailed(message: "Placement id not valid for FB ad")
             )
@@ -86,7 +102,7 @@ final class NimbusFANAdController: NSObject {
                     // Testing Facebook native ad rendering on the client
                     fbNativeAd?.loadAd()
                 } else {
-                    delegate.didReceiveNimbusError(
+                    delegate?.didReceiveNimbusError(
                         controller: self,
                         error: NimbusRenderError.adRenderingFailed(message: "No markup present to render Facebook native ad")
                     )
@@ -104,7 +120,7 @@ final class NimbusFANAdController: NSObject {
                     // Testing Facebook interstitial ad rendering on the client
                     fbInterstitialAd?.load()
                 } else {
-                    delegate.didReceiveNimbusError(
+                    delegate?.didReceiveNimbusError(
                         controller: self,
                         error: NimbusRenderError.adRenderingFailed(message: "No markup present to render Facebook interstitial ad")
                     )
@@ -129,22 +145,6 @@ final class NimbusFANAdController: NSObject {
             logger.log("Unknown case for FAN", level: .error)
             return
         }
-        
-
-        self.visibilityManager?.startListeningForVisibilityChanges()
-
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(appDidBecomeActive),
-            name: UIApplication.didBecomeActiveNotification,
-            object: nil
-        )
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(appWillResignActive),
-            name: UIApplication.willResignActiveNotification,
-            object: nil
-        )
     }
 
     private func triggerImpressionDelegateIfNecessary() {

@@ -41,7 +41,9 @@ final class NimbusUnityAdController: NSObject {
         self.adObjectId = NSUUID().uuidString
         
         super.init()
-        
+    }
+    
+    func load() {
         guard ad.auctionType == .video else {
             Nimbus.shared.logger.log(
                 "UnityAds not supported for \(ad.auctionType)",
@@ -56,9 +58,6 @@ final class NimbusUnityAdController: NSObject {
         guard let loadOptions, let placementId = ad.placementId else {
             return
         }
-        
-        isLoaded = false
-        shouldStart = false
         
         UnityAds.load(placementId, options: loadOptions, loadDelegate: self)
     }

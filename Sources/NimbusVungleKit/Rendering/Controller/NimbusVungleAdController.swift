@@ -43,11 +43,16 @@ final class NimbusVungleAdController: NSObject {
         self.delegate = delegate
         self.adPresentingViewController = adPresentingViewController
         
-        vungleAdLoader = .init(vungleProxyType: vungleProxyType, logger: logger)
+        vungleAdLoader = .init(
+            vungleProxyType: vungleProxyType,
+            logger: logger
+        )
         vungleAdRenderer = .init(vungleProxyType: vungleProxyType)
         
         super.init()
-                    
+    }
+    
+    func load() {
         guard let placementId = ad.placementId else {
             self.delegate?.didReceiveNimbusError(
                 controller: self,
@@ -55,7 +60,6 @@ final class NimbusVungleAdController: NSObject {
             )
             return
         }
-        
         self.vungleEventObserverType?.addDelegate(placementId: placementId, delegate: self)
         
         do {
@@ -153,12 +157,11 @@ extension NimbusVungleAdController: NimbusVungleEventObserverDelegate {
             return
         }
         
+        vungleAdLoader.completeAdLoad()
         delegate?.didReceiveNimbusEvent(controller: self, event: .loaded)
 
         if vungleAdLoader.isAllowedToStart {
             startAd()
-        } else {
-            vungleAdLoader.completeAdLoad()
         }
     }
     

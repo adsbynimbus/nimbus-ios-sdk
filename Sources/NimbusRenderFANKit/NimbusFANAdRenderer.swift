@@ -38,7 +38,7 @@ public final class NimbusFANAdRenderer: AdRenderer {
         adPresentingViewController: UIViewController?,
         delegate: AdControllerDelegate
     ) -> AdController {
-        NimbusFANAdController(
+        let adController = NimbusFANAdController(
             ad: ad,
             container: container,
             logger: Nimbus.shared.logger,
@@ -46,5 +46,12 @@ public final class NimbusFANAdRenderer: AdRenderer {
             adRendererDelegate: adRendererDelegate,
             adPresentingViewController: adPresentingViewController
         )
+        
+        // Ensure that the ad load begins AFTER the publisher has had a chance to retrieve the ad controller
+        DispatchQueue.main.async {
+            adController.load()
+        }
+        
+        return adController
     }
 }

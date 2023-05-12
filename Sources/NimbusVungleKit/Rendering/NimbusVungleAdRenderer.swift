@@ -20,13 +20,20 @@ public final class NimbusVungleAdRenderer: AdRenderer {
         adPresentingViewController: UIViewController?,
         delegate: AdControllerDelegate
     ) -> AdController {
-        NimbusVungleAdController(
+        let adController = NimbusVungleAdController(
             ad: ad,
             container: container,
             logger: Nimbus.shared.logger,
             delegate: delegate,
             adPresentingViewController: adPresentingViewController
         )
+        
+        // Ensure that the ad load begins AFTER the publisher has had a chance to retrieve the ad controller
+        DispatchQueue.main.async {
+            adController.load()
+        }
+        
+        return adController
     }
 }
 
