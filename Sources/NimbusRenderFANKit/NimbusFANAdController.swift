@@ -18,6 +18,7 @@ final class NimbusFANAdController: NSObject {
     private let logger: Logger
 
     var volume = 0
+    var isClickProtectionEnabled = true
     var friendlyObstructions: [UIView]? = nil
     weak var adRendererDelegate: NimbusFANAdRendererDelegate?
     var fbAdView: FBAdView?

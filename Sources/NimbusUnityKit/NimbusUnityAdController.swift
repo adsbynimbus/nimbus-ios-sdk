@@ -13,6 +13,7 @@ final class NimbusUnityAdController: NSObject {
     
     public weak var delegate: AdControllerDelegate?
     var volume: Int
+    var isClickProtectionEnabled = true
     private let ad: NimbusAd
     private let logger: Logger
     private var isLoaded = false

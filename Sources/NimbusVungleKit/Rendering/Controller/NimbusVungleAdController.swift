@@ -15,6 +15,7 @@ final class NimbusVungleAdController: NSObject {
     weak var delegate: AdControllerDelegate?
     
     var volume = 0
+    var isClickProtectionEnabled = true
     
     private let ad: NimbusAd
     private let logger: Logger
