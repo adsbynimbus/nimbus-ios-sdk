@@ -7,31 +7,17 @@
 //
 
 @_exported import NimbusRenderKit
-import VungleSDK
+import VungleAdsSDK
 
 extension NimbusAd {
     
-    var vungleAdSize: VungleAdSize {
+    var vungleAdSize: BannerSize? {
         switch (adDimensions?.width, adDimensions?.height) {
-        case (320, 50): return .banner
-        case (300, 50): return .bannerShort
-        case (728, 90): return .bannerLeaderboard
-        default: return .unknown
+        case (320, 50): return .regular
+        case (300, 50): return .short
+        case (728, 90): return .leaderboard
+        case (300, 250): return .mrec
+        default: return nil
         }
-    }
-    
-    var isAdMRECType: Bool {
-        adDimensions?.width == 300 && adDimensions?.height == 250
-    }
-    
-    var isAdSizeBannerType: Bool {
-        vungleAdSize != .unknown
-    }
-    
-    var adType: String {
-        if isInterstitial {
-            return "interstitial"
-        }
-        return isAdMRECType ? "mrec" : "banner"
     }
 }

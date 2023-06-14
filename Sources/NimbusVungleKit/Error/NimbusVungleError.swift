@@ -11,12 +11,10 @@
 public enum NimbusVungleError: NimbusError, Equatable {
     case sdkNotInitialized
     case sdkAlreadyInitialized
-    
-    case failedToLoadAd(message: String)
-    case failedToLoadStaticAd(type: String, message: String)
-    case failedToLoadNativeAd(message: String)
-    case failedToStartStaticAd(type: String, message: String)
-    case failedToStartNativeAd(message: String)
+
+    case failedToStartAd(type: String? = nil, message: String)
+    case failedToLoadAd(type: String? = nil, message: String)
+    case failedToPresentAd(type: String? = nil, message: String)
     
     public var errorDescription: String? {
         switch self {
@@ -25,16 +23,20 @@ public enum NimbusVungleError: NimbusError, Equatable {
         case .sdkAlreadyInitialized:
             return "Vungle SDK already initialized"
             
-        case let .failedToLoadAd(message):
-            return "Vungle failed to load ad: \(message)"
-        case let .failedToLoadStaticAd(type, message):
-            return "Vungle failed to load static \(type) ad: \(message)"
-        case let .failedToLoadNativeAd(message):
-            return "Vungle failed to load native ad: \(message)"
-        case let .failedToStartStaticAd(type, message):
-            return "Vungle failed to start static \(type) ad: \(message)"
-        case let .failedToStartNativeAd(message):
-            return "Vungle failed to start native ad: \(message)"
+        case let .failedToStartAd(type, message):
+            return "Vungle failed to start \(getAdTypeMessage(type)) \(message)"
+        case let .failedToLoadAd(type, message):
+            return "Vungle failed to load \(getAdTypeMessage(type)) \(message)"
+        case let .failedToPresentAd(type, message):
+            return "Vungle failed to present \(getAdTypeMessage(type)) \(message)"
+        }
+    }
+    
+    private func getAdTypeMessage(_ type: String?) -> String {
+        if let type {
+            return "\(type) ad:"
+        } else {
+            return "ad:"
         }
     }
 }

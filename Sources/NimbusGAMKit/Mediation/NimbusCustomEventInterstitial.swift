@@ -43,7 +43,7 @@ public final class NimbusCustomEventInterstitial: NSObject, GADCustomEventInters
         adView?.delegate = self
         
         guard let adView else { return }
-        let nimbusVC = NimbusAdViewController(adView: adView, ad: ad, companionAd: nil)
+        let nimbusVC = NimbusAdViewController(adView: adView, ad: ad, companionAd: nil, closeButtonDelay: 5)
         nimbusVC.delegate = self
         adView.adPresentingViewController = nimbusVC
         rootViewController.present(nimbusVC, animated: true, completion: nil)
