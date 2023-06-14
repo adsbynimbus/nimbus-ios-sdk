@@ -2,13 +2,14 @@
 //  NimbusVungleRequest.swift
 //  NimbusVungleKit
 //
-//  Created by Victor Takai on 24/09/22.
+//  Created by Victor Takai on 18/05/23.
 //  Copyright © 2023 Timehop. All rights reserved.
 //
 
-import VungleSDK
+import Foundation
 
-/// Protocol used for starting Vungle SDK
+/// :nodoc:
+@available(*, deprecated, message: "This protocol is no longer used and conforming to it will have no effect.")
 public protocol NimbusVungleRequestType {
     var isInitialized: Bool { get }
     
@@ -17,25 +18,17 @@ public protocol NimbusVungleRequestType {
     func setLoggingEnabled(_ enabled: Bool)
 }
 
-/// Nimbus default wrapper for starting Vungle SDK
 /// :nodoc:
+@available(*, deprecated, message: "This class is no longer used and inheriting it will have no effect.")
 public final class NimbusVungleRequest: NimbusVungleRequestType {
+    
+    public var isInitialized: Bool { false }
         
-    public var isInitialized: Bool { sdk.isInitialized }
-    
-    private let sdk = VungleSDK.shared()
-    
     public init() {}
     
-    public func start(withAppId appID: String) throws {
-        try sdk.start(withAppId: appID)
-    }
+    public func start(withAppId appID: String) throws {}
+
+    public func currentSuperToken() -> String { "" }
     
-    public func currentSuperToken() -> String {
-        sdk.currentSuperToken(forPlacementID: nil, forSize: 0)
-    }
-    
-    public func setLoggingEnabled(_ enabled: Bool) {
-        sdk.setLoggingEnabled(enabled)
-    }
+    public func setLoggingEnabled(_ enabled: Bool) {}
 }

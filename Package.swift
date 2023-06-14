@@ -39,7 +39,7 @@ let package = Package(
            targets: ["NimbusUnityKit", "UnityAds"]),
         .library(
            name: "NimbusVungleKit",
-           targets: ["NimbusVungleKit", "VungleSDK"]),
+           targets: ["NimbusVungleKit"]),
         .library(
            name: "NimbusRenderVideoKit-WithoutGoogleInteractiveMediaAds",
            targets: ["NimbusRenderVideoTarget"]),
@@ -52,14 +52,12 @@ let package = Package(
         .library(
            name: "NimbusUnityKit-WithoutUnityAds",
            targets: ["NimbusUnityKit"]),
-        .library(
-           name: "NimbusVungleKit-WithoutVungleSDK",
-           targets: ["NimbusVungleKit"]),
     ],
     dependencies: [
         .package(url: "https://github.com/LiveRamp/ats-sdk-ios.git", from: "1.4.0"),
         .package(url: "https://github.com/birdrides/mockingbird.git", from: "0.20.0"),
         .package(url: "https://github.com/googleads/swift-package-manager-google-mobile-ads.git", "9.12.0"..<"11.0.0"),
+        .package(url: "https://github.com/Vungle/VungleAdsSDK-SwiftPackageManager.git", from: "7.0.0"),
     ],
     targets: [
         .framework(
@@ -88,7 +86,7 @@ let package = Package(
             dependencies: ["NimbusTarget", .GoogleMobileAds]),
         .target(
             name: "NimbusLiveRampKit",
-            dependencies: [ "NimbusRequestTarget", .LiveRamp]),
+            dependencies: ["NimbusRequestTarget", .LiveRamp]),
         .target(
             name: "NimbusRequestAPSKit",
             dependencies: ["NimbusRequestTarget"]),
@@ -97,7 +95,7 @@ let package = Package(
             dependencies: ["NimbusRenderTarget", "NimbusRequestTarget"]),
         .target(
             name: "NimbusVungleKit",
-            dependencies: ["NimbusRenderTarget", "NimbusRequestTarget"]),
+            dependencies: ["NimbusRenderTarget", "NimbusRequestTarget", .Vungle]),
         .binaryTarget(
             name: "GoogleInteractiveMediaAds",
             url: "https://imasdk.googleapis.com/native/downloads/ima-ios-v3.16.3.zip",
@@ -118,10 +116,6 @@ let package = Package(
             name: "UnityAds",
             url: "https://github.com/Unity-Technologies/unity-ads-ios/releases/download/4.4.1/UnityAds.zip",
             checksum: "8196b13a0a5eae6ba817e2e7fc9096a584f22aedb1958980d2064955e448d5ad"),
-        .binaryTarget(
-            name: "VungleSDK",
-            url: "https://vungle2-sdk-dev-scratch.s3.amazonaws.com/ios/6.12.x/vungle6123.zip",
-            checksum: "1fe502a94d7ea03a750f0e5a5922610ebceb93b862f6d9e1baca4c43c5f3cad1"),
     ]
 )
 
@@ -139,31 +133,32 @@ extension Target.Dependency {
     static let GoogleMobileAds = product(name: "GoogleMobileAds", package: "swift-package-manager-google-mobile-ads")
     static let LiveRamp = product(name: "LRAtsSDK", package: "ats-sdk-ios")
     static let MockingBird = product(name: "Mockingbird", package: "Mockingbird")
+    static let Vungle = product(name: "VungleAdsSDK", package: "VungleAdsSDK-SwiftPackageManager")
 }
 
 package.targets += [
     .binaryTarget(
         name: "NimbusCoreKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.9.0/NimbusCoreKit-2.9.0.zip",
-        checksum: "8bef459c2774a1f9f358eabacb5b831bd4cbc9039139a4a716deadb5fe0b46a4"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.10.0/NimbusCoreKit-2.10.0.zip",
+        checksum: "3ce04815c1277584222d1e4bc465cc5236760c1337399d92ab25c837c3f5fc3d"),
     .binaryTarget(
         name: "NimbusKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.9.0/NimbusKit-2.9.0.zip",
-        checksum: "65c50e3f87256daf208120ff4156f847ee4741200f8858938addae722ac3aae0"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.10.0/NimbusKit-2.10.0.zip",
+        checksum: "48ba9face0b9095f22dba20427c5c0e6239ac091c789cffa8d34504ede3a92b5"),
     .binaryTarget(
         name: "NimbusRenderKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.9.0/NimbusRenderKit-2.9.0.zip",
-        checksum: "739d0d046133b1b9e73e786950a3f5a67b7f4e1733c74bca62b6f26e554cb367"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.10.0/NimbusRenderKit-2.10.0.zip",
+        checksum: "fecbc57b73f35faaf27d46cd30db4a2e851840899d483cb761b03f0f8ea2a279"),
     .binaryTarget(
         name: "NimbusRenderStaticKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.9.0/NimbusRenderStaticKit-2.9.0.zip",
-        checksum: "e86e70cf15515babbf35935016e798fd90b2a49f2f45a2eaf75d0570a96510c6"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.10.0/NimbusRenderStaticKit-2.10.0.zip",
+        checksum: "00f9f9f1300a7526d3728457d809f7cee1c94af99a91a3eaf7861dede04ef094"),
     .binaryTarget(
         name: "NimbusRenderVideoKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.9.0/NimbusRenderVideoKit-2.9.0.zip",
-        checksum: "2b5d6e81c4b124a8f95fd977c1015369b3d0a2ee3c498309c7cb8b898e8ea8af"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.10.0/NimbusRenderVideoKit-2.10.0.zip",
+        checksum: "0669853aa0dcb79bb94e03487e539e4c5645e8585e899fc39b766150724609e4"),
     .binaryTarget(
         name: "NimbusRequestKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.9.0/NimbusRequestKit-2.9.0.zip",
-        checksum: "72838208af450c5a6fa3d87b703b7e5c84a7afd8fb30912734bc076f4abe40ee"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.10.0/NimbusRequestKit-2.10.0.zip",
+        checksum: "048121a883a71a4f194899eb696f81308664454fe154ebf4328cad772ed6677e"),
 ]

@@ -8,82 +8,95 @@
 
 @_exported import NimbusRenderKit
 import UIKit
-import VungleSDK
+import VungleAdsSDK
 
 final class NimbusVungleAdController: NSObject {
     
-    weak var delegate: AdControllerDelegate?
+    enum AdState: String {
+        case notLoaded, loaded, presented = "played", destroyed
+    }
     
     var volume = 0
     var isClickProtectionEnabled = true
     
-    private let ad: NimbusAd
-    private let logger: Logger
-    private let vungleAdLoader: NimbusVungleAdLoader
-    private let vungleAdRenderer: VungleAdRenderer
-    private var vungleEventObserverType: NimbusVungleEventObserverType?
+    let ad: NimbusAd
+    var adLoader: NimbusVungleAdLoaderType
+    let adPresenter: NimbusVungleAdPresenterType
+    let logger: Logger
     
-    private var hasBeenDestroyed = false
+    weak var container: NimbusAdView?
+    weak var delegate: AdControllerDelegate?
+    weak var adPresentingViewController: UIViewController?
     
-    private weak var container: NimbusAdView?
-    private weak var adPresentingViewController: UIViewController?
-
+    var adState = AdState.notLoaded
+    
     init(
         ad: NimbusAd,
+        adLoader: NimbusVungleAdLoaderType = NimbusVungleAdLoader(),
+        adPresenter: NimbusVungleAdPresenterType = NimbusVungleAdPresenter(),
         container: UIView,
-        vungleProxyType: NimbusVungleProxyType = NimbusVungleProxy(),
-        vungleEventObserverType: NimbusVungleEventObserverType = NimbusVungleEventObserver.shared,
         logger: Logger,
         delegate: AdControllerDelegate,
         adPresentingViewController: UIViewController?
     ) {
         self.ad = ad
+        self.adLoader = adLoader
+        self.adPresenter = adPresenter
         self.container = container as? NimbusAdView
-        self.vungleEventObserverType = vungleEventObserverType
         self.logger = logger
         self.delegate = delegate
         self.adPresentingViewController = adPresentingViewController
         
-        vungleAdLoader = .init(
-            vungleProxyType: vungleProxyType,
-            logger: logger
-        )
-        vungleAdRenderer = .init(vungleProxyType: vungleProxyType)
-        
         super.init()
+        
+        self.adLoader.delegate = self
     }
     
     func load() {
-        guard let placementId = ad.placementId else {
-            self.delegate?.didReceiveNimbusError(
-                controller: self,
-                error: NimbusVungleError.failedToLoadAd(message: "Placement Id not found.")
-            )
-            return
-        }
-        self.vungleEventObserverType?.addDelegate(placementId: placementId, delegate: self)
-        
         do {
-            try vungleAdLoader.loadAd(ad, placementId: placementId)
+            guard let placementId = ad.placementId else {
+                throw NimbusVungleError.failedToLoadAd(message: "Placement Id not found.")
+            }
+            
+            try adLoader.load(ad: ad, placementId: placementId)
         } catch {
-            if let nimbusError = error as? NimbusError {
-                self.delegate?.didReceiveNimbusError(controller: self, error: nimbusError)
+            if let nimbusError = error as? NimbusVungleError {
+                delegate?.didReceiveNimbusError(
+                    controller: self,
+                    error: nimbusError
+                )
             }
         }
     }
     
-    private func startAd() {
+    func presentAd() {
         do {
-            let adTypeToStart = try vungleAdLoader.start(ad: ad)
-            try vungleAdRenderer.startAd(
-                ad: ad,
-                adType: adTypeToStart,
-                container: container,
-                volume: volume,
-                adPresentingViewController: adPresentingViewController
-            )
+            guard adState == .loaded else {
+                throw NimbusVungleError.failedToPresentAd(message: "Vungle Ad has not been loaded.")
+            }
+            
+            let isBannerAdSize = ad.vungleAdSize != nil
+            if !ad.isInterstitial, isBannerAdSize {
+                try adPresenter.present(
+                    bannerAd: adLoader.bannerAd,
+                    ad: ad,
+                    container: container
+                )
+            } else if ad.auctionType == .static && ad.isInterstitial {
+                try adPresenter.present(
+                    interstitialAd: adLoader.interstitialAd,
+                    adPresentingViewController: adPresentingViewController
+                )
+            } else if ad.auctionType == .video && ad.isInterstitial {
+                try adPresenter.present(
+                    rewardedAd: adLoader.rewardedAd,
+                    adPresentingViewController: adPresentingViewController
+                )
+            } else {
+                throw NimbusVungleError.failedToPresentAd(message: "No matching Vungle Ad auction type found.")
+            }
         } catch {
-            if let nimbusError = error as? NimbusError {
+            if let nimbusError = error as? NimbusVungleError {
                 delegate?.didReceiveNimbusError(
                     controller: self,
                     error: nimbusError
@@ -102,91 +115,188 @@ extension NimbusVungleAdController: AdController {
     var adDuration: CGFloat { 0 }
     
     func start() {
-        guard !hasBeenDestroyed else {
+        switch adState {
+        case .presented, .destroyed:
+            let type: String
+            if ad.isInterstitial {
+                type = ad.auctionType == .static ? "interstitial" : "rewarded"
+            } else {
+                type = ad.vungleAdSize == .mrec ? "mrec" : "banner"
+            }
             delegate?.didReceiveNimbusError(
                 controller: self,
-                error: NimbusRenderError.adRenderingFailed(message: "Vungle Ad has been destroyed.")
+                error: NimbusVungleError.failedToStartAd(
+                    type: type,
+                    message: "Vungle Ad has already been \(adState.rawValue)."
+                )
             )
-            return
-        }
-        
-        if vungleAdLoader.isLoaded {
-            startAd()
-        } else {
-            vungleAdLoader.allowAdStart()
+        case .loaded:
+            presentAd()
+        default:
+            break
         }
     }
     
     func stop() {}
     
     func destroy() {
-        guard !hasBeenDestroyed else { return }
-        hasBeenDestroyed = true
+        guard adState != .destroyed else {
+            return
+        }
         
-        let isMrecOrBanner = ad.isAdMRECType || ad.isAdSizeBannerType
-        guard isMrecOrBanner else { return }
+        adState = .destroyed
         
-        vungleAdRenderer.destroy(ad: ad)
+        delegate?.didReceiveNimbusEvent(controller: self, event: .destroyed)
+        adLoader.destroy()
     }
     
     var friendlyObstructions: [UIView]? { nil }
 }
 
-// MARK: NimbusVungleEventObserverDelegate
-/// :nodoc:
-extension NimbusVungleAdController: NimbusVungleEventObserverDelegate {
+// MARK: VungleBannerDelegate
+
+extension NimbusVungleAdController: VungleBannerDelegate {
     
-    /// :nodoc:
-    func adPlayabilityUpdate(_ isAdPlayable: Bool, placementID: String?, markup: String?, error: Error?) {
-        // TODO:
-        let hasUpdateForCurrentAd = ad.placementId == placementID
-        guard hasUpdateForCurrentAd else { return }
+    func bannerAdDidLoad(_ banner: VungleBanner) {
+        adState = .loaded
         
-        if let error {
-            vungleAdLoader.completeAdLoadWithError()
-
-            delegate?.didReceiveNimbusError(
-                controller: self,
-                error: NimbusVungleError.failedToLoadStaticAd(type: ad.adType, message: error.localizedDescription)
-            )
-            return
-        }
-
-        guard isAdPlayable else {
-            logger.log("Vungle ad is not playable", level: .error)
-            
-            return
-        }
-        
-        vungleAdLoader.completeAdLoad()
         delegate?.didReceiveNimbusEvent(controller: self, event: .loaded)
-
-        if vungleAdLoader.isAllowedToStart {
-            startAd()
-        }
+        presentAd()
     }
     
-    /// :nodoc:
-    func adViewed(for placementID: String?, markup: String?) {
+    func bannerAdDidFailToLoad(_ banner: VungleBanner, withError: NSError) {
+        delegate?.didReceiveNimbusError(
+            controller: self,
+            error: NimbusVungleError.failedToLoadAd(
+                type: "banner",
+                message: withError.localizedDescription
+            )
+        )
+    }
+    
+    func bannerAdDidPresent(_ banner: VungleBanner) {
+        adState = .presented
+    }
+    
+    func bannerAdDidFailToPresent(_ banner: VungleBanner, withError: NSError) {
+        delegate?.didReceiveNimbusError(
+            controller: self,
+            error: NimbusVungleError.failedToPresentAd(
+                type: "banner",
+                message: withError.localizedDescription
+            )
+        )
+    }
+    
+    func bannerAdDidClose(_ banner: VungleBanner) {
+        destroy()
+    }
+    
+    func bannerAdDidTrackImpression(_ banner: VungleBanner) {
         delegate?.didReceiveNimbusEvent(controller: self, event: .impression)
     }
     
-    /// :nodoc:
-    func trackClick(for placementID: String?, markup: String?) {
+    func bannerAdDidClick(_ banner: VungleBanner) {
+        delegate?.didReceiveNimbusEvent(controller: self, event: .clicked)
+    }
+}
+
+// MARK: VungleInterstitialDelegate
+
+extension NimbusVungleAdController: VungleInterstitialDelegate {
+    
+    func interstitialAdDidLoad(_ interstitial: VungleInterstitial) {
+        adState = .loaded
+
+        delegate?.didReceiveNimbusEvent(controller: self, event: .loaded)
+        presentAd()
+    }
+    
+    func interstitialAdDidFailToLoad(_ interstitial: VungleInterstitial, withError: NSError) {
+        delegate?.didReceiveNimbusError(
+            controller: self,
+            error: NimbusVungleError.failedToLoadAd(
+                type: "interstitial",
+                message: withError.localizedDescription
+            )
+        )
+    }
+    
+    func interstitialAdDidPresent(_ interstitial: VungleInterstitial) {
+        adState = .presented
+    }
+    
+    func interstitialAdDidFailToPresent(_ interstitial: VungleInterstitial, withError: NSError) {
+        delegate?.didReceiveNimbusError(
+            controller: self,
+            error: NimbusVungleError.failedToPresentAd(
+                type: "interstitial",
+                message: withError.localizedDescription
+            )
+        )
+    }
+    
+    func interstitialAdDidClose(_ interstitial: VungleInterstitial) {
+        destroy()
+    }
+    
+    func interstitialAdDidTrackImpression(_ interstitial: VungleInterstitial) {
+        delegate?.didReceiveNimbusEvent(controller: self, event: .impression)
+    }
+    
+    func interstitialAdDidClick(_ interstitial: VungleInterstitial) {
+        delegate?.didReceiveNimbusEvent(controller: self, event: .clicked)
+    }
+}
+
+// MARK: VungleRewardedDelegate
+
+extension NimbusVungleAdController: VungleRewardedDelegate {
+    
+    func rewardedAdDidLoad(_ rewarded: VungleRewarded) {
+        adState = .loaded
+        
+        delegate?.didReceiveNimbusEvent(controller: self, event: .loaded)
+        presentAd()
+    }
+    
+    func rewardedAdDidFailToLoad(_ rewarded: VungleRewarded, withError: NSError) {
+        delegate?.didReceiveNimbusError(
+            controller: self,
+            error: NimbusVungleError.failedToLoadAd(
+                type: "rewarded",
+                message: withError.localizedDescription
+            )
+        )
+    }
+    
+    func rewardedAdDidPresent(_ rewarded: VungleRewarded) {
+        adState = .presented
+    }
+    
+    func rewardedAdDidFailToPresent(_ rewarded: VungleRewarded, withError: NSError) {
+        delegate?.didReceiveNimbusError(
+            controller: self,
+            error: NimbusVungleError.failedToPresentAd(
+                type: "rewarded",
+                message: withError.localizedDescription
+            )
+        )
+    }
+    
+    func rewardedAdDidClose(_ rewarded: VungleRewarded) {
+        destroy()
+    }
+    
+    func rewardedAdDidTrackImpression(_ rewarded: VungleRewarded) {
+        delegate?.didReceiveNimbusEvent(controller: self, event: .impression)
+    }
+    
+    func rewardedAdDidClick(_ rewarded: VungleRewarded) {
         delegate?.didReceiveNimbusEvent(controller: self, event: .clicked)
     }
     
-    /// :nodoc:
-    func didCloseAd(for placementID: String?, markup: String?) {
-        if !hasBeenDestroyed {
-            hasBeenDestroyed = true
-            
-            delegate?.didReceiveNimbusEvent(controller: self, event: .destroyed)
-        }
-    }
-    
-    /// :nodoc:
-    func rewardUser(for placementID: String?, markup: String?) {
+    func rewardedAdDidRewardUser(_ rewarded: VungleRewarded) {
         delegate?.didReceiveNimbusEvent(controller: self, event: .completed)
     }
 }

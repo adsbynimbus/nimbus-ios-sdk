@@ -22,7 +22,7 @@ public final class NimbusUnityAdRenderer: AdRenderer {
     ) -> AdController {
         let adController = NimbusUnityAdController(
             ad: ad,
-            container: container as! (UIView & VisibilityTrackable),
+            container: container,
             volume: 0,
             logger: Nimbus.shared.logger,
             delegate: delegate,

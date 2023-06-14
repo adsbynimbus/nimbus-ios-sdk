@@ -10,23 +10,30 @@
 import DTBiOSSDK
 import Foundation
 
-/// Internal class, DO NOT USE
+/// Internal class, for use by nimbus-unity package only
 /// :nodoc:
-final class NimbusAPSRequestHelper {
+public final class NimbusAPSRequestHelper {
     let requestManager: APSLegacyRequestManagerType
     var adSizes: [DTBAdSize] = []
     
-    public init(
+    init(
         appKey: String,
-        requestManager: APSLegacyRequestManagerType? = nil,
+        requestManager: APSLegacyRequestManagerType,
         timeoutInSeconds: Double
     ) {
-        self.requestManager = requestManager ?? NimbusAPSLegacyRequestManager(
+        self.requestManager = requestManager
+    }
+    
+    public convenience init(appKey: String, timeoutInSeconds: Double) {
+        self.init(
             appKey: appKey,
-            logger: Nimbus.shared.logger,
-            logLevel: Nimbus.shared.logLevel,
-            timeoutInSeconds: timeoutInSeconds
-        )
+            requestManager: NimbusAPSLegacyRequestManager(
+                appKey: appKey,
+                logger: Nimbus.shared.logger,
+                logLevel: Nimbus.shared.logLevel,
+                timeoutInSeconds: timeoutInSeconds
+            ),
+            timeoutInSeconds: timeoutInSeconds)
     }
     
     public func addAPSSlot(slotUUID: String, width: Int, height: Int, isVideo: Bool) {
