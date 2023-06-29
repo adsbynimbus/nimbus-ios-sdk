@@ -32,10 +32,6 @@ public final class NimbusFANRequestInterceptor: NimbusRequestInterceptor {
      - appId: Facebook app id
      */
     public convenience init(appId: String) {
-        if Nimbus.shared.usPrivacyString != nil {
-            // US California
-            FBAdSettings.setDataProcessingOptions(["LDU"], country: 1, state: 1000)
-        }
         FBAdSettings.setMediationService("Ads By Nimbus")
         self.init(appId: appId, bidderToken: FBAdSettings.bidderToken)
     }
