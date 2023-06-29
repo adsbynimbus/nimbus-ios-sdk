@@ -24,6 +24,7 @@ final class NimbusFANAdController: NSObject {
     var fbAdView: FBAdView?
     var fbInterstitialAd: FBInterstitialAd?
     var fbNativeAd: FBNativeAd?
+    var fbRewardedVideoAd: FBRewardedVideoAd?
 
     /// Determines whether ad has registered an impression
     private var hasRegisteredAdImpression = false {
@@ -88,7 +89,7 @@ final class NimbusFANAdController: NSObject {
         guard let placementId = ad.placementId else {
             delegate?.didReceiveNimbusError(
                 controller: self,
-                error: NimbusRenderError.adRenderingFailed(message: "Placement id not valid for FB ad")
+                error: NimbusRenderError.adRenderingFailed(message: "Placement id not valid for Meta ad")
             )
             return
         }
@@ -105,14 +106,14 @@ final class NimbusFANAdController: NSObject {
                 } else {
                     delegate?.didReceiveNimbusError(
                         controller: self,
-                        error: NimbusRenderError.adRenderingFailed(message: "No markup present to render Facebook native ad")
+                        error: NimbusRenderError.adRenderingFailed(message: "No markup present to render Meta native ad")
                     )
                 }
             } else {
                 fbNativeAd?.loadAd(withBidPayload: ad.markup)
             }
 
-        case (.video, _), (.static, true):
+        case (.static, true):
             fbInterstitialAd = FBInterstitialAd(placementID: placementId)
             fbInterstitialAd?.delegate = self
 
@@ -123,7 +124,7 @@ final class NimbusFANAdController: NSObject {
                 } else {
                     delegate?.didReceiveNimbusError(
                         controller: self,
-                        error: NimbusRenderError.adRenderingFailed(message: "No markup present to render Facebook interstitial ad")
+                        error: NimbusRenderError.adRenderingFailed(message: "No markup present to render Meta interstitial ad")
                     )
                 }
             } else {
@@ -141,9 +142,28 @@ final class NimbusFANAdController: NSObject {
             }
             
             loadBannerAd()
+        case (.video, _):
+            fbRewardedVideoAd = FBRewardedVideoAd(placementID: placementId)
+            fbRewardedVideoAd?.delegate = self
             
+            if ad.markup.isEmpty {
+                if Nimbus.shared.testMode {
+                    // Testing Facebook interstitial ad rendering on the client
+                    fbRewardedVideoAd?.load()
+                } else {
+                    delegate?.didReceiveNimbusError(
+                        controller: self,
+                        error: NimbusRenderError.adRenderingFailed(message: "No markup present to render Meta interstitial ad")
+                    )
+                }
+            } else {
+                fbRewardedVideoAd?.load(withBidPayload: ad.markup)
+            }
+
         default:
-            logger.log("Unknown case for FAN", level: .error)
+            delegate?.didReceiveNimbusError(
+                controller: self,
+                error: NimbusRenderError.adRenderingFailed(message: "Meta Ad not supported"))
             return
         }
     }
@@ -350,6 +370,81 @@ extension NimbusFANAdController: FBInterstitialAdDelegate {
         logger.log("FBInterstitialAd clicked", level: .debug)
 
         delegate?.didReceiveNimbusEvent(controller: self, event: .clicked)
+    }
+    
+    /// :nodoc:
+    func interstitialAdDidClose(_ interstitialAd: FBInterstitialAd) {
+        logger.log("FBInterstitialAd closed", level: .debug)
+
+        delegate?.didReceiveNimbusEvent(controller: self, event: .destroyed)
+    }
+}
+
+// MARK: FBRewardedVideoAdDelegate
+
+extension NimbusFANAdController: FBRewardedVideoAdDelegate {
+    
+    /// :nodoc:
+    func rewardedVideoAdDidLoad(_ rewardedVideoAd: FBRewardedVideoAd) {
+        logger.log("FBRewardedAd loaded", level: .debug)
+
+        guard rewardedVideoAd.isAdValid else {
+            delegate?.didReceiveNimbusError(
+                controller: self,
+                error: NimbusRenderError.adRenderingFailed(message: "FB rewarded ad is invalid")
+            )
+            return
+        }
+        
+        guard let presentingVC = adPresentingViewController else {
+            delegate?.didReceiveNimbusError(
+                controller: self,
+                error: NimbusRenderError.adRenderingFailed(message: "AdPresentingViewController is nil")
+            )
+            return
+        }
+
+        delegate?.didReceiveNimbusEvent(controller: self, event: .loaded)
+
+        rewardedVideoAd.show(fromRootViewController: presentingVC)
+
+        fbRewardedVideoAd = nil
+    }
+    
+    /// :nodoc:
+    func rewardedVideoAd(_ rewardedVideoAd: FBRewardedVideoAd, didFailWithError error: Error) {
+        logger.log("FBRewardedVideoAd failed with error: \(error.localizedDescription)", level: .error)
+
+        delegate?.didReceiveNimbusError(
+            controller: self,
+            error: NimbusRenderError.adRenderingFailed(message: error.localizedDescription)
+        )
+    }
+    
+    /// :nodoc:
+    func rewardedVideoAdWillLogImpression(_ rewardedVideoAd: FBRewardedVideoAd) {
+        logger.log("FBRewardedVideoAd will log impression", level: .debug)
+
+        delegate?.didReceiveNimbusEvent(controller: self, event: .impression)
+    }
+    
+    /// :nodoc:
+    func rewardedVideoAdDidClick(_ rewardedVideoAd: FBRewardedVideoAd) {
+        logger.log("FBRewardedVideoAd clicked", level: .debug)
+
+        delegate?.didReceiveNimbusEvent(controller: self, event: .clicked)
+    }
+    
+    func rewardedVideoAdVideoComplete(_ rewardedVideoAd: FBRewardedVideoAd) {
+        logger.log("FBRewardedVideoAd completed", level: .debug)
+
+        delegate?.didReceiveNimbusEvent(controller: self, event: .completed)
+    }
+    
+    func rewardedVideoAdDidClose(_ rewardedVideoAd: FBRewardedVideoAd) {
+        logger.log("FBRewardedVideoAd closed", level: .debug)
+
+        delegate?.didReceiveNimbusEvent(controller: self, event: .destroyed)
     }
 }
 
