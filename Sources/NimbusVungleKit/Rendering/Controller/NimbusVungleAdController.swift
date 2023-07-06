@@ -75,25 +75,25 @@ final class NimbusVungleAdController: NSObject {
                 throw NimbusVungleError.failedToPresentAd(message: "Vungle Ad has not been loaded.")
             }
             
-            let isBannerAdSize = ad.vungleAdSize != nil
-            if !ad.isInterstitial, isBannerAdSize {
+            switch ad.vungleAdType {
+            case .rewarded:
+                try adPresenter.present(
+                    rewardedAd: adLoader.rewardedAd,
+                    adPresentingViewController: adPresentingViewController
+                )
+            case .fullScreenBlocking:
+                try adPresenter.present(
+                    interstitialAd: adLoader.interstitialAd,
+                    adPresentingViewController: adPresentingViewController
+                )
+            case .banner:
                 try adPresenter.present(
                     bannerAd: adLoader.bannerAd,
                     ad: ad,
                     container: container
                 )
-            } else if ad.auctionType == .static && ad.isInterstitial {
-                try adPresenter.present(
-                    interstitialAd: adLoader.interstitialAd,
-                    adPresentingViewController: adPresentingViewController
-                )
-            } else if ad.auctionType == .video && ad.isInterstitial {
-                try adPresenter.present(
-                    rewardedAd: adLoader.rewardedAd,
-                    adPresentingViewController: adPresentingViewController
-                )
-            } else {
-                throw NimbusVungleError.failedToPresentAd(message: "No matching Vungle Ad auction type found.")
+            case .none:
+                throw NimbusVungleError.failedToPresentAd(message: "No matching Vungle Ad auction type found. Size(\(ad.vungleAdSize?.rawValue ?? -1)) - Type(\(ad.auctionType))")
             }
         } catch {
             if let nimbusError = error as? NimbusVungleError {

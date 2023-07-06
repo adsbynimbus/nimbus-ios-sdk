@@ -32,15 +32,16 @@ final class NimbusVungleAdLoader: NimbusVungleAdLoaderType {
     private(set) var rewardedAd: VungleRewarded?
     
     func load(ad: NimbusAd, placementId: String) throws {
-        if !ad.isInterstitial, let size = ad.vungleAdSize {
-            loadBannerAd(placementId: placementId, markup: ad.markup, size: size)
-        } else if ad.auctionType == .static && ad.isInterstitial {
-            loadInterstitialAd(placementId: placementId, markup: ad.markup)
-        } else if ad.auctionType == .video && ad.isInterstitial {
+        switch ad.vungleAdType {
+        case .rewarded:
             loadRewardedAd(placementId: placementId, markup: ad.markup)
-        } else {
+        case .fullScreenBlocking:
+            loadInterstitialAd(placementId: placementId, markup: ad.markup)
+        case .banner:
+            loadBannerAd(placementId: placementId, markup: ad.markup, size: ad.vungleAdSize!)
+        case .none:
             throw NimbusVungleError.failedToLoadAd(
-                message: "No matching Vungle Ad auction type found."
+                message: "No matching Vungle Ad auction type found. Size(\(ad.vungleAdSize?.rawValue ?? -1)) - Type(\(ad.auctionType))"
             )
         }
     }
