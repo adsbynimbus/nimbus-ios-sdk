@@ -102,7 +102,10 @@ final class DTBCallback: DTBAdCallback {
     public func onSuccess(_ adResponse: DTBAdResponse!) {
         Nimbus.shared.logger.log("APS ad fetching succeeded", level: .debug)
         
-        adLoadersDict[adResponse.adSize().slotUUID] = adResponse.dtbAdLoader
+        if let slotId = adResponse.adSize()?.slotUUID, let adLoader = adResponse.dtbAdLoader {
+            adLoadersDict[slotId] = adLoader
+        }
+        
         payload = adResponse.customTargeting()
         requestsDispatchGroup.leave()
     }
