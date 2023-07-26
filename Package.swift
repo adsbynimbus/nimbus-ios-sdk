@@ -139,26 +139,26 @@ extension Target.Dependency {
 package.targets += [
     .binaryTarget(
         name: "NimbusCoreKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.12.0/NimbusCoreKit-2.12.0.zip",
-        checksum: "edd9f36ccccc0a6f8b517395c56759e879fb12f095fbd46b1e16cb487c4edb2a"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.13.0/NimbusCoreKit-2.13.0.zip",
+        checksum: "359458bdd5d9400325766e2124e04092298e57cb2152edf9b5bba7e991ceda69"),
     .binaryTarget(
         name: "NimbusKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.12.0/NimbusKit-2.12.0.zip",
-        checksum: "a0c1735b5b479b98d30a6bc9d264ddc3ccfaf40696a5f8f6a131ff9501ef7ecf"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.13.0/NimbusKit-2.13.0.zip",
+        checksum: "8cf236012fad0e6019569d8ee20bb569c94c87631c701ec5534c7fde33ad3885"),
     .binaryTarget(
         name: "NimbusRenderKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.12.0/NimbusRenderKit-2.12.0.zip",
-        checksum: "21e3de2e2151ff19f53008becd3ebd183edcdccc5198503d45b6be3e2712b026"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.13.0/NimbusRenderKit-2.13.0.zip",
+        checksum: "89053b42c37997d43e4dc925e1d8ee6a0b205db99035ede4cab82a866ae30e88"),
     .binaryTarget(
         name: "NimbusRenderStaticKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.12.0/NimbusRenderStaticKit-2.12.0.zip",
-        checksum: "0166f1ff5adab4fbb1e481684459e78c71fa346bbdd8650d27faede12a4ed40e"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.13.0/NimbusRenderStaticKit-2.13.0.zip",
+        checksum: "bd67ac255a49611661885e94c310f5ae632155f839fc3d954029b609bdd0d1c3"),
     .binaryTarget(
         name: "NimbusRenderVideoKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.12.0/NimbusRenderVideoKit-2.12.0.zip",
-        checksum: "0ea71235009e2fd99165d812efe0fa7edddc5cb7074bc569b86f6009249463e1"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.13.0/NimbusRenderVideoKit-2.13.0.zip",
+        checksum: "2ca09408e3edaca59060b0a8fa25984d320e56530dad69256f6941ff1e963d61"),
     .binaryTarget(
         name: "NimbusRequestKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.12.0/NimbusRequestKit-2.12.0.zip",
-        checksum: "a372e95158b4df8514fda547e2190db6763d9a6bc632cfb6dd301a4271ce5516"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.13.0/NimbusRequestKit-2.13.0.zip",
+        checksum: "1b036fff1c5f2a371b6400390f1d4397743a98b66f01aa8107c9316cba0f256d"),
 ]
