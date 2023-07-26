@@ -46,7 +46,7 @@ extension NimbusGAMDynamicPrice: NimbusRequestManagerDelegate {
             mapping = pubMapping
         } else {
             mapping = ad.isInterstitial ?
-                NimbusGAMLinearPriceMapping.fullscreen() : NimbusGAMLinearPriceMapping.banner()
+                NimbusGAMLinearPriceMapping.fullscreen() : .banner()
         }
         
         guard let keywords = mapping.getKeywords(ad: ad) else {

@@ -12,8 +12,8 @@ import GoogleMobileAds
 import UIKit
 
 /// Nimbus Renderer for GAM Dynamic Price
-public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate, NimbusAdViewControllerDelegate, AdControllerDelegate {
-        
+public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
+    
     struct InterstitialRenderData {
         let renderInfo: NimbusDynamicPriceRenderInfo
         let data: NimbusDynamicPriceCacheManager.GoogleAuctionData
@@ -80,6 +80,18 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate, Ni
     }
     
     public func notifyInterstitialPrice(adValue: GADAdValue, fullScreenPresentingAd: GADFullScreenPresentingAd) {
+        notifyFullScreenAdPrice(adValue: adValue, fullScreenPresentingAd: fullScreenPresentingAd)
+    }
+    
+    public func notifyRewardedPrice(adValue: GADAdValue, fullScreenPresentingAd: GADFullScreenPresentingAd) {
+        notifyFullScreenAdPrice(adValue: adValue, fullScreenPresentingAd: fullScreenPresentingAd)
+    }
+    
+    public func notifyRewardedInterstitialPrice(adValue: GADAdValue, fullScreenPresentingAd: GADFullScreenPresentingAd) {
+        notifyFullScreenAdPrice(adValue: adValue, fullScreenPresentingAd: fullScreenPresentingAd)
+    }
+    
+    private func notifyFullScreenAdPrice(adValue: GADAdValue, fullScreenPresentingAd: GADFullScreenPresentingAd) {
         let cpmValue = adValue.value.multiplying(byPowerOf10: 3)
         cacheManager.updateInterstitialPrice(fullScreenPresentingAd, price: cpmValue.stringValue)
     }
@@ -130,7 +142,7 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate, Ni
                 return
             }
             
-            self.notifyImpression(
+            self.notifyWinLoss(
                 isNimbusWin: data.isNimbusWin,
                 nimbusAd: data.nimbusAd,
                 price: data.price,
@@ -140,38 +152,35 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate, Ni
     }
     
     public func notifyInterstitialImpression(interstitialAd: GADInterstitialAd) {
+        notifyWinLoss(
+            ad: interstitialAd,
+            responseInfo: interstitialAd.responseInfo
+        )
+    }
+    
+    private func updateNimbusWin(ad: GADFullScreenPresentingAd, isNimbusWin: Bool) {
+        if isNimbusWin, let data = self.cacheManager.getData(for: ad) {
+            cacheManager.updateNimbusDidWin(auctionId: data.nimbusAd.auctionId)
+        }
+    }
+    
+    private func notifyWinLoss(ad: GADFullScreenPresentingAd, responseInfo: GADResponseInfo) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             guard let self,
-                  let data = self.cacheManager.getData(for: interstitialAd) else {
+                  let data = self.cacheManager.getData(for: ad) else {
                 return
             }
             
-            self.notifyImpression(
+            self.notifyWinLoss(
                 isNimbusWin: data.isNimbusWin,
                 nimbusAd: data.nimbusAd,
                 price: data.price,
-                responseInfo: interstitialAd.responseInfo
+                responseInfo: responseInfo
             )
         }
     }
     
-    public func notifyInterstitialImpression(rewardedInterstitialAd: GADRewardedInterstitialAd) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
-            guard let self,
-                  let data = self.cacheManager.getData(for: rewardedInterstitialAd) else {
-                return
-            }
-            
-            self.notifyImpression(
-                isNimbusWin: data.isNimbusWin,
-                nimbusAd: data.nimbusAd,
-                price: data.price,
-                responseInfo: rewardedInterstitialAd.responseInfo
-            )
-        }
-    }
-    
-    private func notifyImpression(isNimbusWin: Bool, nimbusAd: NimbusAd, price: String, responseInfo: GADResponseInfo?) {
+    private func notifyWinLoss(isNimbusWin: Bool, nimbusAd: NimbusAd, price: String, responseInfo: GADResponseInfo?) {
         if isNimbusWin {
             requestManager.notifyWin(ad: nimbusAd, auctionData: NimbusAuctionData())
         } else {
@@ -232,58 +241,31 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate, Ni
         self.interstitialRenderData = .init(renderInfo: renderInfo, data: data)
     }
     
-    /// AdControllerDelegate methdos
-   
-    public func didReceiveNimbusEvent(controller: AdController, event: NimbusEvent) {
-        guard let adView = controller as? NimbusAdView,
-              let url = cacheManager.getClickEvent(nimbusAdView: adView) else {
-            return
-        }
+    public func handleRewardedEventForNimbus(
+        adMetadata: [GADAdMetadataKey : Any]?,
+        ad: GADRewardedAd
+    ) -> Bool {
+        let adSystem = adMetadata?[GADAdMetadataKey(rawValue: "AdSystem")] as? String
+        let isNimbusWin = adSystem?.contains("Nimbus") ?? false
         
-        if event == .clicked {
-            URLSession.shared.dataTask(with: URLRequest(url: url)) { [weak self] _, _, error in
-                if let error {
-                    self?.logger.log(
-                        "NimbusDynamicPriceRenderer: Error firing Google click tracker: \(error.localizedDescription)",
-                        level: .error
-                    )
-                } else {
-                    self?.logger.log(
-                        "NimbusDynamicPriceRenderer: Google click tracker fired successfully",
-                        level: .debug
-                    )
-                }
-            }.resume()
-        } else if event == .destroyed {
-            cacheManager.removeClickEvent(nimbusAdView: adView)
-        }
+        updateNimbusWin(ad: ad, isNimbusWin: isNimbusWin)
+        notifyWinLoss(ad: ad, responseInfo: ad.responseInfo)
+        
+        return isNimbusWin
     }
     
-    public func didReceiveNimbusError(controller: AdController, error: NimbusCoreKit.NimbusError) {}
-    
-    /// NimbusAdViewControllerDelegate methods
-    
-    public func viewWillAppear(animated: Bool) {}
-    
-    public func viewDidAppear(animated: Bool) {}
-    
-    public func viewWillDisappear(animated: Bool) {}
-    
-    public func viewDidDisappear(animated: Bool) {}
-    
-    public func didCloseAd(adView: NimbusAdView) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self,
-                  let rootViewController = self.rootViewController,
-                  let gadViewController = rootViewController.presentedViewController else {
-                return
-            }
-            
-            gadViewController.dismiss(animated: false)
-        }
+    public func handleRewardedInterstitialEventForNimbus(
+        adMetadata: [GADAdMetadataKey : Any]?,
+        ad: GADRewardedInterstitialAd
+    ) -> Bool {
+        let adSystem = adMetadata?[GADAdMetadataKey(rawValue: "AdSystem")] as? String
+        let isNimbusWin = adSystem?.contains("Nimbus") ?? false
+        
+        updateNimbusWin(ad: ad, isNimbusWin: isNimbusWin)
+        notifyWinLoss(ad: ad, responseInfo: ad.responseInfo)
+
+        return isNimbusWin
     }
-    
-    /// Utils
     
     private var rootViewController: UIViewController? {
         var rootViewController: UIViewController?
@@ -318,6 +300,53 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate, Ni
         } catch {
             logger.log(error.localizedDescription, level: .error)
             return nil
+        }
+    }
+}
+
+extension NimbusDynamicPriceRenderer: AdControllerDelegate {
+    public func didReceiveNimbusEvent(controller: AdController, event: NimbusEvent) {
+        guard let adView = controller as? NimbusAdView,
+              let url = cacheManager.getClickEvent(nimbusAdView: adView) else {
+            return
+        }
+        
+        if event == .clicked {
+            URLSession.shared.dataTask(with: URLRequest(url: url)) { [weak self] _, _, error in
+                if let error {
+                    self?.logger.log(
+                        "NimbusDynamicPriceRenderer: Error firing Google click tracker: \(error.localizedDescription)",
+                        level: .error
+                    )
+                } else {
+                    self?.logger.log(
+                        "NimbusDynamicPriceRenderer: Google click tracker fired successfully",
+                        level: .debug
+                    )
+                }
+            }.resume()
+        } else if event == .destroyed {
+            cacheManager.removeClickEvent(nimbusAdView: adView)
+        }
+    }
+    
+    public func didReceiveNimbusError(controller: AdController, error: NimbusCoreKit.NimbusError) {}
+}
+
+extension NimbusDynamicPriceRenderer: NimbusAdViewControllerDelegate {
+    public func viewWillAppear(animated: Bool) {}
+    public func viewDidAppear(animated: Bool) {}
+    public func viewWillDisappear(animated: Bool) {}
+    public func viewDidDisappear(animated: Bool) {}
+    public func didCloseAd(adView: NimbusAdView) {
+        DispatchQueue.main.async { [weak self] in
+            guard let self,
+                  let rootViewController = self.rootViewController,
+                  let gadViewController = rootViewController.presentedViewController else {
+                return
+            }
+            
+            gadViewController.dismiss(animated: false)
         }
     }
 }
