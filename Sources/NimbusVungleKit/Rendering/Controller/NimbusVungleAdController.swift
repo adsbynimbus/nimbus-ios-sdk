@@ -16,6 +16,9 @@ final class NimbusVungleAdController: NSObject {
         case notLoaded, loaded, presented = "played", destroyed
     }
     
+    // Visibility tracking is only necessary for non-interstitials
+    let visibilityManager: VisibilityManager?
+    
     var volume = 0
     var isClickProtectionEnabled = true
     
@@ -23,6 +26,7 @@ final class NimbusVungleAdController: NSObject {
     var adLoader: NimbusVungleAdLoaderType
     let adPresenter: NimbusVungleAdPresenterType
     let logger: Logger
+    let creativeScalingEnabled: Bool
     
     weak var container: NimbusAdView?
     weak var delegate: AdControllerDelegate?
@@ -30,12 +34,26 @@ final class NimbusVungleAdController: NSObject {
     
     var adState = AdState.notLoaded
     
+    /// Determines whether ad has registered an impression
+    private var hasRegisteredAdImpression = false {
+        didSet { triggerImpressionDelegateIfNecessary() }
+    }
+
+    private var isAdVisible = false {
+        didSet { triggerImpressionDelegateIfNecessary() }
+    }
+    
+    deinit {
+        NotificationCenter.default.removeObserver(self)
+    }
+    
     init(
         ad: NimbusAd,
         adLoader: NimbusVungleAdLoaderType = NimbusVungleAdLoader(),
         adPresenter: NimbusVungleAdPresenterType = NimbusVungleAdPresenter(),
         container: UIView,
         logger: Logger,
+        creativeScalingEnabled: Bool,
         delegate: AdControllerDelegate,
         adPresentingViewController: UIViewController?
     ) {
@@ -44,12 +62,35 @@ final class NimbusVungleAdController: NSObject {
         self.adPresenter = adPresenter
         self.container = container as? NimbusAdView
         self.logger = logger
+        self.creativeScalingEnabled = creativeScalingEnabled
         self.delegate = delegate
         self.adPresentingViewController = adPresentingViewController
+        
+        if let visibilityTrackableView = container as? (UIView & VisibilityTrackable) {
+            self.visibilityManager = NimbusVisibilityManager(for: visibilityTrackableView)
+        } else {
+            self.visibilityManager = nil
+        }
         
         super.init()
         
         self.adLoader.delegate = self
+        
+        self.visibilityManager?.delegate = self
+        self.visibilityManager?.startListeningForVisibilityChanges()
+
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appDidBecomeActive),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(appWillResignActive),
+            name: UIApplication.willResignActiveNotification,
+            object: nil
+        )
     }
     
     func load() {
@@ -90,7 +131,8 @@ final class NimbusVungleAdController: NSObject {
                 try adPresenter.present(
                     bannerAd: adLoader.bannerAd,
                     ad: ad,
-                    container: container
+                    container: container,
+                    creativeScalingEnabled: creativeScalingEnabled
                 )
             case .none:
                 throw NimbusVungleError.failedToPresentAd(message: "No matching Vungle Ad auction type found. Size(\(ad.vungleAdSize?.rawValue ?? -1)) - Type(\(ad.auctionType))")
@@ -103,6 +145,16 @@ final class NimbusVungleAdController: NSObject {
                 )
             }
         }
+    }
+    
+    private func triggerImpressionDelegateIfNecessary() {
+        guard let container else { return }
+
+        container.visibilityDelegate?.didChangeVisibility(
+            controller: container,
+            isVisible: isAdVisible,
+            hasTriggeredImpression: hasRegisteredAdImpression
+        )
     }
 }
 
@@ -148,6 +200,7 @@ extension NimbusVungleAdController: AdController {
         
         delegate?.didReceiveNimbusEvent(controller: self, event: .destroyed)
         adLoader.destroy()
+        visibilityManager?.destroy()
     }
     
     var friendlyObstructions: [UIView]? { nil }
@@ -193,6 +246,9 @@ extension NimbusVungleAdController: VungleBannerDelegate {
     }
     
     func bannerAdDidTrackImpression(_ banner: VungleBanner) {
+        logger.log("Vungle banner logged impression", level: .debug)
+        
+        hasRegisteredAdImpression = true
         delegate?.didReceiveNimbusEvent(controller: self, event: .impression)
     }
     
@@ -298,5 +354,34 @@ extension NimbusVungleAdController: VungleRewardedDelegate {
     
     func rewardedAdDidRewardUser(_ rewarded: VungleRewarded) {
         delegate?.didReceiveNimbusEvent(controller: self, event: .completed)
+    }
+}
+
+// MARK: Notifications
+
+extension NimbusVungleAdController {
+
+    /// Ad is in foreground
+    @objc private func appDidBecomeActive() {
+        visibilityManager?.appDidBecomeActive()
+    }
+
+    /// Ad is in background
+    @objc private func appWillResignActive() {
+        visibilityManager?.appWillResignActive()
+    }
+}
+
+// MARK: VisibilityManagerDelegate
+
+extension NimbusVungleAdController: VisibilityManagerDelegate {
+
+    func didRegisterImpressionForView() {}
+
+    func didChangeExposure(exposure: NimbusViewExposure) {
+        let newVisibility = exposure.isVisible
+        if isAdVisible != newVisibility {
+            isAdVisible = newVisibility
+        }
     }
 }

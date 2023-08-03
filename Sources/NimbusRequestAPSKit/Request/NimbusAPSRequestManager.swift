@@ -16,7 +16,14 @@ public protocol APSRequestManagerType {
 
 final class NimbusAPSRequestManager: APSRequestManagerType {
     private let requestsDispatchGroup = DispatchGroup()
+
+#if DEBUG
+    // When running in test mode auctions may have some delay
+    private let requestsTimeoutInSeconds: Double = 1.5
+#else
     private let requestsTimeoutInSeconds: Double = 0.5
+#endif
+
     private let logger: Logger
     private let logLevel: NimbusLogLevel
     

@@ -11,6 +11,10 @@ import UIKit
 
 public final class NimbusVungleAdRenderer: AdRenderer {
         
+    /// Controls whether the creative scaling is enabled for static ads with dimensions
+    /// :nodoc
+    public var creativeScalingEnabled = true
+    
     public init() {}
     
     public func render(
@@ -24,6 +28,7 @@ public final class NimbusVungleAdRenderer: AdRenderer {
             ad: ad,
             container: container,
             logger: Nimbus.shared.logger,
+            creativeScalingEnabled: creativeScalingEnabled,
             delegate: delegate,
             adPresentingViewController: adPresentingViewController
         )

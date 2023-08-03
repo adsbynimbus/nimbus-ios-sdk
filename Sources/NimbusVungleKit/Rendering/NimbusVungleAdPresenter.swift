@@ -6,19 +6,21 @@
 //  Copyright © 2023 Timehop. All rights reserved.
 //
 
+#if SWIFT_PACKAGE
 @_exported import NimbusRenderKit
+#endif
 import VungleAdsSDK
 import UIKit
 
 protocol NimbusVungleAdPresenterType {
-    func present(bannerAd: VungleBanner?, ad: NimbusAd, container: NimbusAdView?) throws
+    func present(bannerAd: VungleBanner?, ad: NimbusAd, container: NimbusAdView?, creativeScalingEnabled: Bool) throws
     func present(interstitialAd: VungleInterstitial?, adPresentingViewController: UIViewController?) throws
     func present(rewardedAd: VungleRewarded?, adPresentingViewController: UIViewController?) throws
 }
 
 final class NimbusVungleAdPresenter: NimbusVungleAdPresenterType {
-        
-    func present(bannerAd: VungleBanner?, ad: NimbusAd, container: NimbusAdView?) throws {
+    
+    func present(bannerAd: VungleBanner?, ad: NimbusAd, container: NimbusAdView?, creativeScalingEnabled: Bool) throws {
         guard let adDimensions = ad.adDimensions else {
             throw NimbusVungleError.failedToPresentAd(
                 type: "banner",
@@ -49,10 +51,13 @@ final class NimbusVungleAdPresenter: NimbusVungleAdPresenterType {
         
         let adContainerView = UIView()
         container.addSubview(adContainerView)
-
+        
         setupVungleBannerConstraints(container: container, adContainerView: adContainerView, adDimensions: adDimensions)
- 
         bannerAd.present(on: adContainerView)
+        
+        if creativeScalingEnabled {
+            NimbusCreativeScaler().scaleCreativeIfNecessary(ad: ad, view: adContainerView)
+        }
     }
     
     func present(interstitialAd: VungleInterstitial?, adPresentingViewController: UIViewController?) throws {

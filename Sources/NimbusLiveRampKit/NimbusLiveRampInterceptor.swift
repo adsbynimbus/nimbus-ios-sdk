@@ -16,7 +16,17 @@ public protocol NimbusLiveRampInterceptorDelegate {
     func didInitializeLiveRamp(error: Error?)
     
     /// Triggered when envelope is fetched with either success or error
+    @available(*, deprecated, renamed: "didFetchLiveRampEnvelope(envelope:error:)")
     func didFetchLiveRampEnvelope(error: Error?)
+    
+    /// Triggered when envelope is fetched with either success or error
+    func didFetchLiveRampEnvelope(envelope: LREnvelope?, error: Error?)
+}
+
+/// :nodoc:
+public extension NimbusLiveRampInterceptorDelegate {
+    func didFetchLiveRampEnvelope(error: Error?) {}
+    func didFetchLiveRampEnvelope(envelope: LREnvelope?, error: Error?) {}
 }
 
 public enum NimbusLiveRampError: LocalizedError, Equatable {
@@ -155,9 +165,10 @@ public final class NimbusLiveRampInterceptor {
             return
         }
         
-        LRAts.shared.getEnvelope(identifierData) { [weak self] data, error in
-            self?.liveRampEnvelope = data?.envelope
+        LRAts.shared.getEnvelope(identifierData) { [weak self] envelope, error in
+            self?.liveRampEnvelope = envelope?.envelope
             self?.delegate?.didFetchLiveRampEnvelope(error: error)
+            self?.delegate?.didFetchLiveRampEnvelope(envelope: envelope, error: error)
         }
     }
     
