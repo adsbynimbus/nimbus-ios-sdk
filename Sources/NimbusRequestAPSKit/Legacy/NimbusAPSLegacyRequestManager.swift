@@ -23,12 +23,20 @@ final class NimbusAPSLegacyRequestManager: APSLegacyRequestManagerType {
     
     private var adLoadersDict: [String: DTBAdLoader] = [:]
     var usPrivacyString: String?
+    
+#if DEBUG
+    // When running in test mode auctions may have some delay
+    private static let defaultTimeout: Double = 1.5
+#else
+    private static let defaultTimeout: Double = 0.5
+#endif
+
 
     init(
         appKey: String,
         logger: Logger,
         logLevel: NimbusLogLevel,
-        timeoutInSeconds: Double = 0.5
+        timeoutInSeconds: Double = defaultTimeout
     ) {
         self.logger = logger
         self.logLevel = logLevel

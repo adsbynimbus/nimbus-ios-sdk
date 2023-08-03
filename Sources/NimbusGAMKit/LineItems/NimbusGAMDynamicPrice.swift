@@ -61,18 +61,7 @@ extension NimbusGAMDynamicPrice: NimbusRequestManagerDelegate {
         )
         
         guard let gamRequest = self.request else { return }
-        if gamRequest.customTargeting == nil { gamRequest.customTargeting = [:] }
-        gamRequest.customTargeting?["na_id"] = ad.auctionId
-        
-        if ad.auctionType == .video {
-            gamRequest.customTargeting?["na_bid_video"] = keywords
-            
-            if let duration = ad.duration {
-                gamRequest.customTargeting?["na_duration"] = String(duration)
-            }
-        } else {
-            gamRequest.customTargeting?["na_bid"] = keywords
-        }
+        ad.applyDynamicPrice(into: gamRequest, keywords: keywords)
     
         requestDelegate?.didCompleteNimbusRequest(request: request, ad: ad)
     }
