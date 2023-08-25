@@ -40,6 +40,7 @@ final class NimbusFANAdController: NSObject {
 
     /// Containing view for the Nimbus static ad controller (webview)
     private weak var container: NimbusAdView?
+    weak var internalDelegate: AdControllerDelegate?
     public weak var delegate: AdControllerDelegate?
     private weak var adPresentingViewController: UIViewController?
 
@@ -87,10 +88,7 @@ final class NimbusFANAdController: NSObject {
     
     func load() {
         guard let placementId = ad.placementId else {
-            delegate?.didReceiveNimbusError(
-                controller: self,
-                error: NimbusRenderError.adRenderingFailed(message: "Placement id not valid for Meta ad")
-            )
+            forwardNimbusError(NimbusRenderError.adRenderingFailed(message: "Placement id not valid for Meta ad"))
             return
         }
 
@@ -104,10 +102,7 @@ final class NimbusFANAdController: NSObject {
                     // Testing Facebook native ad rendering on the client
                     fbNativeAd?.loadAd()
                 } else {
-                    delegate?.didReceiveNimbusError(
-                        controller: self,
-                        error: NimbusRenderError.adRenderingFailed(message: "No markup present to render Meta native ad")
-                    )
+                    forwardNimbusError(NimbusRenderError.adRenderingFailed(message: "No markup present to render Meta native ad"))
                 }
             } else {
                 fbNativeAd?.loadAd(withBidPayload: ad.markup)
@@ -122,10 +117,7 @@ final class NimbusFANAdController: NSObject {
                     // Testing Facebook interstitial ad rendering on the client
                     fbInterstitialAd?.load()
                 } else {
-                    delegate?.didReceiveNimbusError(
-                        controller: self,
-                        error: NimbusRenderError.adRenderingFailed(message: "No markup present to render Meta interstitial ad")
-                    )
+                    forwardNimbusError(NimbusRenderError.adRenderingFailed(message: "No markup present to render Meta native ad"))
                 }
             } else {
                 fbInterstitialAd?.load(withBidPayload: ad.markup)
@@ -151,19 +143,14 @@ final class NimbusFANAdController: NSObject {
                     // Testing Facebook interstitial ad rendering on the client
                     fbRewardedVideoAd?.load()
                 } else {
-                    delegate?.didReceiveNimbusError(
-                        controller: self,
-                        error: NimbusRenderError.adRenderingFailed(message: "No markup present to render Meta interstitial ad")
-                    )
+                    forwardNimbusError(NimbusRenderError.adRenderingFailed(message: "No markup present to render Meta interstitial ad"))
                 }
             } else {
                 fbRewardedVideoAd?.load(withBidPayload: ad.markup)
             }
 
         default:
-            delegate?.didReceiveNimbusError(
-                controller: self,
-                error: NimbusRenderError.adRenderingFailed(message: "Meta Ad not supported"))
+            forwardNimbusError(NimbusRenderError.adRenderingFailed(message: "Meta Ad not supported"))
             return
         }
     }
@@ -194,14 +181,21 @@ final class NimbusFANAdController: NSObject {
                 // Testing Facebook banner ad rendering on the client
                 fbAdView?.loadAd()
             } else {
-                delegate?.didReceiveNimbusError(
-                    controller: self,
-                    error: NimbusRenderError.adRenderingFailed(message: "No markup present to render Facebook banner ad")
-                )
+                forwardNimbusError(NimbusRenderError.adRenderingFailed(message: "No markup present to render Meta banner ad"))
             }
         } else {
             fbAdView?.loadAd(withBidPayload: ad.markup)
         }
+    }
+    
+    private func forwardNimbusEvent(_ event: NimbusEvent) {
+        internalDelegate?.didReceiveNimbusEvent(controller: self, event: event)
+        delegate?.didReceiveNimbusEvent(controller: self, event: event)
+    }
+    
+    private func forwardNimbusError(_ error: NimbusError) {
+        internalDelegate?.didReceiveNimbusError(controller: self, error: error)
+        delegate?.didReceiveNimbusError(controller: self, error: error)
     }
 }
 
@@ -259,21 +253,15 @@ extension NimbusFANAdController: FBNativeAdDelegate {
 
     /// :nodoc:
     func nativeAdDidLoad(_ nativeAd: FBNativeAd) {
-        logger.log("FBNativeAd loaded", level: .debug)
+        logger.log("Meta native ad loaded", level: .debug)
 
         guard nativeAd.isAdValid else {
-            delegate?.didReceiveNimbusError(
-                controller: self,
-                error: NimbusRenderError.adRenderingFailed(message: "FB native ad is invalid")
-            )
+            forwardNimbusError(NimbusRenderError.adRenderingFailed(message: "Meta native ad is invalid"))
             return
         }
 
         guard let container else {
-            delegate?.didReceiveNimbusError(
-                controller: self,
-                error: NimbusRenderError.adRenderingFailed(message: "Container view not found for FBNativeAd")
-            )
+            forwardNimbusError(NimbusRenderError.adRenderingFailed(message: "Container view not found for Meta native ad"))
             return
         }
 
@@ -293,35 +281,32 @@ extension NimbusFANAdController: FBNativeAdDelegate {
             fbNativeAdView.bottomAnchor.constraint(equalTo: container.safeAreaLayoutGuide.bottomAnchor)
         ])
 
-        delegate?.didReceiveNimbusEvent(controller: self, event: .loaded)
+        forwardNimbusEvent(.loaded)
 
         fbNativeAd = nil
     }
 
     /// :nodoc:
     func nativeAdWillLogImpression(_ nativeAd: FBNativeAd) {
-        logger.log("FBNativeAd will log impression", level: .debug)
+        logger.log("Meta native ad will log impression", level: .debug)
 
         hasRegisteredAdImpression = true
 
-        delegate?.didReceiveNimbusEvent(controller: self, event: .impression)
+        forwardNimbusEvent(.impression)
     }
 
     /// :nodoc:
     func nativeAd(_ nativeAd: FBNativeAd, didFailWithError error: Error) {
-        logger.log("FBNativeAd failed with error: \(error.localizedDescription)", level: .error)
+        logger.log("Meta native ad failed with error: \(error.localizedDescription)", level: .error)
 
-        delegate?.didReceiveNimbusError(
-            controller: self,
-            error: NimbusRenderError.adRenderingFailed(message: error.localizedDescription)
-        )
+        forwardNimbusError(NimbusRenderError.adRenderingFailed(message: error.localizedDescription))
     }
 
     /// :nodoc:
     func nativeAdDidClick(_ nativeAd: FBNativeAd) {
-        logger.log("FBNativeAd clicked", level: .debug)
+        logger.log("Meta native ad clicked", level: .debug)
 
-        delegate?.didReceiveNimbusEvent(controller: self, event: .clicked)
+        forwardNimbusEvent(.clicked)
     }
 }
 
@@ -331,17 +316,17 @@ extension NimbusFANAdController: FBInterstitialAdDelegate {
 
     /// :nodoc:
     func interstitialAdDidLoad(_ interstitialAd: FBInterstitialAd) {
-        logger.log("FBInterstitialAd loaded", level: .debug)
+        logger.log("Meta interstitial ad loaded", level: .debug)
 
         guard interstitialAd.isAdValid else {
             delegate?.didReceiveNimbusError(
                 controller: self,
-                error: NimbusRenderError.adRenderingFailed(message: "FB interstitial ad is invalid")
+                error: NimbusRenderError.adRenderingFailed(message: "Meta interstitial ad is invalid")
             )
             return
         }
 
-        delegate?.didReceiveNimbusEvent(controller: self, event: .loaded)
+        forwardNimbusEvent(.loaded)
 
         interstitialAd.show(fromRootViewController: adPresentingViewController)
 
@@ -350,33 +335,30 @@ extension NimbusFANAdController: FBInterstitialAdDelegate {
 
     /// :nodoc:
     func interstitialAd(_ interstitialAd: FBInterstitialAd, didFailWithError error: Error) {
-        logger.log("FBInterstitialAd failed with error: \(error.localizedDescription)", level: .error)
+        logger.log("Meta interstitial ad failed with error: \(error.localizedDescription)", level: .error)
 
-        delegate?.didReceiveNimbusError(
-            controller: self,
-            error: NimbusRenderError.adRenderingFailed(message: error.localizedDescription)
-        )
+        forwardNimbusError(NimbusRenderError.adRenderingFailed(message: error.localizedDescription))
     }
 
     /// :nodoc:
     func interstitialAdWillLogImpression(_ interstitialAd: FBInterstitialAd) {
-        logger.log("FBInterstitialAd will log impression", level: .debug)
+        logger.log("Meta interstitial ad will log impression", level: .debug)
 
-        delegate?.didReceiveNimbusEvent(controller: self, event: .impression)
+        forwardNimbusEvent(.impression)
     }
 
     /// :nodoc:
     func interstitialAdDidClick(_ interstitialAd: FBInterstitialAd) {
-        logger.log("FBInterstitialAd clicked", level: .debug)
+        logger.log("Meta interstitial ad clicked", level: .debug)
 
-        delegate?.didReceiveNimbusEvent(controller: self, event: .clicked)
+        forwardNimbusEvent(.clicked)
     }
     
     /// :nodoc:
     func interstitialAdDidClose(_ interstitialAd: FBInterstitialAd) {
-        logger.log("FBInterstitialAd closed", level: .debug)
+        logger.log("Meta interstitial ad closed", level: .debug)
 
-        delegate?.didReceiveNimbusEvent(controller: self, event: .destroyed)
+        forwardNimbusEvent(.destroyed)
     }
 }
 
@@ -389,22 +371,16 @@ extension NimbusFANAdController: FBRewardedVideoAdDelegate {
         logger.log("FBRewardedAd loaded", level: .debug)
 
         guard rewardedVideoAd.isAdValid else {
-            delegate?.didReceiveNimbusError(
-                controller: self,
-                error: NimbusRenderError.adRenderingFailed(message: "FB rewarded ad is invalid")
-            )
+            forwardNimbusError(NimbusRenderError.adRenderingFailed(message: "Meta rewarded ad is invalid"))
             return
         }
         
         guard let presentingVC = adPresentingViewController else {
-            delegate?.didReceiveNimbusError(
-                controller: self,
-                error: NimbusRenderError.adRenderingFailed(message: "AdPresentingViewController is nil")
-            )
+            forwardNimbusError(NimbusRenderError.adRenderingFailed(message: "AdPresentingViewController is nil for Meta rewarded ad"))
             return
         }
 
-        delegate?.didReceiveNimbusEvent(controller: self, event: .loaded)
+        forwardNimbusEvent(.loaded)
 
         rewardedVideoAd.show(fromRootViewController: presentingVC)
 
@@ -415,36 +391,33 @@ extension NimbusFANAdController: FBRewardedVideoAdDelegate {
     func rewardedVideoAd(_ rewardedVideoAd: FBRewardedVideoAd, didFailWithError error: Error) {
         logger.log("FBRewardedVideoAd failed with error: \(error.localizedDescription)", level: .error)
 
-        delegate?.didReceiveNimbusError(
-            controller: self,
-            error: NimbusRenderError.adRenderingFailed(message: error.localizedDescription)
-        )
+        forwardNimbusError(NimbusRenderError.adRenderingFailed(message: error.localizedDescription))
     }
     
     /// :nodoc:
     func rewardedVideoAdWillLogImpression(_ rewardedVideoAd: FBRewardedVideoAd) {
         logger.log("FBRewardedVideoAd will log impression", level: .debug)
 
-        delegate?.didReceiveNimbusEvent(controller: self, event: .impression)
+        forwardNimbusEvent(.impression)
     }
     
     /// :nodoc:
     func rewardedVideoAdDidClick(_ rewardedVideoAd: FBRewardedVideoAd) {
         logger.log("FBRewardedVideoAd clicked", level: .debug)
 
-        delegate?.didReceiveNimbusEvent(controller: self, event: .clicked)
+        forwardNimbusEvent(.clicked)
     }
     
     func rewardedVideoAdVideoComplete(_ rewardedVideoAd: FBRewardedVideoAd) {
         logger.log("FBRewardedVideoAd completed", level: .debug)
 
-        delegate?.didReceiveNimbusEvent(controller: self, event: .completed)
+        forwardNimbusEvent(.completed)
     }
     
     func rewardedVideoAdDidClose(_ rewardedVideoAd: FBRewardedVideoAd) {
         logger.log("FBRewardedVideoAd closed", level: .debug)
 
-        delegate?.didReceiveNimbusEvent(controller: self, event: .destroyed)
+        forwardNimbusEvent(.destroyed)
     }
 }
 
@@ -457,18 +430,12 @@ extension NimbusFANAdController: FBAdViewDelegate {
         logger.log("FBAdView loaded", level: .debug)
 
         guard adView.isAdValid else {
-            delegate?.didReceiveNimbusError(
-                controller: self,
-                error: NimbusRenderError.adRenderingFailed(message: "FB banner ad is invalid")
-            )
+            forwardNimbusError(NimbusRenderError.adRenderingFailed(message: "Meta banner ad is invalid"))
             return
         }
 
         guard let container else {
-            delegate?.didReceiveNimbusError(
-                controller: self,
-                error: NimbusRenderError.adRenderingFailed(message: "Container view not found for FBAdView")
-            )
+            forwardNimbusError(NimbusRenderError.adRenderingFailed(message: "Container view not found for Meta banner ad"))
             return
         }
 
@@ -481,7 +448,7 @@ extension NimbusFANAdController: FBAdViewDelegate {
             adView.bottomAnchor.constraint(equalTo: container.safeAreaLayoutGuide.bottomAnchor)
         ])
 
-        delegate?.didReceiveNimbusEvent(controller: self, event: .loaded)
+        forwardNimbusEvent(.loaded)
     }
 
     /// :nodoc:
@@ -494,10 +461,7 @@ extension NimbusFANAdController: FBAdViewDelegate {
             fbAdSize = kFBAdSizeHeight50Banner
             loadBannerAd()
         } else {
-            delegate?.didReceiveNimbusError(
-                controller: self,
-                error: NimbusRenderError.adRenderingFailed(message: error.localizedDescription)
-            )
+            forwardNimbusError(NimbusRenderError.adRenderingFailed(message: error.localizedDescription))
         }
     }
 
@@ -505,13 +469,13 @@ extension NimbusFANAdController: FBAdViewDelegate {
     func adViewWillLogImpression(_ adView: FBAdView) {
         logger.log("FBAdView will log impression", level: .debug)
 
-        delegate?.didReceiveNimbusEvent(controller: self, event: .impression)
+        forwardNimbusEvent(.impression)
     }
 
     /// :nodoc:
     func adViewDidClick(_ adView: FBAdView) {
         logger.log("FBAdView clicked", level: .debug)
 
-        delegate?.didReceiveNimbusEvent(controller: self, event: .clicked)
+        forwardNimbusEvent(.clicked)
     }
 }

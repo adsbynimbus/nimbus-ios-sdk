@@ -67,8 +67,6 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
                     clickEventUrl: interstitialRenderData.renderInfo.googleClickEventUrl
                 )
             }
-            
-            self?.cacheManager.updateNimbusDidWin(auctionId: interstitialRenderData.renderInfo.auctionId)
         }
     }
     
@@ -238,6 +236,7 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
             return
         }
         
+        self.cacheManager.updateNimbusDidWin(auctionId: renderInfo.auctionId)
         self.interstitialRenderData = .init(renderInfo: renderInfo, data: data)
     }
     

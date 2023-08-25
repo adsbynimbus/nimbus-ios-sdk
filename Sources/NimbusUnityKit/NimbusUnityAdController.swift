@@ -11,6 +11,7 @@ import UnityAds
 
 final class NimbusUnityAdController: NSObject {
     
+    weak var internalDelegate: AdControllerDelegate?
     public weak var delegate: AdControllerDelegate?
     var volume: Int
     var isClickProtectionEnabled = true
@@ -61,6 +62,16 @@ final class NimbusUnityAdController: NSObject {
         }
         
         UnityAds.load(placementId, options: loadOptions, loadDelegate: self)
+    }
+    
+    private func forwardNimbusEvent(_ event: NimbusEvent) {
+        internalDelegate?.didReceiveNimbusEvent(controller: self, event: event)
+        delegate?.didReceiveNimbusEvent(controller: self, event: event)
+    }
+    
+    private func forwardNimbusError(_ error: NimbusError) {
+        internalDelegate?.didReceiveNimbusError(controller: self, error: error)
+        delegate?.didReceiveNimbusError(controller: self, error: error)
     }
 }
 
@@ -125,7 +136,7 @@ extension NimbusUnityAdController: UnityAdsLoadDelegate {
             isLoaded = true
         }
         
-        delegate?.didReceiveNimbusEvent(controller: self, event: .loaded)
+        forwardNimbusEvent(.loaded)
     }
     
     func unityAdsAdFailed(
@@ -135,7 +146,7 @@ extension NimbusUnityAdController: UnityAdsLoadDelegate {
     ) {
         Nimbus.shared.logger.log("UnityAds failed to load: \(message)", level: .error)
         
-        delegate?.didReceiveNimbusError(controller: self, error: NimbusRenderError.adRenderingFailed(message: message))
+        forwardNimbusError(NimbusRenderError.adRenderingFailed(message: message))
         
         isLoaded = false
         shouldStart = false
@@ -148,11 +159,8 @@ extension NimbusUnityAdController: UnityAdsShowDelegate {
         _ placementId: String,
         withFinish state: UnityAdsShowCompletionState
     ) {
-        delegate?.didReceiveNimbusEvent(
-            controller: self,
-            event: state == .showCompletionStateCompleted ? .completed : .skipped
-        )
-        delegate?.didReceiveNimbusEvent(controller: self, event: .destroyed)
+        forwardNimbusEvent(state == .showCompletionStateCompleted ? .completed : .skipped)
+        forwardNimbusEvent(.destroyed)
     }
     
     func unityAdsShowFailed(
@@ -165,18 +173,15 @@ extension NimbusUnityAdController: UnityAdsShowDelegate {
         // Unity seems to throw this error after showing an ad. This is NOT a hard failure
         // so skip sending a Nimbus error for this case
         if error != UnityAdsShowError.showErrorAlreadyShowing {
-            delegate?.didReceiveNimbusError(
-                controller: self,
-                error: NimbusRenderError.adRenderingFailed(message: message)
-            )
+            forwardNimbusError(NimbusRenderError.adRenderingFailed(message: message))
         }
     }
     
     func unityAdsShowStart(_ placementId: String) {
-        delegate?.didReceiveNimbusEvent(controller: self, event: .impression)
+        forwardNimbusEvent(.impression)
     }
     
     func unityAdsShowClick(_ placementId: String) {
-        delegate?.didReceiveNimbusEvent(controller: self, event: .clicked)
+        forwardNimbusEvent(.clicked)
     }
 }
