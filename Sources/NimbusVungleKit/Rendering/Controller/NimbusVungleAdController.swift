@@ -29,6 +29,7 @@ final class NimbusVungleAdController: NSObject {
     let creativeScalingEnabled: Bool
     
     weak var container: NimbusAdView?
+    weak var internalDelegate: AdControllerDelegate?
     weak var delegate: AdControllerDelegate?
     weak var adPresentingViewController: UIViewController?
     
@@ -38,7 +39,7 @@ final class NimbusVungleAdController: NSObject {
     private var hasRegisteredAdImpression = false {
         didSet { triggerImpressionDelegateIfNecessary() }
     }
-
+    
     private var isAdVisible = false {
         didSet { triggerImpressionDelegateIfNecessary() }
     }
@@ -78,7 +79,7 @@ final class NimbusVungleAdController: NSObject {
         
         self.visibilityManager?.delegate = self
         self.visibilityManager?.startListeningForVisibilityChanges()
-
+        
         NotificationCenter.default.addObserver(
             self,
             selector: #selector(appDidBecomeActive),
@@ -101,11 +102,8 @@ final class NimbusVungleAdController: NSObject {
             
             try adLoader.load(ad: ad, placementId: placementId)
         } catch {
-            if let nimbusError = error as? NimbusVungleError {
-                delegate?.didReceiveNimbusError(
-                    controller: self,
-                    error: nimbusError
-                )
+            if let nimbusError = error as? NimbusError {
+                forwardNimbusError(nimbusError)
             }
         }
     }
@@ -138,23 +136,30 @@ final class NimbusVungleAdController: NSObject {
                 throw NimbusVungleError.failedToPresentAd(message: "No matching Vungle Ad auction type found. Size(\(ad.vungleAdSize?.rawValue ?? -1)) - Type(\(ad.auctionType))")
             }
         } catch {
-            if let nimbusError = error as? NimbusVungleError {
-                delegate?.didReceiveNimbusError(
-                    controller: self,
-                    error: nimbusError
-                )
+            if let nimbusError = error as? NimbusError {
+                forwardNimbusError(nimbusError)
             }
         }
     }
     
     private func triggerImpressionDelegateIfNecessary() {
         guard let container else { return }
-
+        
         container.visibilityDelegate?.didChangeVisibility(
             controller: container,
             isVisible: isAdVisible,
             hasTriggeredImpression: hasRegisteredAdImpression
         )
+    }
+    
+    private func forwardNimbusEvent(_ event: NimbusEvent) {
+        internalDelegate?.didReceiveNimbusEvent(controller: self, event: event)
+        delegate?.didReceiveNimbusEvent(controller: self, event: event)
+    }
+    
+    private func forwardNimbusError(_ error: NimbusError) {
+        internalDelegate?.didReceiveNimbusError(controller: self, error: error)
+        delegate?.didReceiveNimbusError(controller: self, error: error)
     }
 }
 
@@ -175,9 +180,9 @@ extension NimbusVungleAdController: AdController {
             } else {
                 type = ad.vungleAdSize == .mrec ? "mrec" : "banner"
             }
-            delegate?.didReceiveNimbusError(
-                controller: self,
-                error: NimbusVungleError.failedToStartAd(
+            
+            forwardNimbusError(
+                NimbusVungleError.failedToStartAd(
                     type: type,
                     message: "Vungle Ad has already been \(adState.rawValue)."
                 )
@@ -198,7 +203,8 @@ extension NimbusVungleAdController: AdController {
         
         adState = .destroyed
         
-        delegate?.didReceiveNimbusEvent(controller: self, event: .destroyed)
+        forwardNimbusEvent(.destroyed)
+        
         adLoader.destroy()
         visibilityManager?.destroy()
     }
@@ -213,14 +219,14 @@ extension NimbusVungleAdController: VungleBannerDelegate {
     func bannerAdDidLoad(_ banner: VungleBanner) {
         adState = .loaded
         
-        delegate?.didReceiveNimbusEvent(controller: self, event: .loaded)
+        forwardNimbusEvent(.loaded)
+        
         presentAd()
     }
     
     func bannerAdDidFailToLoad(_ banner: VungleBanner, withError: NSError) {
-        delegate?.didReceiveNimbusError(
-            controller: self,
-            error: NimbusVungleError.failedToLoadAd(
+        forwardNimbusError(
+            NimbusVungleError.failedToLoadAd(
                 type: "banner",
                 message: withError.localizedDescription
             )
@@ -232,9 +238,8 @@ extension NimbusVungleAdController: VungleBannerDelegate {
     }
     
     func bannerAdDidFailToPresent(_ banner: VungleBanner, withError: NSError) {
-        delegate?.didReceiveNimbusError(
-            controller: self,
-            error: NimbusVungleError.failedToPresentAd(
+        forwardNimbusError(
+            NimbusVungleError.failedToPresentAd(
                 type: "banner",
                 message: withError.localizedDescription
             )
@@ -246,14 +251,12 @@ extension NimbusVungleAdController: VungleBannerDelegate {
     }
     
     func bannerAdDidTrackImpression(_ banner: VungleBanner) {
-        logger.log("Vungle banner logged impression", level: .debug)
-        
         hasRegisteredAdImpression = true
-        delegate?.didReceiveNimbusEvent(controller: self, event: .impression)
+        forwardNimbusEvent(.impression)
     }
     
     func bannerAdDidClick(_ banner: VungleBanner) {
-        delegate?.didReceiveNimbusEvent(controller: self, event: .clicked)
+        forwardNimbusEvent(.clicked)
     }
 }
 
@@ -263,15 +266,15 @@ extension NimbusVungleAdController: VungleInterstitialDelegate {
     
     func interstitialAdDidLoad(_ interstitial: VungleInterstitial) {
         adState = .loaded
-
-        delegate?.didReceiveNimbusEvent(controller: self, event: .loaded)
+        
+        forwardNimbusEvent(.loaded)
+        
         presentAd()
     }
     
     func interstitialAdDidFailToLoad(_ interstitial: VungleInterstitial, withError: NSError) {
-        delegate?.didReceiveNimbusError(
-            controller: self,
-            error: NimbusVungleError.failedToLoadAd(
+        forwardNimbusError(
+            NimbusVungleError.failedToLoadAd(
                 type: "interstitial",
                 message: withError.localizedDescription
             )
@@ -283,9 +286,8 @@ extension NimbusVungleAdController: VungleInterstitialDelegate {
     }
     
     func interstitialAdDidFailToPresent(_ interstitial: VungleInterstitial, withError: NSError) {
-        delegate?.didReceiveNimbusError(
-            controller: self,
-            error: NimbusVungleError.failedToPresentAd(
+        forwardNimbusError(
+            NimbusVungleError.failedToPresentAd(
                 type: "interstitial",
                 message: withError.localizedDescription
             )
@@ -297,11 +299,11 @@ extension NimbusVungleAdController: VungleInterstitialDelegate {
     }
     
     func interstitialAdDidTrackImpression(_ interstitial: VungleInterstitial) {
-        delegate?.didReceiveNimbusEvent(controller: self, event: .impression)
+        forwardNimbusEvent(.impression)
     }
     
     func interstitialAdDidClick(_ interstitial: VungleInterstitial) {
-        delegate?.didReceiveNimbusEvent(controller: self, event: .clicked)
+        forwardNimbusEvent(.clicked)
     }
 }
 
@@ -312,14 +314,14 @@ extension NimbusVungleAdController: VungleRewardedDelegate {
     func rewardedAdDidLoad(_ rewarded: VungleRewarded) {
         adState = .loaded
         
-        delegate?.didReceiveNimbusEvent(controller: self, event: .loaded)
+        forwardNimbusEvent(.loaded)
+        
         presentAd()
     }
     
     func rewardedAdDidFailToLoad(_ rewarded: VungleRewarded, withError: NSError) {
-        delegate?.didReceiveNimbusError(
-            controller: self,
-            error: NimbusVungleError.failedToLoadAd(
+        forwardNimbusError(
+            NimbusVungleError.failedToLoadAd(
                 type: "rewarded",
                 message: withError.localizedDescription
             )
@@ -331,9 +333,8 @@ extension NimbusVungleAdController: VungleRewardedDelegate {
     }
     
     func rewardedAdDidFailToPresent(_ rewarded: VungleRewarded, withError: NSError) {
-        delegate?.didReceiveNimbusError(
-            controller: self,
-            error: NimbusVungleError.failedToPresentAd(
+        forwardNimbusError(
+            NimbusVungleError.failedToPresentAd(
                 type: "rewarded",
                 message: withError.localizedDescription
             )
@@ -345,27 +346,27 @@ extension NimbusVungleAdController: VungleRewardedDelegate {
     }
     
     func rewardedAdDidTrackImpression(_ rewarded: VungleRewarded) {
-        delegate?.didReceiveNimbusEvent(controller: self, event: .impression)
+        forwardNimbusEvent(.impression)
     }
     
     func rewardedAdDidClick(_ rewarded: VungleRewarded) {
-        delegate?.didReceiveNimbusEvent(controller: self, event: .clicked)
+        forwardNimbusEvent(.clicked)
     }
     
     func rewardedAdDidRewardUser(_ rewarded: VungleRewarded) {
-        delegate?.didReceiveNimbusEvent(controller: self, event: .completed)
+        forwardNimbusEvent(.completed)
     }
 }
 
 // MARK: Notifications
 
 extension NimbusVungleAdController {
-
+    
     /// Ad is in foreground
     @objc private func appDidBecomeActive() {
         visibilityManager?.appDidBecomeActive()
     }
-
+    
     /// Ad is in background
     @objc private func appWillResignActive() {
         visibilityManager?.appWillResignActive()
@@ -375,9 +376,9 @@ extension NimbusVungleAdController {
 // MARK: VisibilityManagerDelegate
 
 extension NimbusVungleAdController: VisibilityManagerDelegate {
-
+    
     func didRegisterImpressionForView() {}
-
+    
     func didChangeExposure(exposure: NimbusViewExposure) {
         let newVisibility = exposure.isVisible
         if isAdVisible != newVisibility {
