@@ -21,6 +21,7 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
     
     public let requestManager: NimbusRequestManager
     public let logger: Logger
+    
     private let cacheManager = NimbusDynamicPriceCacheManager()
     private var interstitialRenderData: InterstitialRenderData?
     
@@ -199,7 +200,11 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
             return
         }
         
-        let adView = NimbusAdView(adPresentingViewController: rootViewController)
+        if bannerView.rootViewController == nil {
+            logger.log("GADBannerView.rootViewController must be set, see https://developers.google.com/ad-manager/mobile-ads-sdk/ios/banner#configure_properties", level: .error)
+        }
+        
+        let adView = NimbusAdView(adPresentingViewController: bannerView.rootViewController)
         adView.delegate = self
         bannerView.addSubview(adView)
         
@@ -311,6 +316,11 @@ extension NimbusDynamicPriceRenderer: AdControllerDelegate {
         }
         
         if event == .clicked {
+            // TODO: Make a cleaner solution in a major release
+            if let bannerView = adView.superview as? GAMBannerView {
+                bannerView.delegate?.bannerViewDidRecordClick?(bannerView)
+            }
+            
             URLSession.shared.dataTask(with: URLRequest(url: url)) { [weak self] _, _, error in
                 if let error {
                     self?.logger.log(
