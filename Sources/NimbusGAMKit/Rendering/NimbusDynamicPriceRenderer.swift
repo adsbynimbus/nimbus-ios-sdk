@@ -224,7 +224,10 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
             )
         ])
         
-        adView.render(ad: data.nimbusAd)
+        // Only 320x480 companion ads are supported
+        let companionAd = NimbusCompanionAd(width: 320, height: 480, renderMode: .endCard)
+        
+        adView.render(ad: data.nimbusAd, companionAd: companionAd)
         adView.start()
         
         cacheManager.addClickEvent(
