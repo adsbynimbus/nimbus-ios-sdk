@@ -16,7 +16,7 @@ Documentation can be found at https://docs.adsbynimbus.com/docs/sdk/ios
 
 1. Navigate to Frameworks, Libraries, and Embedded Content for an iOS application target 
 2. Click the + button and select Add Package Dependency... under the Add Other dropdown
-3. Enter https://github.com/timehop/nimbus-ios-sdk in the package URL and select the main branch
+3. Enter https://github.com/adsbynimbus/nimbus-ios-sdk in the package URL and select the main branch
 4. Select all the frameworks required by your integration type
 
 ### Nimbus Standalone
