@@ -10,7 +10,7 @@
 import LRAtsSDK
 
 /// Delegate for listening LiveRamp's initialization and envelope fetching
-public protocol NimbusLiveRampInterceptorDelegate {
+public protocol NimbusLiveRampInterceptorDelegate: AnyObject {
     
     /// Triggered when initialized with either success or error
     func didInitializeLiveRamp(error: Error?)
@@ -58,7 +58,7 @@ public final class NimbusLiveRampInterceptor {
     }
     
     /// Delegate for listening LiveRamp callbacks
-    public var delegate: NimbusLiveRampInterceptorDelegate?
+    public weak var delegate: NimbusLiveRampInterceptorDelegate?
     
     var liveRampEnvelope: String?
     
