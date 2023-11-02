@@ -24,6 +24,9 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
     
     private let cacheManager = NimbusDynamicPriceCacheManager()
     private var interstitialRenderData: InterstitialRenderData?
+    private let thirdPartyInterstitialAdManager = ThirdPartyInterstitialAdManager()
+    private var thirdPartyInterstitialAdController: AdController?
+    private weak var thirdPartyInterstitialAdView: UIView?
     
     public init(
         requestManager: NimbusRequestManager = NimbusRequestManager(),
@@ -47,12 +50,40 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
         guard let interstitialRenderData else { return }
         
         DispatchQueue.main.async { [weak self] in
-            if let rootViewController = self?.rootViewController,
-               let gadViewController = rootViewController.presentedViewController {
+            guard let rootViewController = self?.rootViewController,
+                  let gadViewController = rootViewController.presentedViewController else {
+                self?.logger.log("NimbusDynamicPriceRenderer: Could not find GADViewController", level: .error)
+                return
+            }
+               
+            let ad = interstitialRenderData.data.nimbusAd
+            
+            if ThirdPartyDemandNetwork.exists(for: ad) {
+                do {
+                    self?.thirdPartyInterstitialAdController = try self?.thirdPartyInterstitialAdManager.render(
+                        ad: ad,
+                        adPresentingViewController: gadViewController,
+                        companionAd: nil
+                    )
+
+                    self?.thirdPartyInterstitialAdView = gadViewController.view
+                    
+                    self?.thirdPartyInterstitialAdController?.delegate = self
+                    self?.thirdPartyInterstitialAdController?.start()
+                    
+                    self?.cacheManager.addClickEvent(
+                        nimbusAdView: gadViewController.view,
+                        clickEventUrl: interstitialRenderData.renderInfo.googleClickEventUrl
+                    )
+                } catch {
+                    self?.logger.log("NimbusDynamicPriceRenderer: Third-party demand interstitial error: \(error.localizedDescription)", level: .error)
+                }
+            } else {
                 let adView = NimbusAdView(adPresentingViewController: nil)
+                
                 let adViewController = NimbusAdViewController(
                     adView: adView,
-                    ad: interstitialRenderData.data.nimbusAd,
+                    ad: ad,
                     companionAd: nil
                 )
                 adView.delegate = self
@@ -309,12 +340,35 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
             return nil
         }
     }
+    
+    private func dismiss() {
+        DispatchQueue.main.async { [weak self] in
+            guard let self,
+                  let rootViewController = self.rootViewController,
+                  let gadViewController = rootViewController.presentedViewController else {
+                return
+            }
+            
+            gadViewController.dismiss(animated: false)
+        }
+    }
 }
 
 extension NimbusDynamicPriceRenderer: AdControllerDelegate {
     public func didReceiveNimbusEvent(controller: AdController, event: NimbusEvent) {
-        guard let adView = controller as? NimbusAdView,
-              let url = cacheManager.getClickEvent(nimbusAdView: adView) else {
+        
+        let adView: UIView
+        if let nimbusAdView = controller as? NimbusAdView {
+            adView = nimbusAdView
+        } else if let thirdPartyAdView = thirdPartyInterstitialAdView {
+            adView = thirdPartyAdView
+        } else {
+            logger.log("NimbusDynamicPriceRenderer: Couldn't locate adView", level: .error)
+            return
+        }
+        
+        guard let url = cacheManager.getClickEvent(nimbusAdView: adView) else {
+            logger.log("NimbusDynamicPriceRenderer: couldn't find cache for adView: \(adView)", level: .error)
             return
         }
         
@@ -339,6 +393,12 @@ extension NimbusDynamicPriceRenderer: AdControllerDelegate {
             }.resume()
         } else if event == .destroyed {
             cacheManager.removeClickEvent(nimbusAdView: adView)
+            
+            if thirdPartyInterstitialAdController != nil {
+                thirdPartyInterstitialAdController = nil
+                thirdPartyInterstitialAdView = nil
+                dismiss()
+            }
         }
     }
     
@@ -351,14 +411,6 @@ extension NimbusDynamicPriceRenderer: NimbusAdViewControllerDelegate {
     public func viewWillDisappear(animated: Bool) {}
     public func viewDidDisappear(animated: Bool) {}
     public func didCloseAd(adView: NimbusAdView) {
-        DispatchQueue.main.async { [weak self] in
-            guard let self,
-                  let rootViewController = self.rootViewController,
-                  let gadViewController = rootViewController.presentedViewController else {
-                return
-            }
-            
-            gadViewController.dismiss(animated: false)
-        }
+        dismiss()
     }
 }

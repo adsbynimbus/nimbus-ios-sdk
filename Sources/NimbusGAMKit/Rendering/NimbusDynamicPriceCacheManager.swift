@@ -8,6 +8,7 @@
 
 @_exported import NimbusKit
 import GoogleMobileAds
+import UIKit
 
 /// :nodoc:
 final class NimbusDynamicPriceCacheManager {
@@ -43,7 +44,7 @@ final class NimbusDynamicPriceCacheManager {
     }
     
     /// :nodoc
-    func addClickEvent(nimbusAdView: NimbusAdView, clickEventUrl: URL?) {
+    func addClickEvent(nimbusAdView: UIView, clickEventUrl: URL?) {
         clickEventCache[nimbusAdView.hash] = clickEventUrl
     }
     
@@ -65,7 +66,7 @@ final class NimbusDynamicPriceCacheManager {
     }
     
     /// :nodoc:
-    func getClickEvent(nimbusAdView: NimbusAdView) -> URL? {
+    func getClickEvent(nimbusAdView: UIView) -> URL? {
         clickEventCache[nimbusAdView.hash]
     }
     
@@ -105,7 +106,7 @@ final class NimbusDynamicPriceCacheManager {
     }
     
     /// :nodoc
-    func removeClickEvent(nimbusAdView: NimbusAdView) {
+    func removeClickEvent(nimbusAdView: UIView) {
         clickEventCache.removeValue(forKey: nimbusAdView.hash)
     }
 }

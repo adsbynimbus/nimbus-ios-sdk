@@ -35,6 +35,9 @@ public final class NimbusRewardedAdPresenter {
     private var companionAd: NimbusCompanionAd?
     private var adView: NimbusAdView?
     
+    private let thirdPartyInterstitialAdManager = ThirdPartyInterstitialAdManager()
+    private var thirdPartyAdController: AdController?
+    
     public init(
         request: NimbusRequest,
         ad: NimbusAd,
@@ -64,24 +67,41 @@ public final class NimbusRewardedAdPresenter {
     }
     
     private func showNimbusAd(presentingViewController: UIViewController) {
-        adView = NimbusAdView(adPresentingViewController: nil)
-        guard let adView else { return }
-        
-        let adViewController = NimbusAdViewController(
-            adView: adView,
-            ad: ad,
-            companionAd: companionAd,
-            closeButtonDelay: 5,
-            isRewardedAd: true
-        )
-        adView.delegate = self
-        adView.adPresentingViewController = adViewController
-        
-        adViewController.delegate = self
-        adViewController.modalPresentationStyle = .fullScreen
-        
-        presentingViewController.present(adViewController, animated: true, completion: nil)
-        adViewController.renderAndStart()
+        if ThirdPartyDemandNetwork.exists(for: ad) {
+            do {
+                thirdPartyAdController = try thirdPartyInterstitialAdManager.render(
+                    ad: ad,
+                    adPresentingViewController: presentingViewController,
+                    companionAd: nil
+                )
+                
+                thirdPartyAdController?.delegate = self
+                thirdPartyAdController?.start()
+                
+                delegate?.didPresentAd()
+            } catch {
+                Nimbus.shared.logger.log("NimbusDynamicPriceRenderer: Third-party demand rewarded error: \(error.localizedDescription)", level: .error)
+            }
+        } else {
+            adView = NimbusAdView(adPresentingViewController: nil)
+            guard let adView else { return }
+            
+            let adViewController = NimbusAdViewController(
+                adView: adView,
+                ad: ad,
+                companionAd: companionAd,
+                closeButtonDelay: 5,
+                isRewardedAd: true
+            )
+            adView.delegate = self
+            adView.adPresentingViewController = adViewController
+            
+            adViewController.delegate = self
+            adViewController.modalPresentationStyle = .fullScreen
+            
+            presentingViewController.present(adViewController, animated: true, completion: nil)
+            adViewController.renderAndStart()
+        }
     }
     
     private func showGoogleAd(presentingViewController: UIViewController) {
@@ -132,6 +152,9 @@ extension NimbusRewardedAdPresenter: AdControllerDelegate {
             default:
                 break
             }
+        case .destroyed where thirdPartyAdController != nil:
+            delegate?.didCloseAd()
+            thirdPartyAdController = nil
         default:
             break
         }
