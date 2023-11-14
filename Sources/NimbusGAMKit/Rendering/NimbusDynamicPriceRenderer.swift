@@ -24,6 +24,7 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
     
     private let cacheManager = NimbusDynamicPriceCacheManager()
     private var interstitialRenderData: InterstitialRenderData?
+    private weak var interstitialAd: GADFullScreenPresentingAd?
     private let thirdPartyInterstitialAdManager = ThirdPartyInterstitialAdManager()
     private var thirdPartyInterstitialAdController: AdController?
     private weak var thirdPartyInterstitialAdView: UIView?
@@ -43,6 +44,7 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
     }
     
     public func willRender(ad: NimbusAd, fullScreenPresentingAd: GADFullScreenPresentingAd) {
+        interstitialAd = fullScreenPresentingAd
         cacheManager.addData(nimbusAd: ad, fullScreenPresentingAd: fullScreenPresentingAd)
     }
     
@@ -55,7 +57,7 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
                 self?.logger.log("NimbusDynamicPriceRenderer: Could not find GADViewController", level: .error)
                 return
             }
-               
+            
             let ad = interstitialRenderData.data.nimbusAd
             
             if ThirdPartyDemandNetwork.exists(for: ad) {
@@ -376,6 +378,8 @@ extension NimbusDynamicPriceRenderer: AdControllerDelegate {
             // TODO: Make a cleaner solution in a major release
             if let bannerView = adView.superview as? GAMBannerView {
                 bannerView.delegate?.bannerViewDidRecordClick?(bannerView)
+            } else if let interstitialAd {
+                interstitialAd.fullScreenContentDelegate?.adDidRecordClick?(interstitialAd)
             }
             
             URLSession.shared.dataTask(with: URLRequest(url: url)) { [weak self] _, _, error in
@@ -393,6 +397,8 @@ extension NimbusDynamicPriceRenderer: AdControllerDelegate {
             }.resume()
         } else if event == .destroyed {
             cacheManager.removeClickEvent(nimbusAdView: adView)
+            interstitialAd = nil
+            interstitialRenderData = nil
             
             if thirdPartyInterstitialAdController != nil {
                 thirdPartyInterstitialAdController = nil
