@@ -6,9 +6,7 @@
 //  Copyright © 2023 Timehop. All rights reserved.
 //
 
-#if SWIFT_PACKAGE
 @_exported import NimbusRenderKit
-#endif
 import VungleAdsSDK
 import UIKit
 
@@ -16,6 +14,13 @@ protocol NimbusVungleAdPresenterType {
     func present(bannerAd: VungleBanner?, ad: NimbusAd, container: NimbusAdView?, creativeScalingEnabled: Bool) throws
     func present(interstitialAd: VungleInterstitial?, adPresentingViewController: UIViewController?) throws
     func present(rewardedAd: VungleRewarded?, adPresentingViewController: UIViewController?) throws
+    func present(
+        nativeAd: VungleNative?,
+        ad: NimbusAd,
+        container: NimbusAdView?,
+        viewController: UIViewController?,
+        adRendererDelegate: NimbusVungleAdRendererDelegate?
+    ) throws
 }
 
 final class NimbusVungleAdPresenter: NimbusVungleAdPresenterType {
@@ -58,6 +63,61 @@ final class NimbusVungleAdPresenter: NimbusVungleAdPresenterType {
         if creativeScalingEnabled {
             NimbusCreativeScaler().scaleCreativeIfNecessary(ad: ad, view: adContainerView)
         }
+    }
+    
+    func present(
+        nativeAd: VungleNative?,
+        ad: NimbusAd,
+        container: NimbusAdView?,
+        viewController: UIViewController?,
+        adRendererDelegate: NimbusVungleAdRendererDelegate?
+    ) throws {
+        guard let container else {
+            throw NimbusVungleError.failedToPresentAd(
+                type: "native",
+                message: "Container view not found."
+            )
+        }
+
+        guard let nativeAd else {
+            throw NimbusVungleError.failedToPresentAd(
+                type: "native",
+                message: "Vungle Ad not found."
+            )
+        }
+        
+        guard let viewController else {
+            throw NimbusVungleError.failedToPresentAd(
+                type: "native",
+                message: "Vungle ad presenting controller not found."
+            )
+        }
+        
+        guard let adRendererDelegate else {
+            throw NimbusVungleError.failedToPresentAd(
+                type: "native",
+                message: "Error retrieving native ad view. Please implement NimbusVungleAdRenderer.adRendererDelegate"
+            )
+        }
+        
+        let adView = adRendererDelegate.customViewForRendering(container: container, nativeAd: nativeAd)
+        
+        adView.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(adView)
+        NSLayoutConstraint.activate([
+            adView.leadingAnchor.constraint(equalTo: container.safeAreaLayoutGuide.leadingAnchor),
+            adView.trailingAnchor.constraint(equalTo: container.safeAreaLayoutGuide.trailingAnchor),
+            adView.topAnchor.constraint(equalTo: container.safeAreaLayoutGuide.topAnchor),
+            adView.bottomAnchor.constraint(equalTo: container.safeAreaLayoutGuide.bottomAnchor)
+        ])
+        
+        nativeAd.registerViewForInteraction(
+            view: adView,
+            mediaView: adView.mediaView,
+            iconImageView: adView.iconImageView,
+            viewController: viewController,
+            clickableViews: adView.clickableViews
+        )
     }
     
     func present(interstitialAd: VungleInterstitial?, adPresentingViewController: UIViewController?) throws {

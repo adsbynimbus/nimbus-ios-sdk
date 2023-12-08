@@ -7,8 +7,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <NimbusRequestKit/NimbusRequestKit.h>
-#import <DTBiOSSDK/DTBiOSSDK.h>
 
 //! Project version number for NimbusRequestingAPS.
 FOUNDATION_EXPORT double NimbusRequestAPSKitVersionNumber;

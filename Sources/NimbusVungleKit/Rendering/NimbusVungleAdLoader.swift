@@ -9,13 +9,14 @@
 @_exported import NimbusRenderKit
 import VungleAdsSDK
 
-typealias VungleAdDelegate = VungleBannerDelegate & VungleInterstitialDelegate & VungleRewardedDelegate
+typealias VungleAdDelegate = VungleBannerDelegate & VungleInterstitialDelegate & VungleRewardedDelegate & VungleNativeDelegate
 
 protocol NimbusVungleAdLoaderType {
     var delegate: VungleAdDelegate? { get set }
     var bannerAd: VungleBanner? { get }
     var interstitialAd: VungleInterstitial? { get }
     var rewardedAd: VungleRewarded? { get }
+    var nativeAd: VungleNative? { get }
     
     func load(ad: NimbusAd, placementId: String) throws
     func destroy()
@@ -31,6 +32,8 @@ final class NimbusVungleAdLoader: NimbusVungleAdLoaderType {
     
     private(set) var rewardedAd: VungleRewarded?
     
+    private(set) var nativeAd: VungleNative?
+    
     func load(ad: NimbusAd, placementId: String) throws {
         switch ad.vungleAdType {
         case .rewarded:
@@ -39,6 +42,8 @@ final class NimbusVungleAdLoader: NimbusVungleAdLoaderType {
             loadInterstitialAd(placementId: placementId, markup: ad.markup)
         case .banner:
             loadBannerAd(placementId: placementId, markup: ad.markup, size: ad.vungleAdSize!)
+        case .native:
+            loadNativeAd(placementId: placementId, markup: ad.markup)
         case .none:
             throw NimbusVungleError.failedToLoadAd(
                 message: "No matching Vungle Ad auction type found. Size(\(ad.vungleAdSize?.rawValue ?? -1)) - Type(\(ad.auctionType))"
@@ -64,6 +69,12 @@ final class NimbusVungleAdLoader: NimbusVungleAdLoaderType {
         rewardedAd?.load(markup)
     }
     
+    func loadNativeAd(placementId: String, markup: String) {
+        nativeAd = VungleNative(placementId: placementId)
+        nativeAd?.delegate = delegate
+        nativeAd?.load(markup)
+    }
+    
     func destroy() {
         bannerAd?.delegate = nil
         bannerAd = nil
@@ -73,5 +84,8 @@ final class NimbusVungleAdLoader: NimbusVungleAdLoaderType {
         
         rewardedAd?.delegate = nil
         rewardedAd = nil
+        
+        nativeAd?.delegate = nil
+        nativeAd = nil
     }
 }

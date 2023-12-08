@@ -32,6 +32,7 @@ final class NimbusVungleAdController: NSObject {
     weak var internalDelegate: AdControllerDelegate?
     weak var delegate: AdControllerDelegate?
     weak var adPresentingViewController: UIViewController?
+    weak var adRendererDelegate: NimbusVungleAdRendererDelegate?
     
     var adState = AdState.notLoaded
     
@@ -56,7 +57,8 @@ final class NimbusVungleAdController: NSObject {
         logger: Logger,
         creativeScalingEnabled: Bool,
         delegate: AdControllerDelegate,
-        adPresentingViewController: UIViewController?
+        adPresentingViewController: UIViewController?,
+        adRendererDelegate: NimbusVungleAdRendererDelegate? = nil
     ) {
         self.ad = ad
         self.adLoader = adLoader
@@ -66,6 +68,7 @@ final class NimbusVungleAdController: NSObject {
         self.creativeScalingEnabled = creativeScalingEnabled
         self.delegate = delegate
         self.adPresentingViewController = adPresentingViewController
+        self.adRendererDelegate = adRendererDelegate
         
         if let visibilityTrackableView = container as? (UIView & VisibilityTrackable) {
             self.visibilityManager = NimbusVisibilityManager(for: visibilityTrackableView)
@@ -131,6 +134,14 @@ final class NimbusVungleAdController: NSObject {
                     ad: ad,
                     container: container,
                     creativeScalingEnabled: creativeScalingEnabled
+                )
+            case .native:
+                try adPresenter.present(
+                    nativeAd: adLoader.nativeAd, 
+                    ad: ad,
+                    container: container,
+                    viewController: adPresentingViewController,
+                    adRendererDelegate: adRendererDelegate
                 )
             case .none:
                 throw NimbusVungleError.failedToPresentAd(message: "No matching Vungle Ad auction type found. Size(\(ad.vungleAdSize?.rawValue ?? -1)) - Type(\(ad.auctionType))")
@@ -205,6 +216,7 @@ extension NimbusVungleAdController: AdController {
         
         forwardNimbusEvent(.destroyed)
         
+        adLoader.nativeAd?.unregisterView()
         adLoader.destroy()
         visibilityManager?.destroy()
     }
@@ -256,6 +268,45 @@ extension NimbusVungleAdController: VungleBannerDelegate {
     }
     
     func bannerAdDidClick(_ banner: VungleBanner) {
+        forwardNimbusEvent(.clicked)
+    }
+}
+
+// MARK: VungleNativeDelegate
+
+extension NimbusVungleAdController: VungleNativeDelegate {
+    func nativeAdDidLoad(_ native: VungleNative) {
+        adState = .loaded
+        
+        forwardNimbusEvent(.loaded)
+        
+        presentAd()
+    }
+    
+    func nativeAdDidFailToLoad(_ native: VungleNative, withError: NSError) {
+        forwardNimbusError(
+            NimbusVungleError.failedToLoadAd(
+                type: "native",
+                message: withError.localizedDescription
+            )
+        )
+    }
+    
+    func nativeAdDidFailToPresent(_ native: VungleNative, withError: NSError) {
+        forwardNimbusError(
+            NimbusVungleError.failedToPresentAd(
+                type: "native",
+                message: withError.localizedDescription
+            )
+        )
+    }
+
+    func nativeAdDidTrackImpression(_ native: VungleNative) {
+        hasRegisteredAdImpression = true
+        forwardNimbusEvent(.impression)
+    }
+    
+    func nativeAdDidClick(_ native: VungleNative) {
         forwardNimbusEvent(.clicked)
     }
 }

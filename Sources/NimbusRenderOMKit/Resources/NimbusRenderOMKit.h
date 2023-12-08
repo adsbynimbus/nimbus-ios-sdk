@@ -7,7 +7,6 @@
 //
 
 #import <Foundation/Foundation.h>
-#import <NimbusRenderKit/NimbusRenderKit.h>
 
 //! Project version number for NimbusRenderOMKit.
 FOUNDATION_EXPORT double NimbusRenderOMKitVersionNumber;

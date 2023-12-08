@@ -10,7 +10,7 @@
 import VungleAdsSDK
 
 enum NimbusVungleAdType: String {
-    case fullScreenBlocking, rewarded, banner    
+    case fullScreenBlocking, rewarded, banner, native
 }
 
 extension NimbusAd {
@@ -42,6 +42,7 @@ extension NimbusAd {
             return .banner
         case (.static, _): return .fullScreenBlocking
         case (.video, nil): return .rewarded
+        case (.native, _): return .native
         default:
             return nil
         }

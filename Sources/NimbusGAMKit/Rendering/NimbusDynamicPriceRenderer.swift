@@ -226,11 +226,12 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
     
     /// Handle event methods
     
-    public func handleBannerEventForNimbus(bannerView: GADBannerView, name: String, info: String?) {
+    @discardableResult
+    public func handleBannerEventForNimbus(bannerView: GADBannerView, name: String, info: String?) -> Bool {
         guard name == "na_render",
               let renderInfo = getRenderInfo(info: info),
               let data = cacheManager.getData(for: renderInfo.auctionId) else {
-            return
+            return false
         }
         
         if bannerView.rootViewController == nil {
@@ -268,17 +269,22 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
             clickEventUrl: renderInfo.googleClickEventUrl
         )
         cacheManager.updateNimbusDidWin(auctionId: renderInfo.auctionId)
+        
+        return true
     }
     
-    public func handleInterstitialEventForNimbus(name: String, info: String?) {
+    @discardableResult
+    public func handleInterstitialEventForNimbus(name: String, info: String?) -> Bool {
         guard name == "na_render",
               let renderInfo = getRenderInfo(info: info),
               let data = cacheManager.getData(for: renderInfo.auctionId) else {
-            return
+            return false
         }
         
         self.cacheManager.updateNimbusDidWin(auctionId: renderInfo.auctionId)
         self.interstitialRenderData = .init(renderInfo: renderInfo, data: data)
+        
+        return true
     }
     
     public func handleRewardedEventForNimbus(
