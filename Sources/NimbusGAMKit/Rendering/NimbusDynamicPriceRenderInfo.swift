@@ -2,8 +2,8 @@
 //  NimbusDynamicPriceRenderInfo.swift
 //  NimbusGAMKit
 //
-//  Created by Victor Takai on 23/04/23.
-//  Copyright © 2023 Timehop. All rights reserved.
+//  Created on 23/04/23.
+//  Copyright © 2023 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
 import Foundation

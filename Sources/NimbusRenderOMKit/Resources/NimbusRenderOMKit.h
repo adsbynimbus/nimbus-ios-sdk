@@ -2,8 +2,8 @@
 //  NimbusRenderOMKit.h
 //  NimbusRenderOMKit
 //
-//  Created by Inder Dhir on 9/7/21.
-//  Copyright © 2021 Timehop. All rights reserved.
+//  Created on 9/7/21.
+//  Copyright © 2021 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>

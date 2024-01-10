@@ -2,8 +2,8 @@
 //  NimbusAd+Targeting.swift
 //  NimbusGAMKit
 //
-//  Created by Inder Dhir on 8/12/22.
-//  Copyright © 2022 Timehop. All rights reserved.
+//  Created on 8/12/22.
+//  Copyright © 2022 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
 @_exported import NimbusRequestKit
@@ -30,6 +30,7 @@ extension NimbusAd {
         
         request.customTargeting?["na_id"] = auctionId
         request.customTargeting?["na_size"] = "\(adDimensions?.width ?? 0)x\(adDimensions?.height ?? 0)"
+        request.customTargeting?["na_network"] = network
         
         if auctionType == .video {
             request.customTargeting?["na_bid_video"] = keywords

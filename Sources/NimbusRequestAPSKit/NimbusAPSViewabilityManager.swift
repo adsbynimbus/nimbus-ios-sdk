@@ -2,8 +2,8 @@
 //  NimbusAPSViewabilityManager.swift
 //  NimbusRequestAPSKit
 //
-//  Created by Inder Dhir on 2/7/23.
-//  Copyright © 2023 Timehop. All rights reserved.
+//  Created on 2/7/23.
+//  Copyright © 2023 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
 import DTBiOSSDK

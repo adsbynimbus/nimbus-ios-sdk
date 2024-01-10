@@ -2,8 +2,8 @@
 //  NimbusCustomEventBanner.swift
 //  NimbusGAMKit
 //
-//  Created by Inder Dhir on 4/1/20.
-//  Copyright © 2020 Timehop. All rights reserved.
+//  Created on 4/1/20.
+//  Copyright © 2020 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
 @_exported import NimbusKit

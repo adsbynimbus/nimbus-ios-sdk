@@ -2,8 +2,8 @@
 //  NimbusGAMLinearPriceGranularity.swift
 //  NimbusGAMKit
 //
-//  Created by Inder Dhir on 10/21/20.
-//  Copyright © 2020 Timehop. All rights reserved.
+//  Created on 10/21/20.
+//  Copyright © 2020 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
 @_exported import NimbusRequestKit

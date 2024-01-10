@@ -2,8 +2,8 @@
 //  NimbusGoogleSizeToFormatMapper.swift
 //  NimbusGoogleKit
 //
-//  Created by Inder Dhir on 6/27/23.
-//  Copyright © 2023 Timehop. All rights reserved.
+//  Created on 6/27/23.
+//  Copyright © 2023 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
 @_exported import NimbusRequestKit

@@ -2,8 +2,8 @@
 //  NimbusAPSRequestManager.swift
 //  NimbusRequestAPSKit
 //
-//  Created by Inder Dhir on 3/22/23.
-//  Copyright © 2023 Timehop. All rights reserved.
+//  Created on 3/22/23.
+//  Copyright © 2023 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
 import Foundation

@@ -2,8 +2,8 @@
 //  NimbusCustomEventInterstitial.swift
 //  NimbusGAMKit
 //
-//  Created by Inder Dhir on 11/9/20.
-//  Copyright © 2020 Timehop. All rights reserved.
+//  Created on 11/9/20.
+//  Copyright © 2020 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
 @_exported import NimbusKit

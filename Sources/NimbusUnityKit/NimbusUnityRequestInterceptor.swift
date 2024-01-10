@@ -2,8 +2,8 @@
 //  NimbusUnityRequestInterceptor.swift
 //  NimbusUnityKit
 //
-//  Created by Inder Dhir on 6/2/21.
-//  Copyright © 2021 Timehop. All rights reserved.
+//  Created on 6/2/21.
+//  Copyright © 2021 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
 @_exported import NimbusRequestKit

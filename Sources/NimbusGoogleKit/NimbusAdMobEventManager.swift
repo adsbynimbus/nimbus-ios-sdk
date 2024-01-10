@@ -2,8 +2,8 @@
 //  NimbusAdMobEventManager.swift
 //  Nimbus
 //
-//  Created by Inder Dhir on 7/31/23.
-//  Copyright © 2023 Timehop. All rights reserved.
+//  Created on 7/31/23.
+//  Copyright © 2023 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
 import Foundation

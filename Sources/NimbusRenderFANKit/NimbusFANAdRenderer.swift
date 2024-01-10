@@ -2,8 +2,8 @@
 //  FANAdRenderer.swift
 //  NimbusRenderKit
 //
-//  Created by Inder Dhir on 1/30/20.
-//  Copyright © 2020 Timehop. All rights reserved.
+//  Created on 1/30/20.
+//  Copyright © 2020 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
 @_exported import NimbusRenderKit

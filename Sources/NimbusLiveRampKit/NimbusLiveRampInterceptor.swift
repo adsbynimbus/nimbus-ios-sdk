@@ -2,8 +2,8 @@
 //  NimbusLiveRampInterceptor.swift
 //  NimbusLiveRampKit
 //
-//  Created by Victor Takai on 19/07/22.
-//  Copyright © 2022 Timehop. All rights reserved.
+//  Created on 19/07/22.
+//  Copyright © 2022 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
 @_exported import NimbusRequestKit

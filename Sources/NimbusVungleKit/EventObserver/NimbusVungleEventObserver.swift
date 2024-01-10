@@ -2,8 +2,8 @@
 //  NimbusVungleEventObserver.swift
 //  NimbusVungleKit
 //
-//  Created by Victor Takai on 18/05/23.
-//  Copyright © 2023 Timehop. All rights reserved.
+//  Created on 18/05/23.
+//  Copyright © 2023 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
 import Foundation

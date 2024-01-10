@@ -2,8 +2,8 @@
 //  NimbusSizeToFormatMapper.swift
 //  NimbusGAMKit
 //
-//  Created by Inder Dhir on 12/1/22.
-//  Copyright © 2022 Timehop. All rights reserved.
+//  Created on 12/1/22.
+//  Copyright © 2022 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
 @_exported import NimbusRequestKit

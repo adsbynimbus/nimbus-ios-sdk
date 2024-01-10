@@ -2,8 +2,8 @@
 //  NimbusGAMLinearPriceMapping.swift
 //  NimbusGAMKit
 //
-//  Created by Inder Dhir on 12/10/20.
-//  Copyright © 2020 Timehop. All rights reserved.
+//  Created on 12/10/20.
+//  Copyright © 2020 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
 @_exported import NimbusRequestKit
