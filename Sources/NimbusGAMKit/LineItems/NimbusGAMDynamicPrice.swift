@@ -10,6 +10,7 @@
 import GoogleMobileAds
 
 /// Nimbus Dynamice Price implementation for GAM which applies keywords to a `GADRequest`
+@available(*, deprecated, message: "Use NimbusAd.applyDynamicPrice extension instead")
 public class NimbusGAMDynamicPrice {
     
     /// Label for the custom event set up in the GAM dashboard

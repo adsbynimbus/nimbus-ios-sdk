@@ -32,14 +32,18 @@ extension NimbusAd {
         request.customTargeting?["na_size"] = "\(adDimensions?.width ?? 0)x\(adDimensions?.height ?? 0)"
         request.customTargeting?["na_network"] = network
         
+        let bidKey: String
+        
         if auctionType == .video {
-            request.customTargeting?["na_bid_video"] = keywords
+            bidKey = "na_bid_video"
 
             if let duration {
                 request.customTargeting?["na_duration"] = String(duration)
             }
         } else {
-            request.customTargeting?["na_bid"] = keywords
+            bidKey = "na_bid"
         }
+        
+        request.customTargeting?[bidKey] = Nimbus.shared.testMode ? "0" : keywords
     }
 }

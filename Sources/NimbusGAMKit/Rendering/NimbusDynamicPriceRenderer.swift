@@ -90,6 +90,7 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
                 )
                 adView.delegate = self
                 adView.adPresentingViewController = adViewController
+                adView.isBlocking = true
                 adViewController.delegate = self
                 adViewController.modalPresentationStyle = .fullScreen
                 
