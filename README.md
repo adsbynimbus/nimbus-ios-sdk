@@ -45,4 +45,4 @@ For additional information integrating Dynamic Price please see our [documentati
 
 ## License
 
-Copyright 2023 Timehop Inc. Distributed under [GNU GPLv3](LICENSE).
+Copyright 2024 Nimbus Advertising Solutions Inc. Distributed under [GNU GPLv3](LICENSE).
