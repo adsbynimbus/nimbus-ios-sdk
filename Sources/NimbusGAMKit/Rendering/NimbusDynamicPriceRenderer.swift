@@ -219,7 +219,7 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
         } else {
             requestManager.notifyLoss(ad: nimbusAd, auctionData: NimbusAuctionData(
                 auctionPrice: price,
-                winningSource: responseInfo?.adNetworkClassName
+                winningSource: responseInfo?.loadedAdNetworkResponseInfo?.adNetworkClassName
             ))
         }
         cacheManager.removeData(auctionId: nimbusAd.auctionId)
@@ -230,7 +230,7 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
     @discardableResult
     public func handleBannerEventForNimbus(bannerView: GADBannerView, name: String, info: String?) -> Bool {
         guard name == "na_render",
-              let renderInfo = getRenderInfo(info: info),
+              let renderInfo = NimbusDynamicPriceRenderInfo(info: info),
               let data = cacheManager.getData(for: renderInfo.auctionId) else {
             return false
         }
@@ -277,7 +277,7 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
     @discardableResult
     public func handleInterstitialEventForNimbus(name: String, info: String?) -> Bool {
         guard name == "na_render",
-              let renderInfo = getRenderInfo(info: info),
+              let renderInfo = NimbusDynamicPriceRenderInfo(info: info),
               let data = cacheManager.getData(for: renderInfo.auctionId) else {
             return false
         }
@@ -330,23 +330,6 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
             return navigationController.topViewController
         } else {
             return rootViewController
-        }
-    }
-    
-    func getRenderInfo(info: String?) -> NimbusDynamicPriceRenderInfo? {
-        guard let data = info?.data(using: .utf8) else {
-            logger.log(
-                "NimbusDynamicPriceRenderer: Unable to encode render info string",
-                level: .error
-            )
-            return nil
-        }
-        
-        do {
-            return try JSONDecoder().decode(NimbusDynamicPriceRenderInfo.self, from: data)
-        } catch {
-            logger.log(error.localizedDescription, level: .error)
-            return nil
         }
     }
     
