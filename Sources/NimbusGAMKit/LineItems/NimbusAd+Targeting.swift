@@ -47,3 +47,8 @@ extension NimbusAd {
         request.customTargeting?[bidKey] = Nimbus.shared.testMode ? "0" : keywords
     }
 }
+
+/// :nodoc:
+extension GAMRequest {
+    var hasDynamicPrice: Bool { customTargeting?["na_id"] != nil }
+}

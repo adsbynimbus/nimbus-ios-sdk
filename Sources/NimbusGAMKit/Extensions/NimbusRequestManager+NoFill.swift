@@ -7,9 +7,12 @@
 
 import Foundation
 import NimbusRequestKit
+import GoogleMobileAds
 
 public extension NimbusRequestManager {
-    func notifyNoFill(ad: NimbusAd) {
-        notifyLoss(ad: ad, auctionData: NimbusAuctionData(auctionPrice: "-1"))
+    func notifyError(ad: NimbusAd, error: Error) {
+        if (error as NSError).code == GADErrorCode.noFill.rawValue {
+            notifyLoss(ad: ad, auctionData: NimbusAuctionData(auctionPrice: "-1"))
+        }
     }
 }

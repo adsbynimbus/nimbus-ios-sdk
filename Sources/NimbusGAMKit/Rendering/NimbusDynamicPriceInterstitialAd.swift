@@ -5,18 +5,19 @@
 //  Copyright © 2024 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
-import Foundation
+import UIKit
 import GoogleMobileAds
 import NimbusKit
 
 final class NimbusDynamicPriceInterstitialAd: NSObject {
-    /// This is the publisher's original delegate. If set, we forward events to it.
-    weak var clientDelegate: GADFullScreenContentDelegate?
     weak var rootViewController: UIViewController?
-    weak var gadInterstitialAd: GADInterstitialAd?
-    
-    var gadViewController: UIViewController? { rootViewController?.presentedViewController }
     var didPresentGoogleController = false
+    
+    /// This is the publisher's original delegate. If set, we forward events to it.
+    private weak var clientDelegate: GADFullScreenContentDelegate?
+    private weak var gadInterstitialAd: GADInterstitialAd?
+    
+    private var gadViewController: UIViewController? { rootViewController?.presentedViewController }
     
     private var didPresent = false
     private let requestManager: NimbusRequestManager
@@ -35,20 +36,23 @@ final class NimbusDynamicPriceInterstitialAd: NSObject {
         ad: NimbusAd,
         requestManager: NimbusRequestManager,
         clientDelegate: GADFullScreenContentDelegate? = nil,
-        rootViewController: UIViewController? = nil
+        rootViewController: UIViewController? = nil,
+        gadInterstitialAd: GADInterstitialAd? = nil
     ) {
         self.ad = ad
         self.requestManager = requestManager
         self.clientDelegate = clientDelegate
         self.rootViewController = rootViewController
+        self.gadInterstitialAd = gadInterstitialAd
         
         super.init()
     }
     
     func updatePrice(_ adValue: GADAdValue) {
-        price = adValue.value.multiplying(byPowerOf10: 3).stringValue
+        price = adValue.nimbusPrice
     }
     
+    @discardableResult
     func handleEventForNimbus(name: String, info: String?) -> Bool {
         guard name == "na_render", let info = NimbusDynamicPriceRenderInfo(info: info) else {
             return false
@@ -64,7 +68,7 @@ final class NimbusDynamicPriceInterstitialAd: NSObject {
     
     // MARK: - Notify win/loss
     
-    func scheduleLossNotification() {
+    private func scheduleLossNotification() {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             if !self.isNimbusWin {
                 self.notifyLoss()
@@ -72,11 +76,11 @@ final class NimbusDynamicPriceInterstitialAd: NSObject {
         }
     }
     
-    func notifyWin() {
+    private func notifyWin() {
         requestManager.notifyWin(ad: ad, auctionData: NimbusAuctionData())
     }
     
-    func notifyLoss() {
+    private func notifyLoss() {
         requestManager.notifyLoss(ad: ad, auctionData: NimbusAuctionData(
             auctionPrice: price,
             winningSource: gadInterstitialAd?.responseInfo.loadedAdNetworkResponseInfo?.adNetworkClassName
@@ -142,7 +146,7 @@ final class NimbusDynamicPriceInterstitialAd: NSObject {
     
     // MARK: - NimbusEvent Handling
     
-    func handleClickEvent() {
+    private func handleClickEvent() {
         guard let gadInterstitialAd else {
             logger.log("GADInterstitialAd was unexpectedly released before click event could be processed", level: .error)
             return
@@ -181,7 +185,7 @@ extension NimbusDynamicPriceInterstitialAd: AdControllerDelegate {
         }
     }
     
-    public func didReceiveNimbusError(controller: AdController, error: NimbusCoreKit.NimbusError) {
+    func didReceiveNimbusError(controller: AdController, error: NimbusCoreKit.NimbusError) {
         if let gadInterstitialAd {
             clientDelegate?.ad?(gadInterstitialAd, didFailToPresentFullScreenContentWithError: error)
             dismiss()
@@ -192,20 +196,20 @@ extension NimbusDynamicPriceInterstitialAd: AdControllerDelegate {
 // MARK: - GADFullScreenContentDelegate
 
 extension NimbusDynamicPriceInterstitialAd: GADFullScreenContentDelegate {
-    public func ad(_ ad: GADFullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
+    func ad(_ ad: GADFullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
         clientDelegate?.ad?(ad, didFailToPresentFullScreenContentWithError: error)
     }
     
-    public func adDidRecordImpression(_ ad: GADFullScreenPresentingAd) {
+    func adDidRecordImpression(_ ad: GADFullScreenPresentingAd) {
         clientDelegate?.adDidRecordImpression?(ad)
         scheduleLossNotification()
     }
     
-    public func adDidRecordClick(_ ad: GADFullScreenPresentingAd) {
+    func adDidRecordClick(_ ad: GADFullScreenPresentingAd) {
         clientDelegate?.adDidRecordClick?(ad)
     }
     
-    public func adWillPresentFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+    func adWillPresentFullScreenContent(_ ad: GADFullScreenPresentingAd) {
         clientDelegate?.adWillPresentFullScreenContent?(ad)
         
         if !didPresentGoogleController {
@@ -213,11 +217,11 @@ extension NimbusDynamicPriceInterstitialAd: GADFullScreenContentDelegate {
         }
     }
     
-    public func adWillDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+    func adWillDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
         clientDelegate?.adWillDismissFullScreenContent?(ad)
     }
     
-    public func adDidDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+    func adDidDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
         clientDelegate?.adDidDismissFullScreenContent?(ad)
     }
 }
@@ -225,11 +229,11 @@ extension NimbusDynamicPriceInterstitialAd: GADFullScreenContentDelegate {
 // MARK: - NimbusAdViewControllerDelegate
 
 extension NimbusDynamicPriceInterstitialAd: NimbusAdViewControllerDelegate {
-    public func viewWillAppear(animated: Bool) {}
-    public func viewDidAppear(animated: Bool) {}
-    public func viewWillDisappear(animated: Bool) {}
-    public func viewDidDisappear(animated: Bool) {}
-    public func didCloseAd(adView: NimbusAdView) {
+    func viewWillAppear(animated: Bool) {}
+    func viewDidAppear(animated: Bool) {}
+    func viewWillDisappear(animated: Bool) {}
+    func viewDidDisappear(animated: Bool) {}
+    func didCloseAd(adView: NimbusAdView) {
         adView.destroy()
         dismiss()
     }

@@ -11,12 +11,12 @@ import NimbusCoreKit
 extension GADInterstitialAd {
     private static var nimbusAdKey: Void?
 
-    private(set) var nimbusInterstitialAd: NimbusDynamicPriceInterstitialAd? {
+    private var nimbusInterstitialAd: NimbusDynamicPriceInterstitialAd? {
         get {
-            objc_getAssociatedObject(self, &GADInterstitialAd.nimbusAdKey) as? NimbusDynamicPriceInterstitialAd
+            objc_getAssociatedObject(self, &Self.nimbusAdKey) as? NimbusDynamicPriceInterstitialAd
         }
         set {
-            objc_setAssociatedObject(self, &GADInterstitialAd.nimbusAdKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
+            objc_setAssociatedObject(self, &Self.nimbusAdKey, newValue, .OBJC_ASSOCIATION_RETAIN_NONATOMIC)
         }
     }
     
@@ -34,9 +34,9 @@ extension GADInterstitialAd {
         nimbusInterstitialAd = NimbusDynamicPriceInterstitialAd(
             ad: ad,
             requestManager: requestManager,
-            clientDelegate: delegate
+            clientDelegate: delegate,
+            gadInterstitialAd: self
         )
-        nimbusInterstitialAd?.gadInterstitialAd = self
         fullScreenContentDelegate = nimbusInterstitialAd
     }
     

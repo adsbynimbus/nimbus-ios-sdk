@@ -12,6 +12,7 @@ import GoogleMobileAds
 import UIKit
 
 /// Nimbus Renderer for GAM Dynamic Price
+@available(*, deprecated, message: "Please check out the Nimbus documentation to implement dynamic price.")
 public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
     
     struct InterstitialRenderData {

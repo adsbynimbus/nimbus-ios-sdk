@@ -10,13 +10,18 @@ import Foundation
 import NimbusCoreKit
 
 /// :nodoc:
-struct NimbusDynamicPriceRenderInfo: Decodable {
+struct NimbusDynamicPriceRenderInfo: Codable {
     let auctionId: String
     let googleClickEventUrl: URL
     
     enum CodingKeys: String, CodingKey {
         case auctionId = "na_id"
         case googleClickEventUrl = "ga_click"
+    }
+    
+    init(auctionId: String, googleClickEventUrl: URL) {
+        self.auctionId = auctionId
+        self.googleClickEventUrl = googleClickEventUrl
     }
     
     init?(info: String?) {
