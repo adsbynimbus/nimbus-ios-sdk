@@ -16,9 +16,6 @@ final class NimbusVungleAdController: NSObject {
         case notLoaded, loaded, presented = "played", destroyed
     }
     
-    // Visibility tracking is only necessary for non-interstitials
-    let visibilityManager: VisibilityManager?
-    
     var volume = 0
     var isClickProtectionEnabled = true
     
@@ -37,17 +34,9 @@ final class NimbusVungleAdController: NSObject {
     var adState = AdState.notLoaded
     
     /// Determines whether ad has registered an impression
-    private var hasRegisteredAdImpression = false {
-        didSet { triggerImpressionDelegateIfNecessary() }
-    }
+    private var hasRegisteredAdImpression = false
     
-    private var isAdVisible = false {
-        didSet { triggerImpressionDelegateIfNecessary() }
-    }
-    
-    deinit {
-        NotificationCenter.default.removeObserver(self)
-    }
+    private var isAdVisible = false
     
     init(
         ad: NimbusAd,
@@ -70,31 +59,9 @@ final class NimbusVungleAdController: NSObject {
         self.adPresentingViewController = adPresentingViewController
         self.adRendererDelegate = adRendererDelegate
         
-        if let visibilityTrackableView = container as? (UIView & VisibilityTrackable) {
-            self.visibilityManager = NimbusVisibilityManager(for: visibilityTrackableView)
-        } else {
-            self.visibilityManager = nil
-        }
-        
         super.init()
         
         self.adLoader.delegate = self
-        
-        self.visibilityManager?.delegate = self
-        self.visibilityManager?.startListeningForVisibilityChanges()
-        
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(appDidBecomeActive),
-            name: UIApplication.didBecomeActiveNotification,
-            object: nil
-        )
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(appWillResignActive),
-            name: UIApplication.willResignActiveNotification,
-            object: nil
-        )
     }
     
     func load() {
@@ -153,16 +120,6 @@ final class NimbusVungleAdController: NSObject {
         }
     }
     
-    private func triggerImpressionDelegateIfNecessary() {
-        guard let container else { return }
-        
-        container.visibilityDelegate?.didChangeVisibility(
-            controller: container,
-            isVisible: isAdVisible,
-            hasTriggeredImpression: hasRegisteredAdImpression
-        )
-    }
-    
     private func forwardNimbusEvent(_ event: NimbusEvent) {
         internalDelegate?.didReceiveNimbusEvent(controller: self, event: event)
         delegate?.didReceiveNimbusEvent(controller: self, event: event)
@@ -218,10 +175,15 @@ extension NimbusVungleAdController: AdController {
         
         adLoader.nativeAd?.unregisterView()
         adLoader.destroy()
-        visibilityManager?.destroy()
     }
     
     var friendlyObstructions: [UIView]? { nil }
+    
+    func didExposureChange(exposure: NimbusViewExposure) {
+        if isAdVisible != exposure.isVisible {
+            isAdVisible = exposure.isVisible
+        }
+    }
 }
 
 // MARK: VungleBannerDelegate
@@ -406,34 +368,5 @@ extension NimbusVungleAdController: VungleRewardedDelegate {
     
     func rewardedAdDidRewardUser(_ rewarded: VungleRewarded) {
         forwardNimbusEvent(.completed)
-    }
-}
-
-// MARK: Notifications
-
-extension NimbusVungleAdController {
-    
-    /// Ad is in foreground
-    @objc private func appDidBecomeActive() {
-        visibilityManager?.appDidBecomeActive()
-    }
-    
-    /// Ad is in background
-    @objc private func appWillResignActive() {
-        visibilityManager?.appWillResignActive()
-    }
-}
-
-// MARK: VisibilityManagerDelegate
-
-extension NimbusVungleAdController: VisibilityManagerDelegate {
-    
-    func didRegisterImpressionForView() {}
-    
-    func didChangeExposure(exposure: NimbusViewExposure) {
-        let newVisibility = exposure.isVisible
-        if isAdVisible != newVisibility {
-            isAdVisible = newVisibility
-        }
     }
 }

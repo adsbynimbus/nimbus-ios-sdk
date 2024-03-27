@@ -11,9 +11,6 @@ import FBAudienceNetwork
 
 final class NimbusFANAdController: NSObject {
 
-    // Visibility tracking is only necessary for non-interstitials
-    let visibilityManager: VisibilityManager?
-
     private let ad: NimbusAd
     private let logger: Logger
 
@@ -27,13 +24,9 @@ final class NimbusFANAdController: NSObject {
     var fbRewardedVideoAd: FBRewardedVideoAd?
 
     /// Determines whether ad has registered an impression
-    private var hasRegisteredAdImpression = false {
-        didSet { triggerImpressionDelegateIfNecessary() }
-    }
+    private var hasRegisteredAdImpression = false
 
-    private var isAdVisible = false {
-        didSet { triggerImpressionDelegateIfNecessary() }
-    }
+    private var isAdVisible = false
     
     private var is320by50Banner = false
     private var fbAdSize: FBAdSize?
@@ -43,11 +36,10 @@ final class NimbusFANAdController: NSObject {
     weak var internalDelegate: AdControllerDelegate?
     public weak var delegate: AdControllerDelegate?
     private weak var adPresentingViewController: UIViewController?
-
+    
     init(
         ad: NimbusAd,
         container: UIView,
-        visibilityManager: VisibilityManager? = nil,
         logger: Logger,
         delegate: AdControllerDelegate,
         adRendererDelegate: NimbusFANAdRendererDelegate?,
@@ -55,35 +47,12 @@ final class NimbusFANAdController: NSObject {
     ) {
         self.ad = ad
         self.container = container as? NimbusAdView
-        
-        if let visibilityTrackableView = container as? (UIView & VisibilityTrackable) {
-            self.visibilityManager = NimbusVisibilityManager(for: visibilityTrackableView)
-        } else {
-            self.visibilityManager = nil
-        }
-        
         self.logger = logger
         self.delegate = delegate
         self.adRendererDelegate = adRendererDelegate
         self.adPresentingViewController = adPresentingViewController
 
         super.init()
-
-        self.visibilityManager?.delegate = self
-        self.visibilityManager?.startListeningForVisibilityChanges()
-
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(appDidBecomeActive),
-            name: UIApplication.didBecomeActiveNotification,
-            object: nil
-        )
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(appWillResignActive),
-            name: UIApplication.willResignActiveNotification,
-            object: nil
-        )
     }
     
     func load() {
@@ -154,16 +123,6 @@ final class NimbusFANAdController: NSObject {
             return
         }
     }
-
-    private func triggerImpressionDelegateIfNecessary() {
-        guard let container else { return }
-
-        container.visibilityDelegate?.didChangeVisibility(
-            controller: container,
-            isVisible: isAdVisible,
-            hasTriggeredImpression: hasRegisteredAdImpression
-        )
-    }
     
     private func loadBannerAd() {
         // This is caught at init before this function ever gets called
@@ -214,35 +173,11 @@ extension NimbusFANAdController: AdController {
     func destroy() {
         fbNativeAd?.unregisterView()
         fbNativeAd = nil
-        visibilityManager?.destroy()
     }
-}
-
-// MARK: Notifications
-
-extension NimbusFANAdController {
-
-    /// Ad is in foreground
-    @objc private func appDidBecomeActive() {
-        visibilityManager?.appDidBecomeActive()
-    }
-
-    /// Ad is in background
-    @objc private func appWillResignActive() {
-        visibilityManager?.appWillResignActive()
-    }
-}
-
-// MARK: VisibilityManagerDelegate
-
-extension NimbusFANAdController: VisibilityManagerDelegate {
-
-    func didRegisterImpressionForView() {}
-
-    func didChangeExposure(exposure: NimbusViewExposure) {
-        let newVisibility = exposure.isVisible
-        if isAdVisible != newVisibility {
-            isAdVisible = newVisibility
+    
+    func didExposureChange(exposure: NimbusViewExposure) {
+        if isAdVisible != exposure.isVisible {
+            isAdVisible = exposure.isVisible
         }
     }
 }

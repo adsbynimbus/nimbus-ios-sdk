@@ -27,7 +27,6 @@ final class NimbusUnityAdController: NSObject {
     init(
         ad: NimbusAd,
         container: UIView,
-        visibilityManager: VisibilityManager? = nil,
         volume: Int,
         logger: Logger,
         delegate: AdControllerDelegate,
