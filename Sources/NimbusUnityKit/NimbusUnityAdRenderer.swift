@@ -36,4 +36,27 @@ public final class NimbusUnityAdRenderer: AdRenderer {
         
         return adController
     }
+    
+    public func renderBlocking(
+        ad: NimbusAd,
+        companionAd: NimbusCompanionAd?,
+        adPresentingViewController: UIViewController,
+        delegate: AdControllerDelegate
+    ) -> AdController {
+        let adController = NimbusUnityAdController(
+            ad: ad,
+            container: adPresentingViewController.nimbusContainer,
+            volume: 0,
+            logger: Nimbus.shared.logger,
+            delegate: delegate,
+            adPresentingViewController: adPresentingViewController
+        )
+        
+        // Ensure that the ad load begins AFTER the publisher has had a chance to retrieve the ad controller
+        DispatchQueue.main.async {
+            adController.load()
+        }
+        
+        return adController
+    }
 }

@@ -9,12 +9,7 @@
 @_exported import NimbusRenderKit
 import VungleAdsSDK
 
-enum NimbusVungleAdType: String {
-    case fullScreenBlocking, rewarded, banner, native
-}
-
 extension NimbusAd {
-    
     var vungleAdSize: BannerSize? {
         guard let width = adDimensions?.width,
               let height = adDimensions?.height else {
@@ -33,16 +28,12 @@ extension NimbusAd {
         }
     }
     
-    var vungleAdType: NimbusVungleAdType? {
-        switch (auctionType, vungleAdSize) {
-        case (.static, .leaderboard),
-            (.static, .mrec),
-            (.static, .regular),
-            (.static, .short):
-            return .banner
-        case (.static, _): return .fullScreenBlocking
-        case (.video, nil): return .rewarded
-        case (.native, _): return .native
+    func vungleAdType(isBlocking: Bool) -> NimbusVungleAdType? {
+        switch auctionType {
+        case .static:
+            return isBlocking ? .fullScreenBlocking : .banner
+        case .video: return .rewarded
+        case .native: return .native
         default:
             return nil
         }

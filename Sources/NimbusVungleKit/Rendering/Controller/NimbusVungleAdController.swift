@@ -10,6 +10,10 @@
 import UIKit
 import VungleAdsSDK
 
+enum NimbusVungleAdType: String {
+    case fullScreenBlocking, rewarded, banner, native
+}
+
 final class NimbusVungleAdController: NSObject {
     
     enum AdState: String {
@@ -24,6 +28,7 @@ final class NimbusVungleAdController: NSObject {
     let adPresenter: NimbusVungleAdPresenterType
     let logger: Logger
     let creativeScalingEnabled: Bool
+    let isBlocking: Bool
     
     weak var container: NimbusAdView?
     weak var internalDelegate: AdControllerDelegate?
@@ -40,17 +45,18 @@ final class NimbusVungleAdController: NSObject {
     
     init(
         ad: NimbusAd,
-        adLoader: NimbusVungleAdLoaderType = NimbusVungleAdLoader(),
+        adLoader: NimbusVungleAdLoaderType? = nil,
         adPresenter: NimbusVungleAdPresenterType = NimbusVungleAdPresenter(),
         container: UIView,
         logger: Logger,
         creativeScalingEnabled: Bool,
         delegate: AdControllerDelegate,
         adPresentingViewController: UIViewController?,
+        isBlocking: Bool,
         adRendererDelegate: NimbusVungleAdRendererDelegate? = nil
     ) {
         self.ad = ad
-        self.adLoader = adLoader
+        self.adLoader = adLoader ?? NimbusVungleAdLoader(isBlocking: isBlocking)
         self.adPresenter = adPresenter
         self.container = container as? NimbusAdView
         self.logger = logger
@@ -58,6 +64,7 @@ final class NimbusVungleAdController: NSObject {
         self.delegate = delegate
         self.adPresentingViewController = adPresentingViewController
         self.adRendererDelegate = adRendererDelegate
+        self.isBlocking = isBlocking
         
         super.init()
         
@@ -84,7 +91,7 @@ final class NimbusVungleAdController: NSObject {
                 throw NimbusVungleError.failedToPresentAd(message: "Vungle Ad has not been loaded.")
             }
             
-            switch ad.vungleAdType {
+            switch ad.vungleAdType(isBlocking: isBlocking) {
             case .rewarded:
                 try adPresenter.present(
                     rewardedAd: adLoader.rewardedAd,

@@ -12,6 +12,8 @@ import VungleAdsSDK
 typealias VungleAdDelegate = VungleBannerDelegate & VungleInterstitialDelegate & VungleRewardedDelegate & VungleNativeDelegate
 
 protocol NimbusVungleAdLoaderType {
+    var isBlocking: Bool { get }
+    
     var delegate: VungleAdDelegate? { get set }
     var bannerAd: VungleBanner? { get }
     var interstitialAd: VungleInterstitial? { get }
@@ -34,8 +36,14 @@ final class NimbusVungleAdLoader: NimbusVungleAdLoaderType {
     
     private(set) var nativeAd: VungleNative?
     
+    var isBlocking: Bool
+    
+    init(isBlocking: Bool) {
+        self.isBlocking = isBlocking
+    }
+    
     func load(ad: NimbusAd, placementId: String) throws {
-        switch ad.vungleAdType {
+        switch ad.vungleAdType(isBlocking: isBlocking) {
         case .rewarded:
             loadRewardedAd(placementId: placementId, markup: ad.markup)
         case .fullScreenBlocking:
@@ -44,7 +52,7 @@ final class NimbusVungleAdLoader: NimbusVungleAdLoaderType {
             loadBannerAd(placementId: placementId, markup: ad.markup, size: ad.vungleAdSize!)
         case .native:
             loadNativeAd(placementId: placementId, markup: ad.markup)
-        case .none:
+        default:
             throw NimbusVungleError.failedToLoadAd(
                 message: "No matching Vungle Ad auction type found. Size(\(ad.vungleAdSize?.rawValue ?? -1)) - Type(\(ad.auctionType))"
             )

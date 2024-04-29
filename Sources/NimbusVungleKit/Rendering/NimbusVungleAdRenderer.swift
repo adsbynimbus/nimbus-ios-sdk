@@ -57,6 +57,32 @@ public final class NimbusVungleAdRenderer: AdRenderer {
             creativeScalingEnabled: creativeScalingEnabled,
             delegate: delegate,
             adPresentingViewController: adPresentingViewController,
+            isBlocking: false,
+            adRendererDelegate: adRendererDelegate
+        )
+        
+        // Ensure that the ad load begins AFTER the publisher has had a chance to retrieve the ad controller
+        DispatchQueue.main.async {
+            adController.load()
+        }
+        
+        return adController
+    }
+    
+    public func renderBlocking(
+        ad: NimbusAd,
+        companionAd: NimbusCompanionAd?,
+        adPresentingViewController: UIViewController,
+        delegate: AdControllerDelegate
+    ) -> AdController {
+        let adController = NimbusVungleAdController(
+            ad: ad,
+            container: adPresentingViewController.nimbusContainer,
+            logger: Nimbus.shared.logger,
+            creativeScalingEnabled: creativeScalingEnabled,
+            delegate: delegate,
+            adPresentingViewController: adPresentingViewController,
+            isBlocking: true,
             adRendererDelegate: adRendererDelegate
         )
         

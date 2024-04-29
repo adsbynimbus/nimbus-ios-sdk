@@ -13,6 +13,7 @@ final class NimbusFANAdController: NSObject {
 
     private let ad: NimbusAd
     private let logger: Logger
+    private let isBlocking: Bool
 
     var volume = 0
     var isClickProtectionEnabled = true
@@ -41,6 +42,7 @@ final class NimbusFANAdController: NSObject {
         ad: NimbusAd,
         container: UIView,
         logger: Logger,
+        isBlocking: Bool,
         delegate: AdControllerDelegate,
         adRendererDelegate: NimbusFANAdRendererDelegate?,
         adPresentingViewController: UIViewController?
@@ -51,7 +53,8 @@ final class NimbusFANAdController: NSObject {
         self.delegate = delegate
         self.adRendererDelegate = adRendererDelegate
         self.adPresentingViewController = adPresentingViewController
-
+        self.isBlocking = isBlocking
+        
         super.init()
     }
     
@@ -60,8 +63,8 @@ final class NimbusFANAdController: NSObject {
             forwardNimbusError(NimbusRenderError.adRenderingFailed(message: "Placement id not valid for Meta ad"))
             return
         }
-
-        switch (ad.auctionType, ad.isInterstitial) {
+        
+        switch (ad.auctionType, isBlocking) {
         case (.native, _):
             fbNativeAd = FBNativeAd(placementID: placementId)
             fbNativeAd?.delegate = self

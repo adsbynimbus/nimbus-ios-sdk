@@ -175,9 +175,10 @@ public final class NimbusLiveRampInterceptor {
     private var liveRampExtendedId: NimbusExtendedId? {
         guard let liveRampEnvelope else { return nil }
 
-        var extendedId = NimbusExtendedId(source: "liveramp.com", id: liveRampEnvelope)
-        extendedId.extensions = ["rtiPartner": NimbusCodable("idl")]
-        return extendedId
+        return NimbusExtendedId(
+            source: "liveramp.com",
+            uids: [.init(id: liveRampEnvelope, extensions: ["rtiPartner": NimbusCodable("idl")])]
+        )
     }
 }
 
