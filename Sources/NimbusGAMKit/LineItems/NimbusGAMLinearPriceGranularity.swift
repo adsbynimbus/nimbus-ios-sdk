@@ -57,7 +57,7 @@ public struct NimbusGAMLinearPriceGranularity: NimbusDynamicPriceMapping, Compar
      - Returns: The keywords to set on the GAM view
      */
     public func getKeywords(ad: NimbusAd) -> String? {
-        String((ad.bidInCents - (ad.bidInCents % step)).clamped(to: min...max))
+        String((ad.bidInCents - (ad.bidInCents % step)).nimbusClamped(to: min...max))
     }
     
     /// :nodoc:
@@ -68,12 +68,5 @@ public struct NimbusGAMLinearPriceGranularity: NimbusDynamicPriceMapping, Compar
     /// :nodoc:
     public static func == (lhs: Self, rhs: Self) -> Bool {
         lhs.min == rhs.min
-    }
-}
-
-/// :nodoc:
-private extension Comparable {
-    func clamped(to limits: ClosedRange<Self>) -> Self {
-        min(max(self, limits.lowerBound), limits.upperBound)
     }
 }
