@@ -10,7 +10,7 @@
 import VungleAdsSDK
 
 extension NimbusAd {
-    var vungleAdSize: BannerSize? {
+    var vungleAdSize: VungleAdSize? {
         guard let width = adDimensions?.width,
               let height = adDimensions?.height else {
             return nil
@@ -20,10 +20,10 @@ extension NimbusAd {
         let calculatedSize = width * height
 
         switch (calculatedSize) {
-        case 16000: return .regular // 320*50
-        case 15000: return .short // 300*50
-        case 65520: return .leaderboard // 728*90
-        case 75000: return .mrec // 300*250
+        case 16000: return .VungleAdSizeBannerRegular   // 320*50
+        case 15000: return .VungleAdSizeBannerShort     // 300*50
+        case 65520: return .VungleAdSizeLeaderboard     // 728*90
+        case 75000: return .VungleAdSizeMREC            // 300*250
         default: return nil
         }
     }

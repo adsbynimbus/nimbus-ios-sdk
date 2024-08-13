@@ -11,7 +11,7 @@ import VungleAdsSDK
 import UIKit
 
 protocol NimbusVungleAdPresenterType {
-    func present(bannerAd: VungleBanner?, ad: NimbusAd, container: NimbusAdView?, creativeScalingEnabled: Bool) throws
+    func present(bannerAd: VungleBannerView?, ad: NimbusAd, container: NimbusAdView?, creativeScalingEnabled: Bool) throws
     func present(interstitialAd: VungleInterstitial?, adPresentingViewController: UIViewController?) throws
     func present(rewardedAd: VungleRewarded?, adPresentingViewController: UIViewController?) throws
     func present(
@@ -25,7 +25,12 @@ protocol NimbusVungleAdPresenterType {
 
 final class NimbusVungleAdPresenter: NimbusVungleAdPresenterType {
     
-    func present(bannerAd: VungleBanner?, ad: NimbusAd, container: NimbusAdView?, creativeScalingEnabled: Bool) throws {
+    func present(
+        bannerAd: VungleBannerView?,
+        ad: NimbusAd,
+        container: NimbusAdView?,
+        creativeScalingEnabled: Bool
+    ) throws {
         guard let adDimensions = ad.adDimensions else {
             throw NimbusVungleError.failedToPresentAd(
                 type: "banner",
@@ -47,22 +52,13 @@ final class NimbusVungleAdPresenter: NimbusVungleAdPresenterType {
             )
         }
         
-        guard bannerAd.canPlayAd() else {
-            throw NimbusVungleError.failedToPresentAd(
-                type: "banner",
-                message: "Vungle Ad cannot be played."
-            )
-        }
-        
-        let adContainerView = UIView()
-        container.addSubview(adContainerView)
-        
-        setupVungleBannerConstraints(container: container, adContainerView: adContainerView, adDimensions: adDimensions)
-        bannerAd.present(on: adContainerView)
+        container.addSubview(bannerAd)
         
         if creativeScalingEnabled {
-            NimbusCreativeScaler().scaleCreativeIfNecessary(ad: ad, view: adContainerView)
+            NimbusCreativeScaler().scaleCreativeIfNecessary(ad: ad, view: bannerAd)
         }
+        
+        setupVungleBannerConstraints(container: container, adContainerView: bannerAd, adDimensions: adDimensions)
     }
     
     func present(

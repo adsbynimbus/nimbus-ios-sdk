@@ -118,7 +118,7 @@ final class NimbusVungleAdController: NSObject {
                     adRendererDelegate: adRendererDelegate
                 )
             case .none:
-                throw NimbusVungleError.failedToPresentAd(message: "No matching Vungle Ad auction type found. Size(\(ad.vungleAdSize?.rawValue ?? -1)) - Type(\(ad.auctionType))")
+                throw NimbusVungleError.failedToPresentAd(message: "No matching Vungle Ad auction type found. Size(\(ad.vungleAdSize?.size ?? .zero)) - Type(\(ad.auctionType))")
             }
         } catch {
             if let nimbusError = error as? NimbusError {
@@ -153,7 +153,7 @@ extension NimbusVungleAdController: AdController {
             if ad.isInterstitial {
                 type = ad.auctionType == .static ? "interstitial" : "rewarded"
             } else {
-                type = ad.vungleAdSize == .mrec ? "mrec" : "banner"
+                type = ad.vungleAdSize == VungleAdSize.VungleAdSizeMREC ? "mrec" : "banner"
             }
             
             forwardNimbusError(
@@ -193,11 +193,10 @@ extension NimbusVungleAdController: AdController {
     }
 }
 
-// MARK: VungleBannerDelegate
+// MARK: VungleBannerViewDelegate
 
-extension NimbusVungleAdController: VungleBannerDelegate {
-    
-    func bannerAdDidLoad(_ banner: VungleBanner) {
+extension NimbusVungleAdController: VungleBannerViewDelegate {
+    func bannerAdDidLoad(_ bannerView: VungleBannerView) {
         adState = .loaded
         
         forwardNimbusEvent(.loaded)
@@ -205,7 +204,7 @@ extension NimbusVungleAdController: VungleBannerDelegate {
         presentAd()
     }
     
-    func bannerAdDidFailToLoad(_ banner: VungleBanner, withError: NSError) {
+    func bannerAdDidFail(_ bannerView: VungleBannerView, withError: NSError) {
         forwardNimbusError(
             NimbusVungleError.failedToLoadAd(
                 type: "banner",
@@ -213,30 +212,21 @@ extension NimbusVungleAdController: VungleBannerDelegate {
             )
         )
     }
-    
-    func bannerAdDidPresent(_ banner: VungleBanner) {
+
+    func bannerAdDidPresent(_ bannerView: VungleBannerView) {
         adState = .presented
     }
-    
-    func bannerAdDidFailToPresent(_ banner: VungleBanner, withError: NSError) {
-        forwardNimbusError(
-            NimbusVungleError.failedToPresentAd(
-                type: "banner",
-                message: withError.localizedDescription
-            )
-        )
-    }
-    
-    func bannerAdDidClose(_ banner: VungleBanner) {
+
+    func bannerAdDidClose(_ bannerView: VungleBannerView) {
         destroy()
     }
-    
-    func bannerAdDidTrackImpression(_ banner: VungleBanner) {
+
+    func bannerAdDidTrackImpression(_ bannerView: VungleBannerView) {
         hasRegisteredAdImpression = true
         forwardNimbusEvent(.impression)
     }
-    
-    func bannerAdDidClick(_ banner: VungleBanner) {
+
+    func bannerAdDidClick(_ bannerView: VungleBannerView) {
         forwardNimbusEvent(.clicked)
     }
 }
