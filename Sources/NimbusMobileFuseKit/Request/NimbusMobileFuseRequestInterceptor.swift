@@ -11,13 +11,25 @@ import MobileFuseSDK
 
 public final class NimbusMobileFuseRequestInterceptor {
     private static let extensionKey = "mfx_buyerdata"
-    static var tokenRetrievalTimeout = 0.2
+    private static let tokenRetrievalTimeout = 0.2
     
     /// Nimbus internal logger
     private let logger: Logger
     
-    public init() {
-        self.logger = Nimbus.shared.logger
+    /// Mobile Fuse token data provider
+    private let provider: (@escaping ([String: String]) -> Void) -> Void
+    
+    public convenience init() {
+        self.init { callback in
+            let tokenRequest = MFBiddingTokenRequest()
+            tokenRequest.partner = .MOBILEFUSE_PARTNER_NIMBUS
+            MFBiddingTokenProvider.getTokenData(with: tokenRequest, withCallback: callback)
+        }
+    }
+    
+    init(logger: Logger = Nimbus.shared.logger, provider: @escaping (@escaping ([String: String]) -> Void) -> Void) {
+        self.logger = logger
+        self.provider = provider
         
         MobileFuseInitializer.shared.initIfNeeded()
     }
@@ -28,15 +40,12 @@ extension NimbusMobileFuseRequestInterceptor: NimbusRequestInterceptor {
     public func modifyRequest(request: NimbusRequest) {
         let startTime = Date().timeIntervalSince1970
         
-        let tokenRequest = MFBiddingTokenRequest()
-        tokenRequest.partner = .MOBILEFUSE_PARTNER_NIMBUS
-        
         var didTimeOut = false
         
         let group = DispatchGroup()
         group.enter()
         
-        MFBiddingTokenProvider.getTokenData(with: tokenRequest) { [weak self, weak request] data in
+        provider({ [weak self, weak request] data in
             defer { group.leave() }
             
             guard !didTimeOut else { return }
@@ -61,7 +70,7 @@ extension NimbusMobileFuseRequestInterceptor: NimbusRequestInterceptor {
             }
             
             request.user?.extensions?[Self.extensionKey] = NimbusCodable(data)
-        }
+        })
         
         let result = group.wait(timeout: .now() + Self.tokenRetrievalTimeout)
         if result == .timedOut {
@@ -71,7 +80,7 @@ extension NimbusMobileFuseRequestInterceptor: NimbusRequestInterceptor {
     }
     
     public func didCompleteNimbusRequest(with ad: NimbusAd) {
-        logger.log("Completed NimbusRequest for Vungle.", level: .debug)
+        logger.log("Completed NimbusRequest for Mobile Fuse.", level: .debug)
     }
     
     public func didFailNimbusRequest(with error: NimbusError) {
