@@ -92,6 +92,7 @@ final class NimbusAdMobAdController: NSObject {
                     self?.interstitialAd = gadInterstitial
                     self?.interstitialAd?.fullScreenContentDelegate = self
                     self?.adState = .loaded
+                    self?.forwardNimbusEvent(.loaded)
                     self?.presentIfNeeded()
                 } else {
                     let message: String
@@ -107,6 +108,7 @@ final class NimbusAdMobAdController: NSObject {
                     self?.rewardedAd = gadRewarded
                     self?.rewardedAd?.fullScreenContentDelegate = self
                     self?.adState = .loaded
+                    self?.forwardNimbusEvent(.loaded)
                     self?.presentIfNeeded()
                 } else {
                     let message: String
@@ -186,7 +188,6 @@ extension NimbusAdMobAdController: AdController {
     func stop() {}
     
     func destroy() {
-        bannerAd?.removeFromSuperview()
         bannerAd = nil
         nativeAd = nil
         nativeAdLoader = nil
@@ -196,6 +197,10 @@ extension NimbusAdMobAdController: AdController {
 }
 
 extension NimbusAdMobAdController: GADBannerViewDelegate {
+    func bannerViewDidReceiveAd(_ bannerView: GADBannerView) {
+        forwardNimbusEvent(.loaded)
+    }
+    
     func bannerViewDidRecordImpression(_ bannerView: GADBannerView) {
         forwardNimbusEvent(.impression)
     }
@@ -253,5 +258,13 @@ extension NimbusAdMobAdController: GADNativeAdDelegate {
     
     func nativeAdIsMuted(_ nativeAd: GADNativeAd) {
         (container as? NimbusAdView)?.viewabilityTracker?.volume = 0
+    }
+    
+    func adLoaderDidFinishLoading(_ adLoader: GADAdLoader) {
+        forwardNimbusEvent(.loaded)
+    }
+    
+    func adLoader(_ adLoader: GADAdLoader, didFailToLoadWithError error: Error) {
+        forwardNimbusError(NimbusAdMobError(message: "Failed to load native ad, error: \(error.localizedDescription)"))
     }
 }
