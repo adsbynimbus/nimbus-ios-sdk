@@ -46,6 +46,7 @@ final class NimbusAdMobInterstitialAdPresenter {
         let adView = NimbusAdView(adPresentingViewController: viewController)
         adView.showsSKOverlay = true
         adView.delegate = adControllerDelegate
+        adView.isBlocking = true
         return adView
     }
     

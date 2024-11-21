@@ -52,7 +52,10 @@ final class NimbusVungleAdLoader: NimbusVungleAdLoaderType {
         case .fullScreenBlocking:
             loadInterstitialAd(placementId: placementId, markup: ad.markup)
         case .banner:
-            loadBannerAd(placementId: placementId, markup: ad.markup, size: ad.vungleAdSize!)
+            guard let adSize = ad.vungleAdSize else {
+                throw NimbusVungleError.failedToLoadAd(message: "Couldn't convert ad size to VungleAdSize, dimensions: \(String(describing: ad.adDimensions))")
+            }
+            loadBannerAd(placementId: placementId, markup: ad.markup, size: adSize)
         case .native:
             loadNativeAd(placementId: placementId, markup: ad.markup)
         default:
