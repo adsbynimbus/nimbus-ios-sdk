@@ -66,7 +66,7 @@ public final class NimbusMintegralAdRenderer: AdRenderer {
                 companionAd: NimbusCompanionAd?,
                 container: UIView,
                 adPresentingViewController: UIViewController?,
-                delegate: AdControllerDelegate) -> AdController {
+                delegate: (any AdControllerDelegate)?) -> AdController {
         
         let adController = NimbusMintegralAdController(
             ad: ad,
@@ -74,6 +74,7 @@ public final class NimbusMintegralAdRenderer: AdRenderer {
             logger: Nimbus.shared.logger,
             delegate: delegate,
             isBlocking: false,
+            isRewarded: false,
             adPresentingViewController: adPresentingViewController,
             adRendererDelegate: adRendererDelegate
         )
@@ -86,9 +87,10 @@ public final class NimbusMintegralAdRenderer: AdRenderer {
     
     public func renderBlocking(
         ad: NimbusAd,
+        isRewarded: Bool,
         companionAd: NimbusCompanionAd?,
         adPresentingViewController: UIViewController,
-        delegate: any AdControllerDelegate
+        delegate: (any AdControllerDelegate)?
     ) -> any AdController {
         let adController = NimbusMintegralAdController(
             ad: ad,
@@ -96,6 +98,7 @@ public final class NimbusMintegralAdRenderer: AdRenderer {
             logger: Nimbus.shared.logger,
             delegate: delegate,
             isBlocking: true,
+            isRewarded: isRewarded,
             adPresentingViewController: adPresentingViewController
         )
         

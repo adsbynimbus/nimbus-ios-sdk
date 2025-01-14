@@ -26,9 +26,8 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
     private let cacheManager = NimbusDynamicPriceCacheManager()
     private var interstitialRenderData: InterstitialRenderData?
     private weak var interstitialAd: GADFullScreenPresentingAd?
-    private let thirdPartyInterstitialAdManager = ThirdPartyInterstitialAdManager()
-    private var thirdPartyInterstitialAdController: AdController?
-    private weak var thirdPartyInterstitialAdView: UIView?
+    private var adController: AdController?
+    private weak var adView: UIView? // used for caching
     
     public init(
         requestManager: NimbusRequestManager = NimbusRequestManager(),
@@ -53,55 +52,34 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
         guard let interstitialRenderData else { return }
         
         DispatchQueue.main.async { [weak self] in
-            guard let rootViewController = self?.rootViewController,
+            guard let self else { return }
+            guard let rootViewController = self.rootViewController,
                   let gadViewController = rootViewController.presentedViewController else {
-                self?.logger.log("NimbusDynamicPriceRenderer: Could not find GADViewController", level: .error)
+                self.logger.log("NimbusDynamicPriceRenderer: Could not find GADViewController", level: .error)
                 return
             }
             
             let ad = interstitialRenderData.data.nimbusAd
             
-            if ThirdPartyDemandNetwork.exists(for: ad) {
-                do {
-                    self?.thirdPartyInterstitialAdController = try self?.thirdPartyInterstitialAdManager.render(
-                        ad: ad,
-                        adPresentingViewController: gadViewController,
-                        companionAd: nil
-                    )
-
-                    self?.thirdPartyInterstitialAdView = gadViewController.view
-                    
-                    self?.thirdPartyInterstitialAdController?.delegate = self
-                    self?.thirdPartyInterstitialAdController?.start()
-                    
-                    self?.cacheManager.addClickEvent(
-                        nimbusAdView: gadViewController.view,
-                        clickEventUrl: interstitialRenderData.renderInfo.googleClickEventUrl
-                    )
-                } catch {
-                    self?.logger.log("NimbusDynamicPriceRenderer: Third-party demand interstitial error: \(error.localizedDescription)", level: .error)
-                }
-            } else {
-                let adView = NimbusAdView(adPresentingViewController: nil)
-                
-                let adViewController = NimbusAdViewController(
-                    adView: adView,
+            do {
+                adController = try Nimbus.loadBlocking(
                     ad: ad,
-                    companionAd: nil
+                    presentingViewController: gadViewController,
+                    delegate: self,
+                    isRewarded: false,
+                    companionAd: NimbusCompanionAd(width: 320, height: 480, renderMode: .endCard),
+                    animated: false
                 )
-                adView.delegate = self
-                adView.adPresentingViewController = adViewController
-                adView.isBlocking = true
-                adViewController.delegate = self
-                adViewController.modalPresentationStyle = .fullScreen
+                adController?.start()
                 
-                gadViewController.present(adViewController, animated: false)
-                adViewController.renderAndStart()
+                self.adView = gadViewController.view
                 
-                self?.cacheManager.addClickEvent(
-                    nimbusAdView: adView,
+                cacheManager.addClickEvent(
+                    nimbusAdView: gadViewController.view,
                     clickEventUrl: interstitialRenderData.renderInfo.googleClickEventUrl
                 )
+            } catch {
+                self.logger.log("NimbusDynamicPriceRenderer: Could not render a blocking ad: \(error)", level: .error)
             }
         }
     }
@@ -236,35 +214,24 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
             return false
         }
         
-        if bannerView.rootViewController == nil {
+        guard let rootViewController = bannerView.rootViewController else {
             logger.log("GADBannerView.rootViewController must be set, see https://developers.google.com/ad-manager/mobile-ads-sdk/ios/banner#configure_properties", level: .error)
+            return false
         }
         
-        let adView = NimbusAdView(adPresentingViewController: bannerView.rootViewController)
-        adView.delegate = self
-        bannerView.addSubview(adView)
+        let adController = Nimbus.load(
+            ad: data.nimbusAd,
+            container: bannerView,
+            adPresentingViewController: rootViewController,
+            delegate: self,
+            companionAd: NimbusCompanionAd(width: 320, height: 480, renderMode: .endCard)
+        )
+        guard let adView = adController.adView else {
+            logger.log("\(#file) adController.adView returned nil", level: .error)
+            return false
+        }
         
-        adView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            adView.safeAreaLayoutGuide.topAnchor.constraint(
-                equalTo: bannerView.safeAreaLayoutGuide.topAnchor
-            ),
-            adView.safeAreaLayoutGuide.bottomAnchor.constraint(
-                equalTo: bannerView.safeAreaLayoutGuide.bottomAnchor
-            ),
-            adView.safeAreaLayoutGuide.leadingAnchor.constraint(
-                equalTo: bannerView.safeAreaLayoutGuide.leadingAnchor
-            ),
-            adView.safeAreaLayoutGuide.trailingAnchor.constraint(
-                equalTo: bannerView.safeAreaLayoutGuide.trailingAnchor
-            )
-        ])
-        
-        // Only 320x480 companion ads are supported
-        let companionAd = NimbusCompanionAd(width: 320, height: 480, renderMode: .endCard)
-        
-        adView.render(ad: data.nimbusAd, companionAd: companionAd)
-        adView.start()
+        self.adView = adView
         
         cacheManager.addClickEvent(
             nimbusAdView: adView,
@@ -349,13 +316,7 @@ public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
 
 extension NimbusDynamicPriceRenderer: AdControllerDelegate {
     public func didReceiveNimbusEvent(controller: AdController, event: NimbusEvent) {
-        
-        let adView: UIView
-        if let nimbusAdView = controller as? NimbusAdView {
-            adView = nimbusAdView
-        } else if let thirdPartyAdView = thirdPartyInterstitialAdView {
-            adView = thirdPartyAdView
-        } else {
+        guard let adView else {
             logger.log("NimbusDynamicPriceRenderer: Couldn't locate adView", level: .error)
             return
         }
@@ -391,9 +352,8 @@ extension NimbusDynamicPriceRenderer: AdControllerDelegate {
             interstitialAd = nil
             interstitialRenderData = nil
             
-            if thirdPartyInterstitialAdController != nil {
-                thirdPartyInterstitialAdController = nil
-                thirdPartyInterstitialAdView = nil
+            if adController != nil {
+                adController = nil
                 dismiss()
             }
         }
@@ -408,6 +368,6 @@ extension NimbusDynamicPriceRenderer: NimbusAdViewControllerDelegate {
     public func viewWillDisappear(animated: Bool) {}
     public func viewDidDisappear(animated: Bool) {}
     public func didCloseAd(adView: NimbusAdView) {
-        dismiss()
+        adController?.destroy()
     }
 }

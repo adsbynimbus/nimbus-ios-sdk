@@ -17,7 +17,8 @@ public final class NimbusCustomEventInterstitial: NSObject, GADCustomEventInters
     private var ad: NimbusAd?
     private var adView: NimbusAdView?
     private lazy var requestManager = NimbusRequestManager()
-        
+    private var adController: AdController?
+
     public func requestAd(
         withParameter serverParameter: String?,
         label serverLabel: String?,
@@ -34,20 +35,22 @@ public final class NimbusCustomEventInterstitial: NSObject, GADCustomEventInters
     }
     
     public func present(fromRootViewController rootViewController: UIViewController) {
-        guard let ad else { return }
-        render(ad: ad, rootViewController: rootViewController)
-    }
-    
-    func render(ad: NimbusAd, rootViewController: UIViewController) {
-        adView = NimbusAdView(adPresentingViewController: nil)
-        adView?.delegate = self
+        guard let ad else {
+            delegate?.customEventInterstitial(self, didFailAd: NimbusRenderError.adRenderingFailed(message: "present(fromRootViewController:) called before ad was received"))
+            return
+        }
         
-        guard let adView else { return }
-        let nimbusVC = NimbusAdViewController(adView: adView, ad: ad, companionAd: nil, closeButtonDelay: 5)
-        nimbusVC.delegate = self
-        adView.adPresentingViewController = nimbusVC
-        rootViewController.present(nimbusVC, animated: true, completion: nil)
-        nimbusVC.renderAndStart()
+        do {
+            adController = try Nimbus.loadBlocking(
+                ad: ad,
+                presentingViewController: rootViewController,
+                delegate: self,
+                companionAd: NimbusCompanionAd(width: 320, height: 480, renderMode: .endCard)
+            )
+            adController?.start()
+        } catch {
+            delegate?.customEventInterstitial(self, didFailAd: NimbusRenderError.adRenderingFailed(message: "GAM Interstitial Ad could not be rendered, error: \(error)"))
+        }
     }
 }
 

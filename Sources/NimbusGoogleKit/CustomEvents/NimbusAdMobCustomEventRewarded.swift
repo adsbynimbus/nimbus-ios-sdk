@@ -13,7 +13,7 @@ import GoogleMobileAds
 public final class NimbusAdMobCustomEventRewarded: NSObject, GADMediationRewardedAd {
     private var ad: NimbusAd?
     private var companionAd: NimbusCompanionAd?
-    private lazy var adPresenter = NimbusAdMobInterstitialAdPresenter(isRewarded: true)
+    private var adController: AdController?
 
     private weak var delegate: GADMediationRewardedAdEventDelegate?
     
@@ -29,9 +29,21 @@ public final class NimbusAdMobCustomEventRewarded: NSObject, GADMediationRewarde
             return
         }
         
-        adPresenter.adControllerDelegate = self
-        adPresenter.adViewControllerDelegate = self
-        adPresenter.present(ad: ad, companionAd: companionAd, from: viewController)
+        do {
+            adController = try Nimbus.loadBlocking(
+                ad: ad,
+                presentingViewController: viewController,
+                delegate: self,
+                isRewarded: true,
+                companionAd: NimbusCompanionAd(width: 320, height: 480, renderMode: .endCard),
+                animated: true
+            )
+            adController?.start()
+        } catch {
+            delegate?.didFailToPresentWithError(
+                NimbusRenderError.adRenderingFailed(message: "AdMob Rewarded Ad could not be rendered, error: \(error)")
+            )
+        }
     }
     
     func render(
@@ -90,6 +102,6 @@ extension NimbusAdMobCustomEventRewarded: NimbusAdViewControllerDelegate {
     }
     
     public func didCloseAd(adView: NimbusAdView) {
-        adPresenter.destroy()
+        adController?.destroy()
     }
 }

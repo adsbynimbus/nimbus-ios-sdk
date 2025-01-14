@@ -60,31 +60,18 @@ final class NimbusDynamicPriceBannerAd: NSObject {
             return
         }
         
-        let adView = NimbusAdView(adPresentingViewController: rootViewController)
-        adView.delegate = self
-        bannerView.addSubview(adView)
+        let adController = Nimbus.load(
+            ad: ad,
+            container: bannerView,
+            adPresentingViewController: rootViewController,
+            delegate: self,
+            companionAd: NimbusCompanionAd(width: 320, height: 480, renderMode: .endCard)
+        )
+        guard let adView = adController as? NimbusAdView else {
+            logger.log("\(#file) expected AdController of type NimbusAdView", level: .error)
+            return
+        }
         
-        adView.translatesAutoresizingMaskIntoConstraints = false
-        NSLayoutConstraint.activate([
-            adView.safeAreaLayoutGuide.topAnchor.constraint(
-                equalTo: bannerView.safeAreaLayoutGuide.topAnchor
-            ),
-            adView.safeAreaLayoutGuide.bottomAnchor.constraint(
-                equalTo: bannerView.safeAreaLayoutGuide.bottomAnchor
-            ),
-            adView.safeAreaLayoutGuide.leadingAnchor.constraint(
-                equalTo: bannerView.safeAreaLayoutGuide.leadingAnchor
-            ),
-            adView.safeAreaLayoutGuide.trailingAnchor.constraint(
-                equalTo: bannerView.safeAreaLayoutGuide.trailingAnchor
-            )
-        ])
-        
-        // Only 320x480 companion ads are supported
-        let companionAd = NimbusCompanionAd(width: 320, height: 480, renderMode: .endCard)
-        
-        adView.render(ad: ad, companionAd: companionAd)
-        adView.start()
         self.adView = adView
     }
     

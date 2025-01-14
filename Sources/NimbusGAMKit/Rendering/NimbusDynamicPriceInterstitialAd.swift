@@ -28,9 +28,7 @@ final class NimbusDynamicPriceInterstitialAd: NSObject {
     private var renderInfo: NimbusDynamicPriceRenderInfo?
     private let logger = Nimbus.shared.logger
     
-    // MARK: - Third Party Demand
-    private let thirdPartyInterstitialAdManager = ThirdPartyInterstitialAdManager()
-    private var thirdPartyInterstitialAdController: AdController?
+    private var adController: AdController?
     
     init(
         ad: NimbusAd,
@@ -99,48 +97,32 @@ final class NimbusDynamicPriceInterstitialAd: NSObject {
         
         didPresent = true
         
-        if ThirdPartyDemandNetwork.exists(for: ad) {
-            do {
-                thirdPartyInterstitialAdController = try thirdPartyInterstitialAdManager.render(
-                    ad: ad,
-                    adPresentingViewController: rootViewController,
-                    companionAd: nil
-                )
-                
-                thirdPartyInterstitialAdController?.delegate = self
-                thirdPartyInterstitialAdController?.start()
-            } catch {
-                self.logger.log("NimbusDynamicPriceRenderer: Third-party demand interstitial error: \(error.localizedDescription)", level: .error)
-            }
-        } else {
-            let adView = NimbusAdView(adPresentingViewController: nil)
-            
-            let adViewController = NimbusAdViewController(
-                adView: adView,
+        do {
+            adController = try Nimbus.loadBlocking(
                 ad: ad,
-                companionAd: nil
+                presentingViewController: rootViewController,
+                delegate: self,
+                isRewarded: false,
+                companionAd: NimbusCompanionAd(width: 320, height: 480, renderMode: .endCard),
+                animated: false
             )
-            adView.delegate = self
-            adView.adPresentingViewController = adViewController
-            adView.isBlocking = true
-            adViewController.delegate = self
-            adViewController.modalPresentationStyle = .fullScreen
-            adViewController.isDismissAnimated = false
-            
-            rootViewController.present(adViewController, animated: false)
-            adViewController.renderAndStart()
+            adController?.start()
+        } catch {
+            self.logger.log(
+                "NimbusDynamicPriceRenderer: interstitial error: \(error.localizedDescription)",
+                level: .error
+            )
         }
     }
-    
+     
     private func dismiss() {
         DispatchQueue.main.async {
-            self.gadViewController?.dismiss(animated: false) { [weak self] in
-                self?.price = "-1"
-                self?.renderInfo = nil
-                self?.didPresent = false
-                self?.didPresentGoogleController = false
-                self?.thirdPartyInterstitialAdController = nil
-            }
+            self.price = "-1"
+            self.renderInfo = nil
+            self.didPresent = false
+            self.didPresentGoogleController = false
+            self.adController = nil
+            self.gadViewController?.dismiss(animated: false)
         }
     }
     
@@ -177,10 +159,10 @@ final class NimbusDynamicPriceInterstitialAd: NSObject {
 // MARK: - AdControllerDelegate
 
 extension NimbusDynamicPriceInterstitialAd: AdControllerDelegate {
-    func didReceiveNimbusEvent(controller: AdController, event: NimbusEvent) {
+    func didReceiveNimbusEvent(controller: AdController, event: NimbusEvent) {        
         if event == .clicked {
             handleClickEvent()
-        } else if event == .destroyed && thirdPartyInterstitialAdController != nil {
+        } else if event == .destroyed {
             dismiss()
         }
     }
@@ -234,7 +216,6 @@ extension NimbusDynamicPriceInterstitialAd: NimbusAdViewControllerDelegate {
     func viewWillDisappear(animated: Bool) {}
     func viewDidDisappear(animated: Bool) {}
     func didCloseAd(adView: NimbusAdView) {
-        adView.destroy()
-        dismiss()
+        adController?.destroy()
     }
 }

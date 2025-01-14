@@ -5,6 +5,7 @@
 //  Copyright © 2024 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
+import NimbusRenderKit
 import NimbusRequestKit
 import GoogleMobileAds
 
@@ -15,7 +16,7 @@ final class NimbusAdMobRequestInterceptor {
     private let logger: Logger
     
     let adUnitId: String
-    let adType: NimbusAdMobAdType
+    let adType: NimbusAdType
     let nativeAdOptions: NimbusAdMobNativeAdOptions?
     
     /// AdMob signal provider (dependency injection for unit tests)
@@ -23,7 +24,7 @@ final class NimbusAdMobRequestInterceptor {
     
     init(
         adUnitId: String,
-        adType: NimbusAdMobAdType,
+        adType: NimbusAdType,
         nativeAdOptions: NimbusAdMobNativeAdOptions? = nil,
         logger: Logger = Nimbus.shared.logger,
         provider: ((GADSignalRequest, @escaping (GADSignal?, Error?) -> Void) -> Void)? = nil

@@ -36,13 +36,14 @@ public final class NimbusFANAdRenderer: AdRenderer {
         companionAd: NimbusCompanionAd?,
         container: UIView,
         adPresentingViewController: UIViewController?,
-        delegate: AdControllerDelegate
+        delegate: (any AdControllerDelegate)?
     ) -> AdController {
         let adController = NimbusFANAdController(
             ad: ad,
             container: container,
             logger: Nimbus.shared.logger,
             isBlocking: false,
+            isRewarded: false,
             delegate: delegate,
             adRendererDelegate: adRendererDelegate,
             adPresentingViewController: adPresentingViewController
@@ -58,15 +59,17 @@ public final class NimbusFANAdRenderer: AdRenderer {
     
     public func renderBlocking(
         ad: NimbusAd,
+        isRewarded: Bool,
         companionAd: NimbusCompanionAd?,
         adPresentingViewController: UIViewController,
-        delegate: AdControllerDelegate
+        delegate: (any AdControllerDelegate)?
     ) -> AdController {
         let adController = NimbusFANAdController(
             ad: ad,
             container: adPresentingViewController.nimbusContainer,
             logger: Nimbus.shared.logger,
             isBlocking: true,
+            isRewarded: isRewarded,
             delegate: delegate,
             adRendererDelegate: adRendererDelegate,
             adPresentingViewController: adPresentingViewController

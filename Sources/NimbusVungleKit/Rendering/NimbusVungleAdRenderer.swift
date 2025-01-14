@@ -48,7 +48,7 @@ public final class NimbusVungleAdRenderer: AdRenderer {
         companionAd: NimbusCompanionAd?,
         container: UIView,
         adPresentingViewController: UIViewController?,
-        delegate: AdControllerDelegate
+        delegate: (any AdControllerDelegate)?
     ) -> AdController {
         let adController = NimbusVungleAdController(
             ad: ad,
@@ -58,6 +58,7 @@ public final class NimbusVungleAdRenderer: AdRenderer {
             delegate: delegate,
             adPresentingViewController: adPresentingViewController,
             isBlocking: false,
+            isRewarded: false,
             adRendererDelegate: adRendererDelegate
         )
         
@@ -71,9 +72,10 @@ public final class NimbusVungleAdRenderer: AdRenderer {
     
     public func renderBlocking(
         ad: NimbusAd,
+        isRewarded: Bool,
         companionAd: NimbusCompanionAd?,
         adPresentingViewController: UIViewController,
-        delegate: AdControllerDelegate
+        delegate: (any AdControllerDelegate)?
     ) -> AdController {
         let adController = NimbusVungleAdController(
             ad: ad,
@@ -83,6 +85,7 @@ public final class NimbusVungleAdRenderer: AdRenderer {
             delegate: delegate,
             adPresentingViewController: adPresentingViewController,
             isBlocking: true,
+            isRewarded: isRewarded,
             adRendererDelegate: adRendererDelegate
         )
         

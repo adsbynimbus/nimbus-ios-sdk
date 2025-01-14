@@ -9,47 +9,37 @@
 @_exported import NimbusRenderKit
 import UnityAds
 
-final class NimbusUnityAdController: NSObject {
+final class NimbusUnityAdController: NimbusAdController, UnityAdsLoadDelegate, UnityAdsShowDelegate {
     
-    weak var internalDelegate: AdControllerDelegate?
-    public weak var delegate: AdControllerDelegate?
-    var volume: Int
-    var isClickProtectionEnabled = true
-    private let ad: NimbusAd
-    private let logger: Logger
     private var isLoaded = false
     private var shouldStart = false
-    private weak var container: NimbusAdView?
-    private weak var adPresentingViewController: UIViewController?
-    
     private let adObjectId: String
     
     init(
         ad: NimbusAd,
         container: UIView,
-        volume: Int,
         logger: Logger,
-        delegate: AdControllerDelegate,
+        delegate: (any AdControllerDelegate)?,
+        isBlocking: Bool,
+        isRewarded: Bool,
         adPresentingViewController: UIViewController?
     ) {
-        self.ad = ad
-        self.container = container as? NimbusAdView
-        self.volume = volume
-        self.logger = logger
-        self.delegate = delegate
-        self.adPresentingViewController = adPresentingViewController
-        
         self.adObjectId = NSUUID().uuidString
         
-        super.init()
+        super.init(
+            ad: ad,
+            isBlocking: isBlocking,
+            isRewarded: isRewarded,
+            logger: logger,
+            container: container,
+            delegate: delegate,
+            adPresentingViewController: adPresentingViewController
+        )
     }
     
     func load() {
-        guard ad.auctionType == .video else {
-            Nimbus.shared.logger.log(
-                "UnityAds not supported for \(ad.auctionType)",
-                level: .error
-            )
+        guard adType == .rewarded else {
+            sendNimbusError(NimbusRenderError.invalidAdType)
             return
         }
         
@@ -63,26 +53,9 @@ final class NimbusUnityAdController: NSObject {
         UnityAds.load(placementId, options: loadOptions, loadDelegate: self)
     }
     
-    private func forwardNimbusEvent(_ event: NimbusEvent) {
-        internalDelegate?.didReceiveNimbusEvent(controller: self, event: event)
-        delegate?.didReceiveNimbusEvent(controller: self, event: event)
-    }
+    // MARK: - AdController
     
-    private func forwardNimbusError(_ error: NimbusError) {
-        internalDelegate?.didReceiveNimbusError(controller: self, error: error)
-        delegate?.didReceiveNimbusError(controller: self, error: error)
-    }
-}
-
-// MARK: AdController
-
-extension NimbusUnityAdController: AdController {
-    
-    var adView: UIView? { nil }
-
-    var adDuration: CGFloat { 0 }
-
-    func start() {
+    override func start() {
         guard let adPresentingViewController,
               let placementId = ad.placementId else {
             Nimbus.shared.logger.log("UnityAds not initialized", level: .error)
@@ -102,15 +75,10 @@ extension NimbusUnityAdController: AdController {
         }
     }
 
-    func stop() {}
-
-    func destroy() {}
+    override func destroy() {}
     
-    var friendlyObstructions: [UIView]? { nil }
-}
-
-extension NimbusUnityAdController: UnityAdsLoadDelegate {
-    
+    // MARK: - UnityAdsLoadDelegate
+        
     func unityAdsAdLoaded(_ placementId: String) {
         guard let adPresentingViewController else {
             Nimbus.shared.logger.log("UnityAds not initialized", level: .error)
@@ -135,7 +103,7 @@ extension NimbusUnityAdController: UnityAdsLoadDelegate {
             isLoaded = true
         }
         
-        forwardNimbusEvent(.loaded)
+        sendNimbusEvent(.loaded)
     }
     
     func unityAdsAdFailed(
@@ -145,21 +113,20 @@ extension NimbusUnityAdController: UnityAdsLoadDelegate {
     ) {
         Nimbus.shared.logger.log("UnityAds failed to load: \(message)", level: .error)
         
-        forwardNimbusError(NimbusRenderError.adRenderingFailed(message: message))
+        sendNimbusError(NimbusRenderError.adRenderingFailed(message: message))
         
         isLoaded = false
         shouldStart = false
     }
-}
-
-extension NimbusUnityAdController: UnityAdsShowDelegate {
     
+    // MARK: - UnityAdsShowDelegate
+        
     func unityAdsShowComplete(
         _ placementId: String,
         withFinish state: UnityAdsShowCompletionState
     ) {
-        forwardNimbusEvent(state == .showCompletionStateCompleted ? .completed : .skipped)
-        forwardNimbusEvent(.destroyed)
+        sendNimbusEvent(state == .showCompletionStateCompleted ? .completed : .skipped)
+        sendNimbusEvent(.destroyed)
     }
     
     func unityAdsShowFailed(
@@ -172,15 +139,15 @@ extension NimbusUnityAdController: UnityAdsShowDelegate {
         // Unity seems to throw this error after showing an ad. This is NOT a hard failure
         // so skip sending a Nimbus error for this case
         if error != UnityAdsShowError.showErrorAlreadyShowing {
-            forwardNimbusError(NimbusRenderError.adRenderingFailed(message: message))
+            sendNimbusError(NimbusRenderError.adRenderingFailed(message: message))
         }
     }
     
     func unityAdsShowStart(_ placementId: String) {
-        forwardNimbusEvent(.impression)
+        sendNimbusEvent(.impression)
     }
     
     func unityAdsShowClick(_ placementId: String) {
-        forwardNimbusEvent(.clicked)
+        sendNimbusEvent(.clicked)
     }
 }

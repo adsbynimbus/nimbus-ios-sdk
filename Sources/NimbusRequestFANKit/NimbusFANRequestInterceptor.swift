@@ -8,6 +8,7 @@
 
 @_exported import NimbusRequestKit
 import FBAudienceNetwork
+import AppTrackingTransparency
 
 /// Enables FAN demand for NimbusRequest
 /// Add an instance of this to `NimbusAdManager.requestInterceptors`
@@ -48,6 +49,10 @@ public final class NimbusFANRequestInterceptor: NimbusRequestInterceptor {
         self.bidderToken = bidderToken
         
         FBAdSettings.setLogLevel(Nimbus.shared.logLevel.fanLogLevel)
+        
+        if #available(iOS 14.5, *), ATTrackingManager.trackingAuthorizationStatus == .authorized {
+            FBAdSettings.setAdvertiserTrackingEnabled(true)
+        }
         
         Nimbus.shared.logger.log("FAN provider initialized", level: .info)
     }

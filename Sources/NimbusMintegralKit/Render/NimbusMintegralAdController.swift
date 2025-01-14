@@ -22,8 +22,11 @@ struct NimbusMintegralError: NimbusError {
     }
 }
 
+/// Mintegral mute state must be set before the ad is loaded.
+/// That is why the volume property has no didSet hooks and only
+/// considers the state of the property in load() method.
 @available(iOS 13.0, *)
-final class NimbusMintegralAdController: NSObject {
+final class NimbusMintegralAdController: NimbusAdController {
     
     enum AdState: String {
         case notLoaded, loaded, presented
@@ -32,29 +35,15 @@ final class NimbusMintegralAdController: NSObject {
     // MARK: - Properties
     
     // MARK: AdController properties
-    weak var internalDelegate: AdControllerDelegate?
-    weak var delegate: AdControllerDelegate?
     
-    var friendlyObstructions: [UIView]?
-    var isClickProtectionEnabled = true
-    
-    // Mintegral mute state must be set before the ad is loaded.
-    // That is why this property has no didSet hooks and only
-    // considers the state of the property in load() method.
-    var volume = 0
+    override var adView: UIView? {
+        return bannerAd
+    }
     
     // MARK: Internal properties
-    private let ad: NimbusAd
-    private let logger: Logger
-    private let isBlocking: Bool
-    private weak var container: UIView?
-    private weak var adPresentingViewController: UIViewController?
     private weak var adRendererDelegate: NimbusMintegralAdRendererDelegate?
     private var started = false
     private var adState = AdState.notLoaded
-    private lazy var adType: NimbusMintegralAdType? = {
-        NimbusMintegralAdType(ad: ad, isBlocking: isBlocking)
-    }()
     
     // MARK: - Mintegral ad types
     private var bannerAd: MTGBannerAdView?
@@ -64,34 +53,45 @@ final class NimbusMintegralAdController: NSObject {
     init(ad: NimbusAd,
          container: UIView,
          logger: Logger,
-         delegate: AdControllerDelegate,
+         delegate: (any AdControllerDelegate)?,
          isBlocking: Bool,
+         isRewarded: Bool,
          adPresentingViewController: UIViewController?,
          adRendererDelegate: NimbusMintegralAdRendererDelegate? = nil) {
-        self.ad = ad
-        self.container = container as? NimbusAdView
-        self.logger = logger
-        self.delegate = delegate
-        self.isBlocking = isBlocking
-        self.adPresentingViewController = adPresentingViewController
+        
         self.adRendererDelegate = adRendererDelegate
+        
+        super.init(
+            ad: ad,
+            isBlocking: isBlocking,
+            isRewarded: isRewarded,
+            logger: logger,
+            container: container,
+            delegate: delegate,
+            adPresentingViewController: adPresentingViewController
+        )
     }
     
     @MainActor
     func load() {
         guard let renderInfo = ad.renderInfo as? NimbusMintegralRenderInfo else {
-            forwardNimbusError(NimbusMintegralError(message: "Mintegral render info is missing or invalid"))
+            sendNimbusError(NimbusMintegralError(message: "Mintegral render info is missing or invalid"))
             return
         }
         guard let adType else {
-            forwardNimbusError(NimbusRenderError.adUnsupportedAuctionType(auctionType: ad.auctionType, network: ad.network))
+            sendNimbusError(NimbusRenderError.adUnsupportedAuctionType(auctionType: ad.auctionType, network: ad.network))
             return
         }
         
         switch adType {
-        case .banner(let width, let height):
+        case .banner:
+            guard let dimensions = ad.adDimensions else {
+                sendNimbusError(NimbusMintegralError(message: "Mintegral banner couldn't render, ad dimensions are missing"))
+                return
+            }
+            
             bannerAd = MTGBannerAdView(
-                bannerAdViewWithAdSize: CGSize(width: width, height: height),
+                bannerAdViewWithAdSize: CGSize(width: dimensions.width, height: dimensions.height),
                 placementId: renderInfo.placementId,
                 unitId: renderInfo.adUnitId,
                 rootViewController: adPresentingViewController
@@ -132,20 +132,20 @@ final class NimbusMintegralAdController: NSObject {
     func presentIfNeeded(campaign: MTGCampaign? = nil) {
         guard started, adState == .loaded else { return }
         guard let renderInfo = ad.renderInfo as? NimbusMintegralRenderInfo else {
-            forwardNimbusError(NimbusMintegralError(message: "Mintegral render info is missing or invalid"))
+            sendNimbusError(NimbusMintegralError(message: "Mintegral render info is missing or invalid"))
             return
         }
         
         adState = .presented
         
-        if let bannerAd, let container, case .banner(let width, let height) = adType {
+        if let bannerAd, let container, let dimensions = ad.adDimensions {
             container.addSubview(bannerAd)
             
             NSLayoutConstraint.activate([
                 bannerAd.centerXAnchor.constraint(equalTo: container.centerXAnchor),
                 bannerAd.centerYAnchor.constraint(equalTo: container.centerYAnchor),
-                bannerAd.widthAnchor.constraint(equalToConstant: CGFloat(width)),
-                bannerAd.heightAnchor.constraint(equalToConstant: CGFloat(height)),
+                bannerAd.widthAnchor.constraint(equalToConstant: CGFloat(dimensions.width)),
+                bannerAd.heightAnchor.constraint(equalToConstant: CGFloat(dimensions.height)),
             ])
         } else if let nativeAdManager, let campaign, let adRendererDelegate, let container {
             let nativeView = adRendererDelegate.nativeAdViewForRendering(container: container, campaign: campaign)
@@ -180,39 +180,26 @@ final class NimbusMintegralAdController: NSObject {
         }
     }
     
-    @MainActor
-    private func forwardNimbusEvent(_ event: NimbusEvent) {
-        internalDelegate?.didReceiveNimbusEvent(controller: self, event: event)
-        delegate?.didReceiveNimbusEvent(controller: self, event: event)
-    }
-
-    @MainActor
-    private func forwardNimbusError(_ error: NimbusError) {
-        internalDelegate?.didReceiveNimbusError(controller: self, error: error)
-        delegate?.didReceiveNimbusError(controller: self, error: error)
-    }
-}
-
-@available(iOS 13.0, *)
-extension NimbusMintegralAdController: AdController {
-    var adView: UIView? {
-        return bannerAd
-    }
-
-    var adDuration: CGFloat { 0 }
-    
-    func start() {
+    override func start() {
         Task { @MainActor in
             started = true
             presentIfNeeded()
         }
     }
     
-    func stop() {}
-    
-    func destroy() {
+    override func destroy() {
         bannerAd = nil
         interstitialAdManager = nil
+    }
+    
+    @MainActor
+    private func sendNimbus(event: NimbusEvent) {
+        sendNimbusEvent(event)
+    }
+
+    @MainActor
+    private func sendNimbus(error: NimbusError) {
+        sendNimbusError(error)
     }
 }
 
@@ -223,28 +210,28 @@ extension NimbusMintegralAdController: MTGBannerAdViewDelegate {
     func adViewLoadSuccess(_ adView: MTGBannerAdView!) {
         Task { @MainActor in
             adState = .loaded
-            forwardNimbusEvent(.loaded)
+            sendNimbusEvent(.loaded)
             presentIfNeeded()
         }
     }
     
     func adViewWillLogImpression(_ adView: MTGBannerAdView!) {
-        Task { @MainActor in forwardNimbusEvent(.impression) }
+        Task { @MainActor in sendNimbusEvent(.impression) }
     }
     
     func adViewDidClicked(_ adView: MTGBannerAdView!) {
-        Task { @MainActor in forwardNimbusEvent(.clicked) }
+        Task { @MainActor in sendNimbusEvent(.clicked) }
     }
     
     func adViewClosed(_ adView: MTGBannerAdView!) {
         Task { @MainActor in
             destroy()
-            forwardNimbusEvent(.destroyed)
+            sendNimbusEvent(.destroyed)
         }
     }
     
     func adViewLoadFailedWithError(_ error: (any Error)!, adView: MTGBannerAdView!) {
-        Task { @MainActor in forwardNimbusError(NimbusMintegralError(message: error.localizedDescription)) }
+        Task { @MainActor in sendNimbusError(NimbusMintegralError(message: error.localizedDescription)) }
     }
     
     func adViewWillLeaveApplication(_ adView: MTGBannerAdView!) {}
@@ -259,11 +246,11 @@ extension NimbusMintegralAdController: MTGBidNativeAdManagerDelegate {
     func nativeAdsLoaded(_ nativeAds: [Any]?, bidNativeManager: MTGBidNativeAdManager) {
         Task { @MainActor in
             guard let campaign = nativeAds?.first as? MTGCampaign else {
-                forwardNimbusError(NimbusMintegralError(message: "No MTGCampaign found in native ad"))
+                sendNimbusError(NimbusMintegralError(message: "No MTGCampaign found in native ad"))
                 return
             }
             
-            forwardNimbusEvent(.loaded)
+            sendNimbusEvent(.loaded)
             
             adState = .loaded
             presentIfNeeded(campaign: campaign)
@@ -272,27 +259,27 @@ extension NimbusMintegralAdController: MTGBidNativeAdManagerDelegate {
     
     func nativeAdsFailedToLoadWithError(_ error: any Error, bidNativeManager: MTGBidNativeAdManager) {
         Task { @MainActor in
-            forwardNimbusError(NimbusMintegralError(message: "Native ad failed to load, error: \(error.localizedDescription)"))
+            sendNimbusError(NimbusMintegralError(message: "Native ad failed to load, error: \(error.localizedDescription)"))
         }
     }
     
     func nativeAdImpression(with type: MTGAdSourceType, bidNativeManager: MTGBidNativeAdManager) {
-        Task { @MainActor in forwardNimbusEvent(.impression) }
+        Task { @MainActor in sendNimbusEvent(.impression) }
     }
     
     func nativeAdDidClick(_ nativeAd: MTGCampaign, bidNativeManager: MTGBidNativeAdManager) {
-        Task { @MainActor in forwardNimbusEvent(.clicked) }
+        Task { @MainActor in sendNimbusEvent(.clicked) }
     }
 }
 
 @available(iOS 13.0, *)
 extension NimbusMintegralAdController: MTGMediaViewDelegate {
     func nativeAdImpression(with type: MTGAdSourceType, mediaView: MTGMediaView) {
-        Task { @MainActor in forwardNimbusEvent(.impression) }
+        Task { @MainActor in sendNimbusEvent(.impression) }
     }
     
     func nativeAdDidClick(_ nativeAd: MTGCampaign) {
-        Task { @MainActor in forwardNimbusEvent(.clicked) }
+        Task { @MainActor in sendNimbusEvent(.clicked) }
     }
 }
 
@@ -301,7 +288,7 @@ extension NimbusMintegralAdController: MTGMediaViewDelegate {
 @available(iOS 13.0, *)
 extension NimbusMintegralAdController: MTGNewInterstitialBidAdDelegate {
     func newInterstitialBidAdLoadSuccess(_ adManager: MTGNewInterstitialBidAdManager) {
-        Task { @MainActor in forwardNimbusEvent(.loaded) }
+        Task { @MainActor in sendNimbusEvent(.loaded) }
     }
     
     func newInterstitialBidAdResourceLoadSuccess(_ adManager: MTGNewInterstitialBidAdManager) {
@@ -312,30 +299,30 @@ extension NimbusMintegralAdController: MTGNewInterstitialBidAdDelegate {
     }
     
     func newInterstitialBidAdShowSuccess(withBidToken bidToken: String, adManager: MTGNewInterstitialBidAdManager) {
-        Task { @MainActor in forwardNimbusEvent(.impression) }
+        Task { @MainActor in sendNimbusEvent(.impression) }
     }
     
     func newInterstitialBidAdClicked(_ adManager: MTGNewInterstitialBidAdManager) {
-        Task { @MainActor in forwardNimbusEvent(.clicked) }
+        Task { @MainActor in sendNimbusEvent(.clicked) }
     }
     
     func newInterstitialBidAdLoadFail(_ error: any Error, adManager: MTGNewInterstitialBidAdManager) {
-        Task { @MainActor in forwardNimbusError(NimbusMintegralError(message: error.localizedDescription)) }
+        Task { @MainActor in sendNimbusError(NimbusMintegralError(message: error.localizedDescription)) }
     }
     
     func newInterstitialBidAdShowFail(_ error: any Error, adManager: MTGNewInterstitialBidAdManager) {
-        Task { @MainActor in forwardNimbusError(NimbusMintegralError(message: error.localizedDescription)) }
+        Task { @MainActor in sendNimbusError(NimbusMintegralError(message: error.localizedDescription)) }
     }
     
     func newInterstitialBidAdDismissed(withConverted converted: Bool, adManager: MTGNewInterstitialBidAdManager) {
         Task { @MainActor in
             destroy()
-            forwardNimbusEvent(.destroyed)
+            sendNimbusEvent(.destroyed)
         }
     }
     
     func newInterstitialBidAdEndCardShowSuccess(_ adManager: MTGNewInterstitialBidAdManager) {
-        Task { @MainActor in forwardNimbusEvent(.endCardImpression) }
+        Task { @MainActor in sendNimbusEvent(.endCardImpression) }
     }
 }
 
@@ -346,33 +333,33 @@ extension NimbusMintegralAdController: MTGRewardAdLoadDelegate, MTGRewardAdShowD
     func onVideoAdLoadSuccess(_ placementId: String?, unitId: String?) {
         Task { @MainActor in
             adState = .loaded
-            forwardNimbusEvent(.loaded)
+            sendNimbusEvent(.loaded)
             presentIfNeeded()
         }
     }
     
     func onVideoAdShowSuccess(_ placementId: String?, unitId: String?) {
-        Task { @MainActor in forwardNimbusEvent(.impression) }
+        Task { @MainActor in sendNimbusEvent(.impression) }
     }
     
     func onVideoAdClicked(_ placementId: String?, unitId: String?) {
-        Task { @MainActor in forwardNimbusEvent(.clicked) }
+        Task { @MainActor in sendNimbusEvent(.clicked) }
     }
     
     func onVideoAdLoadFailed(_ placementId: String?, unitId: String?, error: any Error) {
-        Task { @MainActor in forwardNimbusError(NimbusMintegralError(message: error.localizedDescription)) }
+        Task { @MainActor in sendNimbusError(NimbusMintegralError(message: error.localizedDescription)) }
     }
     
     func onVideoAdShowFailed(_ placementId: String?, unitId: String?, withError error: any Error) {
-        Task { @MainActor in forwardNimbusError(NimbusMintegralError(message: error.localizedDescription)) }
+        Task { @MainActor in sendNimbusError(NimbusMintegralError(message: error.localizedDescription)) }
     }
     
     func onVideoPlayCompleted(_ placementId: String?, unitId: String?) {
-        Task { @MainActor in forwardNimbusEvent(.completed) }
+        Task { @MainActor in sendNimbusEvent(.completed) }
     }
     
     func onVideoEndCardShowSuccess(_ placementId: String?, unitId: String?) {
-        Task { @MainActor in forwardNimbusEvent(.endCardImpression) }
+        Task { @MainActor in sendNimbusEvent(.endCardImpression) }
     }
     
     func onVideoAdDismissed(
@@ -383,7 +370,7 @@ extension NimbusMintegralAdController: MTGRewardAdLoadDelegate, MTGRewardAdShowD
     ) {
         Task { @MainActor in
             destroy()
-            forwardNimbusEvent(.destroyed)
+            sendNimbusEvent(.destroyed)
         }
     }
 }

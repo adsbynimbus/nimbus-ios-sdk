@@ -40,13 +40,14 @@ public final class NimbusAdMobAdRenderer: AdRenderer {
                 companionAd: NimbusCompanionAd?,
                 container: UIView,
                 adPresentingViewController: UIViewController?,
-                delegate: AdControllerDelegate) -> AdController {
+                delegate: (any AdControllerDelegate)?) -> AdController {
         let adController = NimbusAdMobAdController(
             ad: ad,
             container: container,
             logger: Nimbus.shared.logger,
             delegate: delegate,
             isBlocking: false,
+            isRewarded: false,
             adPresentingViewController: adPresentingViewController,
             adRendererDelegate: adRendererDelegate
         )
@@ -61,9 +62,10 @@ public final class NimbusAdMobAdRenderer: AdRenderer {
     
     public func renderBlocking(
         ad: NimbusAd,
+        isRewarded: Bool,
         companionAd: NimbusCompanionAd?,
         adPresentingViewController: UIViewController,
-        delegate: any AdControllerDelegate
+        delegate: (any AdControllerDelegate)?
     ) -> any AdController {
         let adController = NimbusAdMobAdController(
             ad: ad,
@@ -71,6 +73,7 @@ public final class NimbusAdMobAdRenderer: AdRenderer {
             logger: Nimbus.shared.logger,
             delegate: delegate,
             isBlocking: true,
+            isRewarded: isRewarded,
             adPresentingViewController: adPresentingViewController,
             adRendererDelegate: adRendererDelegate
         )

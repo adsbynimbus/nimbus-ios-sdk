@@ -16,13 +16,15 @@ public final class NimbusMobileFuseAdRenderer: AdRenderer {
                 companionAd: NimbusCompanionAd?,
                 container: UIView,
                 adPresentingViewController: UIViewController?,
-                delegate: AdControllerDelegate) -> AdController {
+                delegate: (any AdControllerDelegate)?) -> AdController {
+        
         let adController = NimbusMobileFuseAdController(
             ad: ad,
-            container: container,
-            logger: Nimbus.shared.logger,
-            delegate: delegate,
             isBlocking: false,
+            isRewarded: false,
+            logger: Nimbus.shared.logger,
+            container: container,
+            delegate: delegate,
             adPresentingViewController: adPresentingViewController
         )
         
@@ -36,16 +38,18 @@ public final class NimbusMobileFuseAdRenderer: AdRenderer {
     
     public func renderBlocking(
         ad: NimbusAd,
+        isRewarded: Bool,
         companionAd: NimbusCompanionAd?,
         adPresentingViewController: UIViewController,
-        delegate: any AdControllerDelegate
+        delegate: (any AdControllerDelegate)?
     ) -> any AdController {
         let adController = NimbusMobileFuseAdController(
             ad: ad,
-            container: adPresentingViewController.nimbusContainer,
-            logger: Nimbus.shared.logger,
-            delegate: delegate,
             isBlocking: true,
+            isRewarded: isRewarded,
+            logger: Nimbus.shared.logger,
+            container: adPresentingViewController.nimbusContainer,
+            delegate: delegate,
             adPresentingViewController: adPresentingViewController
         )
         

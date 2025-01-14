@@ -15,8 +15,7 @@ typealias VungleAdDelegate = VungleBannerViewDelegate
                             & VungleNativeDelegate
 
 protocol NimbusVungleAdLoaderType {
-    var isBlocking: Bool { get }
-    
+    var adType: NimbusAdType? { get set }
     var delegate: VungleAdDelegate? { get set }
     var bannerAd: VungleBannerView? { get }
     var interstitialAd: VungleInterstitial? { get }
@@ -39,17 +38,13 @@ final class NimbusVungleAdLoader: NimbusVungleAdLoaderType {
     
     private(set) var nativeAd: VungleNative?
     
-    var isBlocking: Bool
-    
-    init(isBlocking: Bool) {
-        self.isBlocking = isBlocking
-    }
+    var adType: NimbusAdType?
     
     func load(ad: NimbusAd, placementId: String) throws {
-        switch ad.vungleAdType(isBlocking: isBlocking) {
+        switch adType {
         case .rewarded:
             loadRewardedAd(placementId: placementId, markup: ad.markup)
-        case .fullScreenBlocking:
+        case .interstitial:
             loadInterstitialAd(placementId: placementId, markup: ad.markup)
         case .banner:
             guard let adSize = ad.vungleAdSize else {

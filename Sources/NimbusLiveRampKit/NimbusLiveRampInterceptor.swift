@@ -31,9 +31,15 @@ public extension NimbusLiveRampInterceptorDelegate {
 
 public enum NimbusLiveRampError: LocalizedError, Equatable {
     case identifierNotFound
+    case errorStatus
+    case disabled
     
     public var errorDescription: String? {
-        "No e-mail or phone number found"
+        switch self {
+        case .identifierNotFound: return "No e-mail or phone number found"
+        case .errorStatus: return "Couldn't initialize LiveRamp - LRAts.shared.status is .error"
+        case .disabled: return "Couldn't initialize LiveRamp - it's disabled"
+        }
     }
 }
 
@@ -62,6 +68,8 @@ public final class NimbusLiveRampInterceptor {
     
     var liveRampEnvelope: String?
     
+    private var canRetryInit: Bool = true
+    
     /**
      Initializes a NimbusLiveRampInterceptor instance
      
@@ -87,16 +95,7 @@ public final class NimbusLiveRampInterceptor {
         self.hasConsentForNoLegislation = hasConsentForNoLegislation
         self.delegate = delegate
         
-        let configuration = LRAtsConfiguration(
-            appId: configId,
-            isTestMode: isTestMode,
-            logToFileEnabled: false
-        )
-        
-        LRAts.shared.initialize(with: configuration) { [weak self] success, error in
-            self?.delegate?.didInitializeLiveRamp(error: error)
-            if success { self?.getEnvelope() }
-        }
+        initializeLiveRamp(isTestMode: isTestMode)
     }
     
     /**
@@ -151,6 +150,39 @@ public final class NimbusLiveRampInterceptor {
             isTestMode: isTestMode,
             delegate: delegate
         )
+    }
+    
+    private func initializeLiveRamp(isTestMode: Bool) {
+        let configuration = LRAtsConfiguration(
+            appId: configId,
+            isTestMode: isTestMode,
+            logToFileEnabled: false
+        )
+        
+        switch LRAts.shared.status {
+        case .notInitialized:
+            LRAts.shared.initialize(with: configuration) { [weak self] success, error in
+                self?.delegate?.didInitializeLiveRamp(error: error)
+                if success { self?.getEnvelope() }
+            }
+        case .ready:
+            self.delegate?.didInitializeLiveRamp(error: nil)
+            getEnvelope()
+        case .loading:
+            guard canRetryInit else { return }
+            
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                self?.initializeLiveRamp(isTestMode: isTestMode)
+            }
+        case .error:
+            delegate?.didInitializeLiveRamp(error: NimbusLiveRampError.errorStatus)
+        case .disabled:
+            delegate?.didInitializeLiveRamp(error: NimbusLiveRampError.disabled)
+        @unknown default:
+            Nimbus.shared.logger.log("Unknown LiveRamp status: \(LRAts.shared.status)", level: .debug)
+        }
+        
+        canRetryInit = false
     }
     
     private func getEnvelope() {

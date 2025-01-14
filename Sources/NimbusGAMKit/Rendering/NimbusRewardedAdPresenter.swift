@@ -33,10 +33,8 @@ public final class NimbusRewardedAdPresenter {
     private let ad: NimbusAd
     private var adType: AdType?
     private var companionAd: NimbusCompanionAd?
-    private var adView: NimbusAdView?
     
-    private let thirdPartyInterstitialAdManager = ThirdPartyInterstitialAdManager()
-    private var thirdPartyAdController: AdController?
+    private var adController: AdController?
     
     public init(
         request: NimbusRequest,
@@ -67,41 +65,23 @@ public final class NimbusRewardedAdPresenter {
     }
     
     private func showNimbusAd(presentingViewController: UIViewController) {
-        if ThirdPartyDemandNetwork.exists(for: ad) {
-            do {
-                thirdPartyAdController = try thirdPartyInterstitialAdManager.render(
-                    ad: ad,
-                    adPresentingViewController: presentingViewController,
-                    companionAd: nil
-                )
-                
-                thirdPartyAdController?.delegate = self
-                thirdPartyAdController?.start()
-                
-                delegate?.didPresentAd()
-            } catch {
-                Nimbus.shared.logger.log("NimbusDynamicPriceRenderer: Third-party demand rewarded error: \(error.localizedDescription)", level: .error)
-            }
-        } else {
-            adView = NimbusAdView(adPresentingViewController: nil)
-            guard let adView else { return }
-            
-            let adViewController = NimbusAdViewController(
-                adView: adView,
+        do {
+            adController = try Nimbus.loadBlocking(
                 ad: ad,
-                companionAd: companionAd,
-                closeButtonDelay: 5,
-                isRewardedAd: true
+                presentingViewController: presentingViewController,
+                delegate: self,
+                isRewarded: true,
+                companionAd: NimbusCompanionAd(width: 320, height: 480, renderMode: .endCard),
+                animated: true
             )
-            adView.delegate = self
-            adView.adPresentingViewController = adViewController
-            adView.isBlocking = true
+            adController?.start()
             
-            adViewController.delegate = self
-            adViewController.modalPresentationStyle = .fullScreen
-            
-            presentingViewController.present(adViewController, animated: true, completion: nil)
-            adViewController.renderAndStart()
+            delegate?.didPresentAd()
+        } catch {
+            Nimbus.shared.logger.log(
+                "NimbusDynamicPriceRenderer: Third-party demand rewarded error: \(error.localizedDescription)",
+                level: .error
+            )
         }
     }
     
@@ -153,9 +133,10 @@ extension NimbusRewardedAdPresenter: AdControllerDelegate {
             default:
                 break
             }
-        case .destroyed where thirdPartyAdController != nil:
+        case .destroyed:
+            adController = nil
+            adType = nil
             delegate?.didCloseAd()
-            thirdPartyAdController = nil
         default:
             break
         }
@@ -165,6 +146,7 @@ extension NimbusRewardedAdPresenter: AdControllerDelegate {
         delegate?.didReceiveError(error: error)
     }
 }
+
 
 // MARK: NimbusAdViewControllerDelegate
 
@@ -179,14 +161,12 @@ extension NimbusRewardedAdPresenter: NimbusAdViewControllerDelegate {
     public func viewWillDisappear(animated: Bool) {}
     
     public func viewDidDisappear(animated: Bool) {
-        adView?.destroy()
-        adType = nil
-        
-        delegate?.didCloseAd()
+        adController?.destroy()
     }
     
     public func didCloseAd(adView: NimbusAdView) {}
 }
+
 
 /// :nodoc:
 private extension Array {

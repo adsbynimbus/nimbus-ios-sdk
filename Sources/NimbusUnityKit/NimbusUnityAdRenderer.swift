@@ -18,14 +18,15 @@ public final class NimbusUnityAdRenderer: AdRenderer {
         companionAd: NimbusCompanionAd?,
         container: UIView,
         adPresentingViewController: UIViewController?,
-        delegate: AdControllerDelegate
+        delegate: (any AdControllerDelegate)?
     ) -> AdController {
         let adController = NimbusUnityAdController(
             ad: ad,
             container: container,
-            volume: 0,
             logger: Nimbus.shared.logger,
             delegate: delegate,
+            isBlocking: false,
+            isRewarded: false,
             adPresentingViewController: adPresentingViewController
         )
         
@@ -39,16 +40,18 @@ public final class NimbusUnityAdRenderer: AdRenderer {
     
     public func renderBlocking(
         ad: NimbusAd,
+        isRewarded: Bool,
         companionAd: NimbusCompanionAd?,
         adPresentingViewController: UIViewController,
-        delegate: AdControllerDelegate
+        delegate: (any AdControllerDelegate)?
     ) -> AdController {
         let adController = NimbusUnityAdController(
             ad: ad,
             container: adPresentingViewController.nimbusContainer,
-            volume: 0,
             logger: Nimbus.shared.logger,
             delegate: delegate,
+            isBlocking: true,
+            isRewarded: isRewarded,
             adPresentingViewController: adPresentingViewController
         )
         
