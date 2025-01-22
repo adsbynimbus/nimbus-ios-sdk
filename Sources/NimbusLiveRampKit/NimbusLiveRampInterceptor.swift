@@ -154,7 +154,7 @@ public final class NimbusLiveRampInterceptor {
     
     private func initializeLiveRamp(isTestMode: Bool) {
         let configuration = LRAtsConfiguration(
-            appId: configId,
+            configID: configId,
             isTestMode: isTestMode,
             logToFileEnabled: false
         )
