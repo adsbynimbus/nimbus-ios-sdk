@@ -20,14 +20,14 @@ final class NimbusAdMobRequestInterceptor {
     let nativeAdOptions: NimbusAdMobNativeAdOptions?
     
     /// AdMob signal provider (dependency injection for unit tests)
-    private let provider: (GADSignalRequest, @escaping (GADSignal?, Error?) -> Void) -> Void
+    private let provider: (GADSignalRequest, @escaping (String?, Error?) -> Void) -> Void
     
     init(
         adUnitId: String,
         adType: NimbusAdType,
         nativeAdOptions: NimbusAdMobNativeAdOptions? = nil,
         logger: Logger = Nimbus.shared.logger,
-        provider: ((GADSignalRequest, @escaping (GADSignal?, Error?) -> Void) -> Void)? = nil
+        provider: ((GADSignalRequest, @escaping (String?, Error?) -> Void) -> Void)? = nil
     ) {
         self.adUnitId = adUnitId
         self.adType = adType
@@ -38,7 +38,9 @@ final class NimbusAdMobRequestInterceptor {
             self.provider = provider
         } else {
             self.provider = { (signalRequest, callback) in
-                GADMobileAds.generateSignal(signalRequest, completionHandler: callback)
+                GADMobileAds.generateSignal(signalRequest) { signal, error in
+                    callback(signal?.signalString, error)
+                }
             }
         }
     }
@@ -79,7 +81,7 @@ extension NimbusAdMobRequestInterceptor: NimbusRequestInterceptor {
             } else if let signal {
                 if request.user == nil { request.user = .init() }
                 if request.user?.extensions == nil { request.user?.extensions = [:] }
-                request.user?.extensions?["admob_gde_signals"] = NimbusCodable(signal.signalString)
+                request.user?.extensions?["admob_gde_signals"] = NimbusCodable(signal)
             }
         }
         
@@ -137,6 +139,8 @@ extension NimbusAdMobRequestInterceptor: NimbusRequestInterceptor {
             return GADInterstitialSignalRequest(signalType: "requester_type_2")
         case .rewarded:
             return GADRewardedSignalRequest(signalType: "requester_type_2")
+        @unknown default:
+            logger.log("Unexpected NimbusAdType in AdMob interceptor: \(adType)", level: .debug)
         }
         
         logger.log("Unsupported AdMob ad type. Supported are: Blocking (interstitial, rewarded), Inline (banner, native)", level: .debug)

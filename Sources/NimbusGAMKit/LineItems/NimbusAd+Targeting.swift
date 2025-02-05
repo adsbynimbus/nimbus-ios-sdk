@@ -31,6 +31,7 @@ extension NimbusAd {
         request.customTargeting?["na_id"] = auctionId
         request.customTargeting?["na_size"] = "\(adDimensions?.width ?? 0)x\(adDimensions?.height ?? 0)"
         request.customTargeting?["na_network"] = network
+        request.customTargeting?["na_type"] = auctionType.rawValue
         
         let bidKey: String
         
