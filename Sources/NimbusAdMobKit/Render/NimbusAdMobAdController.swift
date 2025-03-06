@@ -135,20 +135,20 @@ final class NimbusAdMobAdController: NimbusAdController,
             container.addSubview(bannerAd)
             
             NSLayoutConstraint.activate([
-                bannerAd.leadingAnchor.constraint(equalTo: container.safeAreaLayoutGuide.leadingAnchor),
-                bannerAd.trailingAnchor.constraint(equalTo: container.safeAreaLayoutGuide.trailingAnchor),
-                bannerAd.topAnchor.constraint(equalTo: container.safeAreaLayoutGuide.topAnchor),
-                bannerAd.bottomAnchor.constraint(equalTo: container.safeAreaLayoutGuide.bottomAnchor)
+                bannerAd.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+                bannerAd.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+                bannerAd.topAnchor.constraint(equalTo: container.topAnchor),
+                bannerAd.bottomAnchor.constraint(equalTo: container.bottomAnchor)
             ])
         } else if let nativeAd, let container, let adRendererDelegate {
             let nativeAdView = adRendererDelegate.nativeAdViewForRendering(container: container, nativeAd: nativeAd)
             container.addSubview(nativeAdView)
             
             NSLayoutConstraint.activate([
-                nativeAdView.leadingAnchor.constraint(equalTo: container.safeAreaLayoutGuide.leadingAnchor),
-                nativeAdView.trailingAnchor.constraint(equalTo: container.safeAreaLayoutGuide.trailingAnchor),
-                nativeAdView.topAnchor.constraint(equalTo: container.safeAreaLayoutGuide.topAnchor),
-                nativeAdView.bottomAnchor.constraint(equalTo: container.safeAreaLayoutGuide.bottomAnchor)
+                nativeAdView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+                nativeAdView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+                nativeAdView.topAnchor.constraint(equalTo: container.topAnchor),
+                nativeAdView.bottomAnchor.constraint(equalTo: container.bottomAnchor)
             ])
         } else if let interstitialAd {
             interstitialAd.present(fromRootViewController: adPresentingViewController)

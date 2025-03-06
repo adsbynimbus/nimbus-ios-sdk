@@ -180,10 +180,10 @@ final class NimbusFANAdController: NimbusAdController,
         fbNativeAdView.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(fbNativeAdView)
         NSLayoutConstraint.activate([
-            fbNativeAdView.leadingAnchor.constraint(equalTo: container.safeAreaLayoutGuide.leadingAnchor),
-            fbNativeAdView.trailingAnchor.constraint(equalTo: container.safeAreaLayoutGuide.trailingAnchor),
-            fbNativeAdView.topAnchor.constraint(equalTo: container.safeAreaLayoutGuide.topAnchor),
-            fbNativeAdView.bottomAnchor.constraint(equalTo: container.safeAreaLayoutGuide.bottomAnchor)
+            fbNativeAdView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            fbNativeAdView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            fbNativeAdView.topAnchor.constraint(equalTo: container.topAnchor),
+            fbNativeAdView.bottomAnchor.constraint(equalTo: container.bottomAnchor)
         ])
 
         sendNimbusEvent(.loaded)
@@ -338,10 +338,10 @@ final class NimbusFANAdController: NimbusAdController,
         adView.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(adView)
         NSLayoutConstraint.activate([
-            adView.leadingAnchor.constraint(equalTo: container.safeAreaLayoutGuide.leadingAnchor),
-            adView.trailingAnchor.constraint(equalTo: container.safeAreaLayoutGuide.trailingAnchor),
-            adView.topAnchor.constraint(equalTo: container.safeAreaLayoutGuide.topAnchor),
-            adView.bottomAnchor.constraint(equalTo: container.safeAreaLayoutGuide.bottomAnchor)
+            adView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            adView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            adView.topAnchor.constraint(equalTo: container.topAnchor),
+            adView.bottomAnchor.constraint(equalTo: container.bottomAnchor)
         ])
 
         sendNimbusEvent(.loaded)

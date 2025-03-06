@@ -99,6 +99,7 @@ let package = Package(
                 "NimbusRenderTarget",
                 "NimbusRenderStaticTarget",
                 "NimbusRenderVideoTarget",
+                "NimbusRenderVASTTarget",
                 "NimbusKit"
             ]),
         .target(
@@ -136,8 +137,8 @@ let package = Package(
             dependencies: ["NimbusRenderTarget", "NimbusRequestTarget", .Vungle]),
         .binaryTarget(
             name: "MobileFuseSDK",
-            url: "https://cdn.mobilefuse.com/sdk/1.8.2.zip",
-            checksum: "f735bb81c18e163aea3c22c2d1aba2f4fe447a17c77ce3afe04d40c7480e621d"),
+            url: "https://cdn.mobilefuse.com/sdk/1.9.0.zip",
+            checksum: "4f2306342cb90cbab55a9b1892fc757adeba8867bd2911f5befb60f5be4a1be0"),
         .binaryTarget(
             name: "OMSDK_Adsbynimbus",
             url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/external/omsdk/1.5.2/OMSDK_Adsbynimbus-1.5.2.zip",
@@ -188,30 +189,30 @@ extension Target.Dependency {
 package.targets += [
     .binaryTarget(
         name: "NimbusCoreKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.25.5/NimbusCoreKit-2.25.5.zip",
-        checksum: "bf4dea0468c425eea668f5ed66f9985514065e334991b2af8f2c43a29dfa8973"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.26.0/NimbusCoreKit-2.26.0.zip",
+        checksum: "571a03feae5ac5c22670ffdddb2511bc1b378757861f4144ddefc54428f05ff2"),
     .binaryTarget(
         name: "NimbusKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.25.5/NimbusKit-2.25.5.zip",
-        checksum: "ecc3eb1bd47e06f33b56336e6bcd56d99ddc791c9c0fa9cfe7f77540e2c29b4f"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.26.0/NimbusKit-2.26.0.zip",
+        checksum: "395ddcb34578457ed0b7da94dba8e9d301fee4d8ccbab2096a966aae6c26cf75"),
     .binaryTarget(
         name: "NimbusRequestKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.25.5/NimbusRequestKit-2.25.5.zip",
-        checksum: "e88fe9ba0468c296e8e659dec05ecd6d39c86ec70e11a55035f91d44124db355"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.26.0/NimbusRequestKit-2.26.0.zip",
+        checksum: "f5d9c3d951f1ccadb2ab5162d32fde2295ef4898338aa7d8d4c31a5619f414af"),
     .binaryTarget(
         name: "NimbusRenderKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.25.5/NimbusRenderKit-2.25.5.zip",
-        checksum: "037ecbfda16f79d1b345dad4cf6afe8c57c0501946a0a7f1c3b815d2b3b5107b"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.26.0/NimbusRenderKit-2.26.0.zip",
+        checksum: "a59934600e97b90d2f0daf6765130fe9a368deedcd3af45951ad97207b75a03e"),
     .binaryTarget(
         name: "NimbusRenderStaticKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.25.5/NimbusRenderStaticKit-2.25.5.zip",
-        checksum: "ba8c7b86b08c82745b1b9848db19b798ec331c3004cba780f8db882c10d0e565"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.26.0/NimbusRenderStaticKit-2.26.0.zip",
+        checksum: "df7dc23fc8e7d62d51fa42aa738d47f0e9f4c77a80cb5608d3db7873cf61569c"),
     .binaryTarget(
         name: "NimbusRenderVideoKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.25.5/NimbusRenderVideoKit-2.25.5.zip",
-        checksum: "83e30061fbf5b38d98e8c29635600a16facce2d2575594c6ae21a58b4d041bab"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.26.0/NimbusRenderVideoKit-2.26.0.zip",
+        checksum: "e709e05f1c061ca25a998fcc9c30041a50d1419d9af654f1b5f218d945abf226"),
     .binaryTarget(
         name: "NimbusRenderVASTKit",
-        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.25.5/NimbusRenderVASTKit-2.25.5.zip",
-        checksum: "38fe8f1c9cf47e0f529aa251b1295a137c1b43e6eb63c4f15c662f9cae360c63"),
+        url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.26.0/NimbusRenderVASTKit-2.26.0.zip",
+        checksum: "7d76040b52a816cc1fddd2e1d565838302ed6745434c2818f218334e0f18b979"),
 ]

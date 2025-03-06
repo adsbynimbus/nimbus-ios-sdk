@@ -101,10 +101,10 @@ final class NimbusVungleAdPresenter: NimbusVungleAdPresenterType {
         adView.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(adView)
         NSLayoutConstraint.activate([
-            adView.leadingAnchor.constraint(equalTo: container.safeAreaLayoutGuide.leadingAnchor),
-            adView.trailingAnchor.constraint(equalTo: container.safeAreaLayoutGuide.trailingAnchor),
-            adView.topAnchor.constraint(equalTo: container.safeAreaLayoutGuide.topAnchor),
-            adView.bottomAnchor.constraint(equalTo: container.safeAreaLayoutGuide.bottomAnchor)
+            adView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            adView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            adView.topAnchor.constraint(equalTo: container.topAnchor),
+            adView.bottomAnchor.constraint(equalTo: container.bottomAnchor)
         ])
         
         nativeAd.registerViewForInteraction(
