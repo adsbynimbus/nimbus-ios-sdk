@@ -12,7 +12,7 @@ import AppTrackingTransparency
 
 /// Enables FAN demand for NimbusRequest
 /// Add an instance of this to `NimbusAdManager.requestInterceptors`
-public final class NimbusFANRequestInterceptor: NimbusRequestInterceptor {
+public final class NimbusFANRequestInterceptor {
     
     /// Force a test ad for FAN
     public var forceTestAd = false
@@ -57,32 +57,29 @@ public final class NimbusFANRequestInterceptor: NimbusRequestInterceptor {
         Nimbus.shared.logger.log("FAN provider initialized", level: .info)
     }
     
-    /// :nodoc:
-    public func modifyRequest(request: NimbusRequest) {
-        Nimbus.shared.logger.log("Modifying NimbusRequest for FAN", level: .debug)
-        
-        guard request.impressions.count == 1,
-              request.impressions[0].extensions != nil,
-              request.impressions[0].position != nil
-        else {
-            Nimbus.shared.logger.log("NimbusRequest malformed. Skipping FAN modification", level: .error)
-            return
-        }
-        
-        request.impressions[0].extensions?["facebook_app_id"] = NimbusCodable(appId)
-        if isAppendingTestPayload {
-            request.impressions[0].extensions?["facebook_test_ad_type"]
-            = NimbusCodable(fbTestAdType)
-        }
-        
-        if request.user == nil {
-            request.user = NimbusUser()
-        }
-        if request.user?.extensions == nil {
-            request.user?.extensions = [:]
-        }
-        request.user?.extensions?["facebook_buyeruid"] = NimbusCodable(bidderToken)
+    private var isAppendingTestPayload: Bool {
+        forceTestAd && Nimbus.shared.testMode
     }
+}
+
+extension NimbusFANRequestInterceptor: NimbusRequestInterceptorAsync {
+    public func modifyRequest(request: NimbusRequest) async throws -> NimbusRequestDelta {
+        var extensions: [String: NimbusCodable] = [
+            "facebook_app_id": NimbusCodable(appId),
+            "facebook_buyeruid": NimbusCodable(bidderToken)
+        ]
+        
+        if isAppendingTestPayload {
+            extensions["facebook_test_ad_type"] = NimbusCodable(fbTestAdType)
+        }
+        
+        return NimbusRequestDelta(impressionExtensions: extensions)
+    }
+}
+
+extension NimbusFANRequestInterceptor: NimbusRequestInterceptor {
+    /// :nodoc:
+    public func modifyRequest(request: NimbusRequest) {}
     
     /// :nodoc:
     public func didCompleteNimbusRequest(with response: NimbusAd) {
@@ -92,9 +89,5 @@ public final class NimbusFANRequestInterceptor: NimbusRequestInterceptor {
     /// :nodoc:
     public func didFailNimbusRequest(with error: NimbusError) {
         Nimbus.shared.logger.log("Failed NimbusRequest for FAN", level: .error)
-    }
-    
-    private var isAppendingTestPayload: Bool {
-        forceTestAd && Nimbus.shared.testMode
     }
 }
