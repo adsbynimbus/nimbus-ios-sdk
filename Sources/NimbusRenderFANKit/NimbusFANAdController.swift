@@ -119,6 +119,8 @@ final class NimbusFANAdController: NimbusAdController,
             } else {
                 fbRewardedVideoAd?.load(withBidPayload: ad.markup)
             }
+        @unknown default:
+            sendNimbusError(NimbusRenderError.invalidAdType)
         }
     }
     
@@ -146,10 +148,11 @@ final class NimbusFANAdController: NimbusAdController,
     }
     
     // MARK: - AdController overrides
-    
-    override func start() {}
 
     override func destroy() {
+        guard adState != .destroyed else { return }
+        
+        adState = .destroyed
         fbNativeAd?.unregisterView()
         fbNativeAd = nil
     }

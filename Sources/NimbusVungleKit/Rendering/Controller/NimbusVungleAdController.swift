@@ -16,17 +16,11 @@ final class NimbusVungleAdController: NimbusAdController,
                                       VungleInterstitialDelegate,
                                       VungleRewardedDelegate {
     
-    enum AdState: String {
-        case notLoaded, loaded, presented = "played", destroyed
-    }
-    
     var adLoader: NimbusVungleAdLoaderType
     let adPresenter: NimbusVungleAdPresenterType
     let creativeScalingEnabled: Bool
     
     weak var adRendererDelegate: NimbusVungleAdRendererDelegate?
-    
-    var adState = AdState.notLoaded
     
     /// Determines whether ad has registered an impression
     private var hasRegisteredAdImpression = false
@@ -77,12 +71,15 @@ final class NimbusVungleAdController: NimbusAdController,
         }
     }
     
-    func presentAd() {
+    func presentAdIfReady() {
         do {
-            guard adState == .loaded else {
-                throw NimbusVungleError.failedToPresentAd(message: "Vungle Ad has not been loaded.")
+            guard started, adState == .ready else { return }
+            
+            guard let adType else {
+                throw NimbusRenderError.invalidAdType
             }
-            guard let adType else { throw NimbusRenderError.invalidAdType }
+            
+            adState = .resumed
             
             switch adType {
             case .rewarded:
@@ -110,6 +107,8 @@ final class NimbusVungleAdController: NimbusAdController,
                     viewController: adPresentingViewController,
                     adRendererDelegate: adRendererDelegate
                 )
+            @unknown default:
+                throw NimbusRenderError.invalidAdType
             }
         } catch {
             if let nimbusError = error as? NimbusError {
@@ -120,33 +119,12 @@ final class NimbusVungleAdController: NimbusAdController,
     
     // MARK - AdController overrides
     
-    override func start() {
-        switch adState {
-        case .presented, .destroyed:
-            let type: String
-            if ad.isInterstitial {
-                type = ad.auctionType == .static ? "interstitial" : "rewarded"
-            } else {
-                type = ad.vungleAdSize == VungleAdSize.VungleAdSizeMREC ? "mrec" : "banner"
-            }
-            
-            sendNimbusError(
-                NimbusVungleError.failedToStartAd(
-                    type: type,
-                    message: "Vungle Ad has already been \(adState.rawValue)."
-                )
-            )
-        case .loaded:
-            presentAd()
-        default:
-            break
-        }
+    override func onStart() {
+        presentAdIfReady()
     }
     
     override func destroy() {
-        guard adState != .destroyed else {
-            return
-        }
+        guard adState != .destroyed else { return }
         
         adState = .destroyed
         
@@ -159,11 +137,11 @@ final class NimbusVungleAdController: NimbusAdController,
     // MARK: - VungleBannerViewDelegate
     
     func bannerAdDidLoad(_ bannerView: VungleBannerView) {
-        adState = .loaded
+        adState = .ready
         
         sendNimbusEvent(.loaded)
         
-        presentAd()
+        presentAdIfReady()
     }
     
     func bannerAdDidFail(_ bannerView: VungleBannerView, withError: NSError) {
@@ -173,10 +151,6 @@ final class NimbusVungleAdController: NimbusAdController,
                 message: withError.localizedDescription
             )
         )
-    }
-
-    func bannerAdDidPresent(_ bannerView: VungleBannerView) {
-        adState = .presented
     }
 
     func bannerAdDidClose(_ bannerView: VungleBannerView) {
@@ -195,11 +169,9 @@ final class NimbusVungleAdController: NimbusAdController,
     // MARK: - VungleNativeDelegate
     
     func nativeAdDidLoad(_ native: VungleNative) {
-        adState = .loaded
-        
+        adState = .ready
         sendNimbusEvent(.loaded)
-        
-        presentAd()
+        presentAdIfReady()
     }
     
     func nativeAdDidFailToLoad(_ native: VungleNative, withError: NSError) {
@@ -232,11 +204,11 @@ final class NimbusVungleAdController: NimbusAdController,
     // MARK: - VungleInterstitialDelegate
     
     func interstitialAdDidLoad(_ interstitial: VungleInterstitial) {
-        adState = .loaded
+        adState = .ready
         
         sendNimbusEvent(.loaded)
         
-        presentAd()
+        presentAdIfReady()
     }
     
     func interstitialAdDidFailToLoad(_ interstitial: VungleInterstitial, withError: NSError) {
@@ -246,10 +218,6 @@ final class NimbusVungleAdController: NimbusAdController,
                 message: withError.localizedDescription
             )
         )
-    }
-    
-    func interstitialAdDidPresent(_ interstitial: VungleInterstitial) {
-        adState = .presented
     }
     
     func interstitialAdDidFailToPresent(_ interstitial: VungleInterstitial, withError: NSError) {
@@ -276,11 +244,11 @@ final class NimbusVungleAdController: NimbusAdController,
     // MARK: - VungleRewardedDelegate
     
     func rewardedAdDidLoad(_ rewarded: VungleRewarded) {
-        adState = .loaded
+        adState = .ready
         
         sendNimbusEvent(.loaded)
         
-        presentAd()
+        presentAdIfReady()
     }
     
     func rewardedAdDidFailToLoad(_ rewarded: VungleRewarded, withError: NSError) {
@@ -290,10 +258,6 @@ final class NimbusVungleAdController: NimbusAdController,
                 message: withError.localizedDescription
             )
         )
-    }
-    
-    func rewardedAdDidPresent(_ rewarded: VungleRewarded) {
-        adState = .presented
     }
     
     func rewardedAdDidFailToPresent(_ rewarded: VungleRewarded, withError: NSError) {

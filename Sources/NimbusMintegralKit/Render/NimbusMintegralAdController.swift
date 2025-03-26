@@ -27,10 +27,6 @@ struct NimbusMintegralError: NimbusError {
 /// considers the state of the property in load() method.
 final class NimbusMintegralAdController: NimbusAdController {
     
-    enum AdState: String {
-        case notLoaded, loaded, presented
-    }
-    
     // MARK: - Properties
     
     // MARK: AdController properties
@@ -41,8 +37,6 @@ final class NimbusMintegralAdController: NimbusAdController {
     
     // MARK: Internal properties
     private weak var adRendererDelegate: NimbusMintegralAdRendererDelegate?
-    private var started = false
-    private var adState = AdState.notLoaded
     
     // MARK: - Mintegral ad types
     private var bannerAd: MTGBannerAdView?
@@ -129,13 +123,13 @@ final class NimbusMintegralAdController: NimbusAdController {
     
     @MainActor
     func presentIfNeeded(campaign: MTGCampaign? = nil) {
-        guard started, adState == .loaded else { return }
+        guard started, adState == .ready else { return }
         guard let renderInfo = ad.renderInfo?.value as? NimbusMintegralRenderInfo else {
             sendNimbusError(NimbusMintegralError(message: "Mintegral render info is missing or invalid"))
             return
         }
         
-        adState = .presented
+        adState = .resumed
         
         if let bannerAd, let container, let dimensions = ad.adDimensions {
             container.addSubview(bannerAd)
@@ -179,14 +173,16 @@ final class NimbusMintegralAdController: NimbusAdController {
         }
     }
     
-    override func start() {
+    override func onStart() {        
         Task { @MainActor in
-            started = true
             presentIfNeeded()
         }
     }
     
     override func destroy() {
+        guard adState != .destroyed else { return }
+        
+        adState = .destroyed
         bannerAd = nil
         interstitialAdManager = nil
     }
@@ -207,7 +203,7 @@ final class NimbusMintegralAdController: NimbusAdController {
 extension NimbusMintegralAdController: MTGBannerAdViewDelegate {
     func adViewLoadSuccess(_ adView: MTGBannerAdView!) {
         Task { @MainActor in
-            adState = .loaded
+            adState = .ready
             sendNimbusEvent(.loaded)
             presentIfNeeded()
         }
@@ -249,7 +245,7 @@ extension NimbusMintegralAdController: MTGBidNativeAdManagerDelegate {
             
             sendNimbusEvent(.loaded)
             
-            adState = .loaded
+            adState = .ready
             presentIfNeeded(campaign: campaign)
         }
     }
@@ -288,7 +284,7 @@ extension NimbusMintegralAdController: MTGNewInterstitialBidAdDelegate {
     
     func newInterstitialBidAdResourceLoadSuccess(_ adManager: MTGNewInterstitialBidAdManager) {
         Task { @MainActor in
-            adState = .loaded
+            adState = .ready
             presentIfNeeded()
         }
     }
@@ -326,7 +322,7 @@ extension NimbusMintegralAdController: MTGNewInterstitialBidAdDelegate {
 extension NimbusMintegralAdController: MTGRewardAdLoadDelegate, MTGRewardAdShowDelegate {
     func onVideoAdLoadSuccess(_ placementId: String?, unitId: String?) {
         Task { @MainActor in
-            adState = .loaded
+            adState = .ready
             sendNimbusEvent(.loaded)
             presentIfNeeded()
         }

@@ -9,10 +9,20 @@
 @_exported import NimbusRenderKit
 import UnityAds
 
+enum NimbusUnityError: NimbusError {
+    case couldntInitLoadOptions
+    case couldntInitShowOptions
+    
+    var errorDescription: String? {
+        switch self {
+        case .couldntInitLoadOptions: return "Unity Ads load options (UADSLoadOptions) could not initialize"
+        case .couldntInitShowOptions: return "Unity Ads show options (UADSShowOptions) could not initialize"
+        }
+    }
+}
+
 final class NimbusUnityAdController: NimbusAdController, UnityAdsLoadDelegate, UnityAdsShowDelegate {
     
-    private var isLoaded = false
-    private var shouldStart = false
     private let adObjectId: String
     
     init(
@@ -38,72 +48,57 @@ final class NimbusUnityAdController: NimbusAdController, UnityAdsLoadDelegate, U
     }
     
     func load() {
-        guard adType == .rewarded else {
+        guard adType == .rewarded, let placementId = ad.placementId else {
             sendNimbusError(NimbusRenderError.invalidAdType)
             return
         }
         
-        let loadOptions = UADSLoadOptions()
-        loadOptions?.adMarkup = ad.markup
-        loadOptions?.objectId = adObjectId
-        guard let loadOptions, let placementId = ad.placementId else {
+        guard let loadOptions = UADSLoadOptions() else {
+            sendNimbusError(NimbusUnityError.couldntInitLoadOptions)
             return
         }
+        
+        loadOptions.adMarkup = ad.markup
+        loadOptions.objectId = adObjectId
         
         UnityAds.load(placementId, options: loadOptions, loadDelegate: self)
     }
     
-    // MARK: - AdController
-    
-    override func start() {
-        guard let adPresentingViewController,
-              let placementId = ad.placementId else {
-            Nimbus.shared.logger.log("UnityAds not initialized", level: .error)
+    private func present() {
+        guard started, adState == .ready, let placementId = ad.placementId, let adPresentingViewController else { return }
+        
+        adState = .resumed
+        
+        guard let showOptions = UADSShowOptions() else {
+            sendNimbusError(NimbusUnityError.couldntInitShowOptions)
             return
         }
         
-        if isLoaded {
-            if let showOptions = UADSShowOptions() {
-                showOptions.objectId = adObjectId
-                UnityAds.show(adPresentingViewController, placementId: placementId, options: showOptions, showDelegate: self)
-                isLoaded = false
-            } else {
-                Nimbus.shared.logger.log("UnityAds - error initializing UADSShowOptions", level: .error)
-            }
-        } else {
-            shouldStart = true
+        showOptions.objectId = adObjectId
+        UnityAds.show(adPresentingViewController, placementId: placementId, options: showOptions, showDelegate: self)
+    }
+    
+    // MARK: - AdController
+    
+    override func onStart() {        
+        if adState == .ready {
+            present()
         }
     }
 
-    override func destroy() {}
+    override func destroy() {
+        guard adState != .destroyed else { return }
+        
+        adState = .destroyed
+    }
     
     // MARK: - UnityAdsLoadDelegate
         
     func unityAdsAdLoaded(_ placementId: String) {
-        guard let adPresentingViewController else {
-            Nimbus.shared.logger.log("UnityAds not initialized", level: .error)
-            return
-        }
-        
-        if let showOptions = UADSShowOptions() {
-            showOptions.objectId = adObjectId
-            UnityAds.show(adPresentingViewController, placementId: placementId, options: showOptions, showDelegate: self)
-            isLoaded = false
-        } else {
-            Nimbus.shared.logger.log("UnityAds - error initializing UADSShowOptions", level: .error)
-        }
-        
-        if shouldStart {
-            if let showOptions = UADSShowOptions() {
-                showOptions.objectId = adObjectId
-                UnityAds.show(adPresentingViewController, placementId: placementId, options: showOptions, showDelegate: self)
-                shouldStart = false
-            }
-        } else {
-            isLoaded = true
-        }
-        
         sendNimbusEvent(.loaded)
+        
+        adState = .ready
+        present()
     }
     
     func unityAdsAdFailed(
@@ -114,9 +109,6 @@ final class NimbusUnityAdController: NimbusAdController, UnityAdsLoadDelegate, U
         Nimbus.shared.logger.log("UnityAds failed to load: \(message)", level: .error)
         
         sendNimbusError(NimbusRenderError.adRenderingFailed(message: message))
-        
-        isLoaded = false
-        shouldStart = false
     }
     
     // MARK: - UnityAdsShowDelegate

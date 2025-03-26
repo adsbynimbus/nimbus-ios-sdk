@@ -66,13 +66,6 @@ extension NimbusAPSOnRequestInterceptor: NimbusRequestInterceptorAsync {
         return .init(impressionExtensions: ["aps" : NimbusCodable(apsData)])
     }
     
-    func loadAPSAd(loader: DTBAdLoader) async throws -> DTBAdResponse {
-        try await withUnsafeThrowingContinuation { continuation in
-            let callbackWrapper = APSAdCallbackWrapper(continuation: continuation)
-            loader.loadAd(callbackWrapper)
-        }
-    }
-    
     func loadAPSAds() async throws -> [[String: String]] {
         try await withThrowingTaskGroup(of: DTBAdResponse?.self) { [weak self] group in
             guard let adLoaders = self?.adLoaders else { return [] }
@@ -80,7 +73,10 @@ extension NimbusAPSOnRequestInterceptor: NimbusRequestInterceptorAsync {
             for adLoader in adLoaders {
                 group.addTask {
                     do {
-                        return try await self?.loadAPSAd(loader: adLoader)
+                        return try await withUnsafeThrowingContinuation { continuation in
+                            let callbackWrapper = APSAdCallbackWrapper(continuation: continuation)
+                            adLoader.loadAd(callbackWrapper)
+                        }
                     } catch {
                         Nimbus.shared.logger.log("Failed loading aps ad: \(adLoader.correlationId)", level: .debug)
                         return nil

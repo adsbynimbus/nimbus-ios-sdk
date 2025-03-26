@@ -7,6 +7,7 @@
 
 import GoogleMobileAds
 import NimbusCoreKit
+import NimbusRenderKit
 
 extension GADInterstitialAd {
     private static var nimbusAdKey: Void?
@@ -69,7 +70,7 @@ extension GADInterstitialAd {
     /// - Parameters:
     ///     - rootViewController: A view controller that should present the interstitial ad. We'll detect a root view controller if this parameter is nil
     public func presentDynamicPrice(fromRootViewController: UIViewController?) {
-        guard let controller = fromRootViewController ?? Self.detectedRootViewController else {
+        guard let controller = fromRootViewController ?? Nimbus.detectedRootViewController else {
             Nimbus.shared.logger.log("\(#function) did not receive a rootViewController and it failed to detect rootViewController on its own", level: .error)
             return
         }
@@ -108,28 +109,5 @@ extension GADInterstitialAd {
         return true
     }
     
-    private static var detectedRootViewController: UIViewController? {
-        var rootViewController: UIViewController?
-        
-        if #available(iOS 15.0, *) {
-            let allScenes = UIApplication.shared.connectedScenes
-            let scene = allScenes.first { $0.activationState == .foregroundActive } as? UIWindowScene
-            rootViewController = scene?.keyWindow?.rootViewController
-        } else {
-            let keyWindow = UIApplication.shared.windows.first(where: { $0.isKeyWindow })
-            rootViewController = (keyWindow ?? UIApplication.shared.windows.first)?.rootViewController
-        }
-        
-        return rootViewController?.topMostViewController
-    }
-}
-
-private extension UIViewController {
-    var topMostViewController: UIViewController {
-        if let presented = self.presentedViewController {
-            return presented.topMostViewController
-        }
-        
-        return self
-    }
+    
 }

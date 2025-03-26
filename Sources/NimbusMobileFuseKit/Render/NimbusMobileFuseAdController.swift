@@ -32,10 +32,6 @@ enum NimbusMobileFuseError: NimbusError, Equatable {
 
 final class NimbusMobileFuseAdController: NimbusAdController, IMFAdCallbackReceiver {
     
-    enum AdState: String {
-        case notLoaded, loaded, presented
-    }
-    
     // MARK: - Properties
     
     // MARK: AdController properties
@@ -47,9 +43,6 @@ final class NimbusMobileFuseAdController: NimbusAdController, IMFAdCallbackRecei
     }
     
     // MARK: Private
-    
-    private var started = false
-    private var adState = AdState.notLoaded
     
     /// Determines whether ad has registered an impression
     private var hasRegisteredAdImpression = false
@@ -105,9 +98,9 @@ final class NimbusMobileFuseAdController: NimbusAdController, IMFAdCallbackRecei
     }
     
     private func presentAd() {
-        guard started, adState == .loaded else { return }
+        guard started, adState == .ready else { return }
         
-        adState = .presented
+        adState = .resumed
         
         switch adType {
         case .banner:
@@ -123,15 +116,16 @@ final class NimbusMobileFuseAdController: NimbusAdController, IMFAdCallbackRecei
     
     // MARK: - AdController overrides
     
-    override func start() {
-        started = true
-        
-        if adState == .loaded {
+    override func onStart() {
+        if adState == .ready {
             presentAd()
         }
     }
     
     override func destroy() {
+        guard adState != .destroyed else { return }
+        
+        adState = .destroyed
         bannerAd?.destroy()
         interstitialAd?.destroy()
         rewardedAd?.destroy()
@@ -140,7 +134,7 @@ final class NimbusMobileFuseAdController: NimbusAdController, IMFAdCallbackRecei
     // MARK: - IMFAdCallbackReceiver
     
     func onAdLoaded() {
-        adState = .loaded
+        adState = .ready
         
         logger.log("MobileFuse Event: \(#function)", level: .debug)
         sendNimbusEvent(.loaded)

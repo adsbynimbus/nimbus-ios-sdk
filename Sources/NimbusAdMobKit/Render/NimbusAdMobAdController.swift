@@ -22,9 +22,6 @@ final class NimbusAdMobAdController: NimbusAdController,
                                      GADNativeAdLoaderDelegate,
                                      GADFullScreenContentDelegate,
                                      GADNativeAdDelegate {
-    enum AdState: String {
-        case notLoaded, loaded, presented
-    }
     
     // MARK: - Properties
     
@@ -34,8 +31,6 @@ final class NimbusAdMobAdController: NimbusAdController,
     
     // MARK: Internal properties
     private weak var adRendererDelegate: NimbusAdMobAdRendererDelegate?
-    private var started = false
-    private var adState = AdState.notLoaded
     
     // MARK: AdMob properties
     private var bannerAd: GADBannerView?
@@ -79,7 +74,7 @@ final class NimbusAdMobAdController: NimbusAdController,
             bannerAd.rootViewController = adPresentingViewController
             bannerAd.delegate = self
             self.bannerAd = bannerAd
-            self.adState = .loaded
+            self.adState = .ready
             bannerAd.load(withAdResponseString: ad.markup)
             presentIfNeeded()
         case .interstitial:
@@ -87,7 +82,7 @@ final class NimbusAdMobAdController: NimbusAdController,
                 if let gadInterstitial {
                     self?.interstitialAd = gadInterstitial
                     self?.interstitialAd?.fullScreenContentDelegate = self
-                    self?.adState = .loaded
+                    self?.adState = .ready
                     self?.sendNimbusEvent(.loaded)
                     self?.presentIfNeeded()
                 } else {
@@ -103,7 +98,7 @@ final class NimbusAdMobAdController: NimbusAdController,
                 if let gadRewarded {
                     self?.rewardedAd = gadRewarded
                     self?.rewardedAd?.fullScreenContentDelegate = self
-                    self?.adState = .loaded
+                    self?.adState = .ready
                     self?.sendNimbusEvent(.loaded)
                     self?.presentIfNeeded()
                 } else {
@@ -123,13 +118,15 @@ final class NimbusAdMobAdController: NimbusAdController,
             nativeAdLoader = GADAdLoader(rootViewController: adPresentingViewController)
             nativeAdLoader?.delegate = self
             nativeAdLoader?.load(withAdResponseString: ad.markup)
+        @unknown default:
+            sendNimbusError(NimbusRenderError.invalidAdType)
         }
     }
     
     func presentIfNeeded() {
-        guard started, adState == .loaded else { return }
+        guard started, adState == .ready else { return }
         
-        adState = .presented
+        adState = .resumed
         
         if let bannerAd, let container {
             container.addSubview(bannerAd)
@@ -160,12 +157,15 @@ final class NimbusAdMobAdController: NimbusAdController,
         }
     }
     
-    override func start() {
-        started = true
+    override func onStart() {
         presentIfNeeded()
     }
     
     override func destroy() {
+        guard adState != .destroyed else { return }
+        
+        adState = .destroyed
+        
         bannerAd = nil
         nativeAd = nil
         nativeAdLoader = nil
@@ -216,7 +216,7 @@ final class NimbusAdMobAdController: NimbusAdController,
         nativeAd.rootViewController = adPresentingViewController
         nativeAd.delegate = self
         self.nativeAd = nativeAd
-        self.adState = .loaded
+        self.adState = .ready
         presentIfNeeded()
     }
     
