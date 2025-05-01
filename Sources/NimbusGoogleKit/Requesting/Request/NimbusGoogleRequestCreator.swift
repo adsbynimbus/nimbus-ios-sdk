@@ -24,19 +24,14 @@ protocol NimbusGoogleRequestCreatorType {
 
 final class NimbusGoogleRequestCreator: NimbusGoogleRequestCreatorType {
     private let positionCreator: NimbusGooglePositionCreatorType
-    private let sizeToFormatMapper: NimbusGoogleSizeToFormatMapperType
     
-    init(
-        positionCreator: NimbusGooglePositionCreatorType = NimbusGooglePositionCreator(),
-        sizeToFormatMapper: NimbusGoogleSizeToFormatMapperType = NimbusGoogleSizeToFormatMapper()
-    ) {
+    init(positionCreator: NimbusGooglePositionCreatorType = NimbusGooglePositionCreator()) {
         self.positionCreator = positionCreator
-        self.sizeToFormatMapper = sizeToFormatMapper
     }
     
     func createBannerRequest(for adConfiguration: GADMediationBannerAdConfiguration) -> NimbusRequest {
         let size = adConfiguration.adSize.size
-        let adSizeToNimbusFormat = sizeToFormatMapper.map(width: Int(size.width), height: Int(size.height))
+        let adSizeToNimbusFormat = NimbusAdFormat.mapFrom(width: Int(size.width), height: Int(size.height))
         
         let position = positionCreator.create(for: adConfiguration)
         let nimbusRequest = NimbusRequest.forBannerAd(position: position, format: adSizeToNimbusFormat)

@@ -34,7 +34,7 @@ public final class NimbusCustomEventBanner: NSObject, GADCustomEventBanner {
 
         let width = Int(adSize.size.width)
         let height = Int(adSize.size.height)
-        let adSizeToNimbusFormat = NimbusSizeToFormatMapper().map(width: width, height: height)
+        let adSizeToNimbusFormat = NimbusAdFormat.mapFrom(width: width, height: height)
 
         let nimbusRequest = NimbusRequest.forBannerAd(position: position, format: adSizeToNimbusFormat)
 
