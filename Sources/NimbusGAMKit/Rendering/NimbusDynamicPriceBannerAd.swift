@@ -10,7 +10,7 @@ import GoogleMobileAds
 import NimbusKit
 
 final class NimbusDynamicPriceBannerAd: NSObject {
-    private weak var bannerView: GAMBannerView?
+    private weak var bannerView: AdManagerBannerView?
     weak var adView: NimbusAdView?
     
     private let ad: NimbusAd
@@ -28,7 +28,7 @@ final class NimbusDynamicPriceBannerAd: NSObject {
     init(
         ad: NimbusAd,
         requestManager: NimbusRequestManager,
-        bannerView: GAMBannerView
+        bannerView: AdManagerBannerView
     ) {
         self.ad = ad
         self.requestManager = requestManager
@@ -37,7 +37,7 @@ final class NimbusDynamicPriceBannerAd: NSObject {
         super.init()
     }
     
-    func updatePrice(_ adValue: GADAdValue) {
+    func updatePrice(_ adValue: AdValue) {
         price = adValue.nimbusPrice
     }
     
@@ -143,12 +143,12 @@ final class NimbusDynamicPriceBannerAd: NSObject {
 
 // MARK: - GADBannerViewDelegate
 
-extension NimbusDynamicPriceBannerAd: GADBannerViewDelegate {
-    func bannerView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: Error) {
+extension NimbusDynamicPriceBannerAd: BannerViewDelegate {
+    func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
         requestManager.notifyError(ad: ad, error: error)
     }
     
-    func bannerViewDidRecordImpression(_ bannerView: GADBannerView) {
+    func bannerViewDidRecordImpression(_ bannerView: BannerView) {
         scheduleLossNotification()
     }
 }

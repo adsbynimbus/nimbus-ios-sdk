@@ -12,14 +12,14 @@ import NimbusRequestKit
 
 protocol NimbusGoogleRequestCreatorType {
     func createBannerRequest(
-        for adConfiguration: GADMediationBannerAdConfiguration
+        for adConfiguration: MediationBannerAdConfiguration
     ) -> NimbusRequest
     
     func createInterstitialRequest(
-        for adConfiguration: GADMediationInterstitialAdConfiguration
+        for adConfiguration: MediationInterstitialAdConfiguration
     ) -> NimbusRequest
     
-    func createRewardedRequest(for adConfiguration: GADMediationRewardedAdConfiguration) -> NimbusRequest
+    func createRewardedRequest(for adConfiguration: MediationRewardedAdConfiguration) -> NimbusRequest
 }
 
 final class NimbusGoogleRequestCreator: NimbusGoogleRequestCreatorType {
@@ -29,7 +29,7 @@ final class NimbusGoogleRequestCreator: NimbusGoogleRequestCreatorType {
         self.positionCreator = positionCreator
     }
     
-    func createBannerRequest(for adConfiguration: GADMediationBannerAdConfiguration) -> NimbusRequest {
+    func createBannerRequest(for adConfiguration: MediationBannerAdConfiguration) -> NimbusRequest {
         let size = adConfiguration.adSize.size
         let adSizeToNimbusFormat = NimbusAdFormat.mapFrom(width: Int(size.width), height: Int(size.height))
         
@@ -45,7 +45,7 @@ final class NimbusGoogleRequestCreator: NimbusGoogleRequestCreatorType {
         return nimbusRequest
     }
     
-    func createInterstitialRequest(for adConfiguration: GADMediationInterstitialAdConfiguration) -> NimbusRequest {
+    func createInterstitialRequest(for adConfiguration: MediationInterstitialAdConfiguration) -> NimbusRequest {
         let position = positionCreator.create(for: adConfiguration)
         let nimbusRequest = NimbusRequest.forInterstitialAd(position: position)
         nimbusRequest.configureViewability(
@@ -58,7 +58,7 @@ final class NimbusGoogleRequestCreator: NimbusGoogleRequestCreatorType {
         return nimbusRequest
     }
     
-    func createRewardedRequest(for adConfiguration: GADMediationRewardedAdConfiguration) -> NimbusRequest {
+    func createRewardedRequest(for adConfiguration: MediationRewardedAdConfiguration) -> NimbusRequest {
         let position = positionCreator.create(for: adConfiguration)
         let nimbusRequest = NimbusRequest.forRewardedVideo(position: position)
         nimbusRequest.configureViewability(

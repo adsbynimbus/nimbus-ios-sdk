@@ -75,7 +75,7 @@ final class NimbusAPSLegacyRequestManager: APSLegacyRequestManagerType {
             return existingAdLoader
         }
         
-        let adLoader = DTBAdLoader()
+        let adLoader = DTBAdLoader(adNetworkInfo: .init(networkName: DTBADNETWORK_NIMBUS))
         adLoader.setAdSizes([adSize as Any])
         if let usPrivacyString {
             adLoader.putCustomTarget(usPrivacyString, withKey: "us_privacy")

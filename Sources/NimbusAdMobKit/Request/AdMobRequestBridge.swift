@@ -13,12 +13,12 @@ public class AdMobRequestBridge {
     public func set(coppa: Bool?) {
         guard let coppa else { return }
         
-        GADMobileAds
-            .sharedInstance()
+        MobileAds
+            .shared
             .requestConfiguration.tagForChildDirectedTreatment = NSNumber(booleanLiteral: coppa)
     }
     
-    public func generateSignal(request: GADSignalRequest) async throws -> String {
-        try await GADMobileAds.generateSignal(request).signalString
+    public func generateSignal(request: SignalRequest) async throws -> String {
+        try await MobileAds.generateSignal(request).signal
     }
 }

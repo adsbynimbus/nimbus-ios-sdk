@@ -19,10 +19,10 @@ public final class NimbusCustomEventBanner: NSObject, GADCustomEventBanner {
     private lazy var requestManager = NimbusRequestManager()
 
     public func requestAd(
-        _ adSize: GADAdSize,
+        _ adSize: AdSize,
         parameter serverParameter: String?,
         label serverLabel: String?,
-        request: GADCustomEventRequest
+        request: CustomEventRequest
     ) {
         self.size = adSize.size
         

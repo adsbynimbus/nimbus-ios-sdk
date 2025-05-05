@@ -11,10 +11,10 @@ import GoogleMobileAds
 import NimbusRequestKit
 
 protocol NimbusAdMobEventManagerType: AnyObject {
-    func notifyPrice(extras: NimbusGoogleAdNetworkExtras, adValue: GADAdValue)
+    func notifyPrice(extras: NimbusGoogleAdNetworkExtras, adValue: AdValue)
     func notifyImpression(
         extras: NimbusGoogleAdNetworkExtras,
-        adNetworkResponseInfo: GADAdNetworkResponseInfo?
+        adNetworkResponseInfo: AdNetworkResponseInfo?
     )
     func notifyError(extras: NimbusGoogleAdNetworkExtras, error: Error)
 }
@@ -34,7 +34,7 @@ final class NimbusAdMobEventManager: NimbusAdMobEventManagerType {
         self.logger = logger
     }
     
-    func notifyPrice(extras: NimbusGoogleAdNetworkExtras, adValue: GADAdValue) {
+    func notifyPrice(extras: NimbusGoogleAdNetworkExtras, adValue: AdValue) {
         logger.log("Notifying price for AdMob", level: .debug)
         
         let cpmValue = adValue.value.multiplying(byPowerOf10: 3)
@@ -43,7 +43,7 @@ final class NimbusAdMobEventManager: NimbusAdMobEventManagerType {
     
     func notifyImpression(
         extras: NimbusGoogleAdNetworkExtras,
-        adNetworkResponseInfo: GADAdNetworkResponseInfo?
+        adNetworkResponseInfo: AdNetworkResponseInfo?
     ) {
         let hasRenderedNimbusAd =
         adNetworkResponseInfo?.adNetworkClassName.contains(nimbusAdMobAdapterName) ?? false
@@ -69,13 +69,9 @@ final class NimbusAdMobEventManager: NimbusAdMobEventManagerType {
     }
     
     func notifyError(extras: NimbusGoogleAdNetworkExtras, error: Error) {
-        guard let errorCode = GADErrorCode(rawValue: (error as NSError).code) else {
-            logger.log("GADErrorCode not found for AdMob", level: .error)
-            return
-        }
-        guard errorCode == .noFill || errorCode == .mediationNoFill else {
-            return
-        }
+        let errorCode = RequestError(_nsError: (error as NSError)).code
+        
+        guard errorCode == .noFill else { return }
         
         if let cachedItem = cacheManager.removeItemFromCache(extras: extras),
            case let .fill(ad, _) = cachedItem.itemType {

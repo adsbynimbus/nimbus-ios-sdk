@@ -22,7 +22,7 @@ public final class NimbusCustomEventInterstitial: NSObject, GADCustomEventInters
     public func requestAd(
         withParameter serverParameter: String?,
         label serverLabel: String?,
-        request: GADCustomEventRequest
+        request: CustomEventRequest
     ) {
         let position = serverParameter ?? NimbusCustomEventUtils.position(
             in: request.additionalParameters,

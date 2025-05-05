@@ -10,13 +10,13 @@ import GoogleMobileAds
 
 final class NimbusDynamicPriceBannerProxy: NSObject {
     let requestManager: NimbusRequestManager
-    weak var clientDelegate: GADBannerViewDelegate?
-    weak var nimbusDelegate: GADBannerViewDelegate?
+    weak var clientDelegate: BannerViewDelegate?
+    weak var nimbusDelegate: BannerViewDelegate?
     
     init(
         requestManager: NimbusRequestManager,
-        clientDelegate: GADBannerViewDelegate? = nil,
-        nimbusDelegate: GADBannerViewDelegate? = nil
+        clientDelegate: BannerViewDelegate? = nil,
+        nimbusDelegate: BannerViewDelegate? = nil
     ) {
         self.requestManager = requestManager
         self.clientDelegate = clientDelegate
@@ -24,38 +24,38 @@ final class NimbusDynamicPriceBannerProxy: NSObject {
     }
 }
 
-extension NimbusDynamicPriceBannerProxy: GADBannerViewDelegate {
-    func bannerView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: Error) {
+extension NimbusDynamicPriceBannerProxy: BannerViewDelegate {
+    func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: Error) {
         clientDelegate?.bannerView?(bannerView, didFailToReceiveAdWithError: error)
         nimbusDelegate?.bannerView?(bannerView, didFailToReceiveAdWithError: error)
     }
     
-    func bannerViewDidReceiveAd(_ bannerView: GADBannerView) {
+    func bannerViewDidReceiveAd(_ bannerView: BannerView) {
         clientDelegate?.bannerViewDidReceiveAd?(bannerView)
         nimbusDelegate?.bannerViewDidReceiveAd?(bannerView)
     }
     
-    func bannerViewDidRecordClick(_ bannerView: GADBannerView) {
+    func bannerViewDidRecordClick(_ bannerView: BannerView) {
         clientDelegate?.bannerViewDidRecordClick?(bannerView)
         nimbusDelegate?.bannerViewDidRecordClick?(bannerView)
     }
     
-    func bannerViewDidRecordImpression(_ bannerView: GADBannerView) {
+    func bannerViewDidRecordImpression(_ bannerView: BannerView) {
         clientDelegate?.bannerViewDidRecordImpression?(bannerView)
         nimbusDelegate?.bannerViewDidRecordImpression?(bannerView)
     }
     
-    func bannerViewWillPresentScreen(_ bannerView: GADBannerView) {
+    func bannerViewWillPresentScreen(_ bannerView: BannerView) {
         clientDelegate?.bannerViewWillPresentScreen?(bannerView)
         nimbusDelegate?.bannerViewWillPresentScreen?(bannerView)
     }
     
-    func bannerViewWillDismissScreen(_ bannerView: GADBannerView) {
+    func bannerViewWillDismissScreen(_ bannerView: BannerView) {
         clientDelegate?.bannerViewWillDismissScreen?(bannerView)
         nimbusDelegate?.bannerViewWillDismissScreen?(bannerView)
     }
     
-    func bannerViewDidDismissScreen(_ bannerView: GADBannerView) {
+    func bannerViewDidDismissScreen(_ bannerView: BannerView) {
         clientDelegate?.bannerViewDidDismissScreen?(bannerView)
         nimbusDelegate?.bannerViewDidDismissScreen?(bannerView)
     }

@@ -31,12 +31,12 @@ public extension NimbusAdType {
         adUnitId: String,
         bannerSize: CGSize? = nil,
         nativeAdOptions: NimbusAdMobNativeAdOptions? = nil
-    ) throws -> GADSignalRequest {
+    ) throws -> SignalRequest {
         let signalRequest = try signalFromAdType(bannerSize: bannerSize, nativeAdOptions: nativeAdOptions)
         signalRequest.adUnitID = adUnitId
         signalRequest.requestAgent = "nimbus"
         
-        let extras = GADExtras()
+        let extras = Extras()
         extras.additionalParameters = ["query_info_type": "requester_type_2"]
         signalRequest.register(extras)
         return signalRequest
@@ -46,7 +46,7 @@ public extension NimbusAdType {
         from request: NimbusRequest,
         adUnitId: String,
         nativeAdOptions: NimbusAdMobNativeAdOptions? = nil
-    ) throws -> GADSignalRequest {
+    ) throws -> SignalRequest {
         let bannerSize: CGSize?
         
         if case .banner = self, let banner = request.impressions.first?.banner {
@@ -61,32 +61,32 @@ public extension NimbusAdType {
     private func signalFromAdType(
         bannerSize: CGSize? = nil,
         nativeAdOptions: NimbusAdMobNativeAdOptions? = nil
-    ) throws -> GADSignalRequest {
+    ) throws -> SignalRequest {
         switch self {
         case .banner:
             guard let bannerSize else {
                 throw NimbusAdMobRequestError.missingBannerSize
             }
             
-            let signalRequest = GADBannerSignalRequest(signalType: "requester_type_2")
-            signalRequest.adSize = GADAdSizeFromCGSize(bannerSize)
+            let signalRequest = BannerSignalRequest(signalType: "requester_type_2")
+            signalRequest.adSize = adSizeFor(cgSize: bannerSize)
             return signalRequest
         case .native:
             guard let nativeAdOptions else {
                 throw NimbusAdMobRequestError.missingNativeAdOptions
             }
             
-            let signal = GADNativeSignalRequest(signalType: "requester_type_2")
-            signal.disableImageLoading = nativeAdOptions.disableImageLoading
+            let signal = NativeSignalRequest(signalType: "requester_type_2")
+            signal.isImageLoadingDisabled = nativeAdOptions.disableImageLoading
             signal.shouldRequestMultipleImages = nativeAdOptions.shouldRequestMultipleImages
             signal.mediaAspectRatio = nativeAdOptions.mediaAspectRatio
             signal.preferredAdChoicesPosition = nativeAdOptions.preferredAdChoicesPosition
-            signal.customMuteThisAdRequested = nativeAdOptions.customMuteThisAdRequested
+            signal.isCustomMuteThisAdRequested = nativeAdOptions.customMuteThisAdRequested
             return signal
         case .interstitial:
-            return GADInterstitialSignalRequest(signalType: "requester_type_2")
+            return InterstitialSignalRequest(signalType: "requester_type_2")
         case .rewarded:
-            return GADRewardedSignalRequest(signalType: "requester_type_2")
+            return RewardedSignalRequest(signalType: "requester_type_2")
         @unknown default:
             throw NimbusAdMobRequestError.unknownAdType(self)
         }
