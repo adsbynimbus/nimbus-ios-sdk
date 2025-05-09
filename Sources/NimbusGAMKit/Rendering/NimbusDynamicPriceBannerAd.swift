@@ -110,19 +110,7 @@ final class NimbusDynamicPriceBannerAd: NSObject {
 
         bannerView.delegate?.bannerViewDidRecordClick?(bannerView)
         
-        URLSession.shared.dataTask(with: URLRequest(url: renderInfo.googleClickEventUrl)) { [weak self] _, _, error in
-            if let error {
-                self?.logger.log(
-                    "NimbusDynamicPriceBannerAd: Error firing Google click tracker: \(error.localizedDescription)",
-                    level: .debug
-                )
-            } else {
-                self?.logger.log(
-                    "NimbusDynamicPriceBannerAd: Google click tracker fired successfully",
-                    level: .info
-                )
-            }
-        }.resume()
+        URLSession.trackClick(url: renderInfo.googleClickEventUrl, logger: logger)
     }
     
     // MARK: Detect banner view's controller

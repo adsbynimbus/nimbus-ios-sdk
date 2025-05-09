@@ -140,19 +140,7 @@ final class NimbusDynamicPriceInterstitialAd: NSObject {
 
         adDidRecordClick(gadInterstitialAd)
         
-        URLSession.shared.dataTask(with: URLRequest(url: renderInfo.googleClickEventUrl)) { [weak self] _, _, error in
-            if let error {
-                self?.logger.log(
-                    "NimbusDynamicPriceInterstitialAd: Error firing Google click tracker: \(error.localizedDescription)",
-                    level: .debug
-                )
-            } else {
-                self?.logger.log(
-                    "NimbusDynamicPriceInterstitialAd: Google click tracker fired successfully",
-                    level: .info
-                )
-            }
-        }.resume()
+        URLSession.trackClick(url: renderInfo.googleClickEventUrl, logger: logger)
     }
 }
 

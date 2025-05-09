@@ -327,19 +327,7 @@ extension NimbusDynamicPriceRenderer: AdControllerDelegate {
                 interstitialAd.fullScreenContentDelegate?.adDidRecordClick?(interstitialAd)
             }
             
-            URLSession.shared.dataTask(with: URLRequest(url: url)) { [weak self] _, _, error in
-                if let error {
-                    self?.logger.log(
-                        "NimbusDynamicPriceRenderer: Error firing Google click tracker: \(error.localizedDescription)",
-                        level: .error
-                    )
-                } else {
-                    self?.logger.log(
-                        "NimbusDynamicPriceRenderer: Google click tracker fired successfully",
-                        level: .debug
-                    )
-                }
-            }.resume()
+            URLSession.trackClick(url: url, logger: logger)
         } else if event == .destroyed {
             cacheManager.removeClickEvent(nimbusAdView: adView)
             interstitialAd = nil
