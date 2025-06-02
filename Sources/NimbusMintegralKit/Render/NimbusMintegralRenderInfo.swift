@@ -5,9 +5,7 @@
 //  Copyright © 2024 Nimbus Advertising Solutions Inc. All rights reserved.
 //
 
-import NimbusCoreKit
-
-struct NimbusMintegralRenderInfo: Codable, NimbusRenderInfo {
+struct NimbusMintegralRenderInfo: Codable {
     let adUnitId: String
     let placementId: String?
 }

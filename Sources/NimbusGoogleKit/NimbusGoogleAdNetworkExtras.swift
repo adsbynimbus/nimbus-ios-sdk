@@ -8,7 +8,7 @@
 
 import GoogleMobileAds
 
-public final class NimbusGoogleAdNetworkExtras: NSObject, AdNetworkExtras {
+public final class NimbusGoogleAdNetworkExtras: NSObject, GADAdNetworkExtras {
     private enum ExtrasError: LocalizedError {
         case positionIsEmpty
         

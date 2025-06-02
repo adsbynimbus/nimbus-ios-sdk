@@ -7,6 +7,6 @@
 
 import GoogleMobileAds
 
-extension AdValue {
+extension GADAdValue {
     var nimbusPrice: String { value.multiplying(byPowerOf10: 3).stringValue }
 }

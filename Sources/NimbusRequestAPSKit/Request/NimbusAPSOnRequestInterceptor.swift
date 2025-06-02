@@ -8,16 +8,6 @@
 
 import DTBiOSSDK
 
-enum NimbusAPSInterceptorError: NimbusError {
-    case failedLoadingAPSAd(error: DTBAdError)
-    
-    var errorDescription: String? {
-        switch self {
-            case .failedLoadingAPSAd(let error): "Failed loading APS ad with error code: \(error)"
-        }
-    }
-}
-
 final class NimbusAPSOnRequestInterceptor {
     weak var currentRequestInFlight: NimbusRequest?
     var shouldModifyRequest = false
@@ -49,77 +39,35 @@ final class NimbusAPSOnRequestInterceptor {
     }
 }
 
-extension NimbusAPSOnRequestInterceptor: NimbusRequestInterceptorAsync {
-    func modifyRequest(request: NimbusRequestKit.NimbusRequest) async throws -> NimbusRequestKit.NimbusRequestDelta {
-        currentRequestInFlight = request
-        
-        guard shouldModifyRequest else {
-            Nimbus.shared.logger.log("Skipping initial request modification for APS", level: .debug)
-            
-            shouldModifyRequest = true
-            
-            // First request should have APS token data attached by the user
-            return .init()
-        }
-        
-        let apsData = try await loadAPSAds()
-        return .init(impressionExtensions: ["aps" : NimbusCodable(apsData)])
-    }
-    
-    func loadAPSAds() async throws -> [[String: String]] {
-        try await withThrowingTaskGroup(of: DTBAdResponse?.self) { [weak self] group in
-            guard let adLoaders = self?.adLoaders else { return [] }
-            
-            for adLoader in adLoaders {
-                group.addTask {
-                    do {
-                        return try await withUnsafeThrowingContinuation { continuation in
-                            let callbackWrapper = APSAdCallbackWrapper(continuation: continuation)
-                            adLoader.loadAd(callbackWrapper)
-                        }
-                    } catch {
-                        Nimbus.shared.logger.log("Failed loading aps ad: \(adLoader.correlationId)", level: .debug)
-                        return nil
-                    }
-                }
-            }
-            
-            var apsData: [[String: String]] = []
-            
-            for try await response in group {
-                guard let response, let customTargeting = response.customTargeting() else { continue }
-                
-                apsData.append(customTargeting)
-            }
-            
-            return apsData
-        }
-    }
-}
-
-final class APSAdCallbackWrapper: NSObject, DTBAdCallback {
-    private let continuation: UnsafeContinuation<DTBAdResponse, Error>?
-
-    init(continuation: UnsafeContinuation<DTBAdResponse, Error>) {
-        self.continuation = continuation
-        super.init()
-    }
-
-    func onSuccess(_ adResponse: DTBAdResponse?) {
-        guard let adResponse = adResponse, let continuation = continuation else { return }
-        continuation.resume(returning: adResponse)
-    }
-
-    func onFailure(_ error: DTBAdError) {
-        guard let continuation = continuation else { return }
-        continuation.resume(throwing: NimbusAPSInterceptorError.failedLoadingAPSAd(error: error))
-    }
-}
-
 // MARK: NimbusRequestInterceptor
 
 extension NimbusAPSOnRequestInterceptor: NimbusRequestInterceptor {
-    func modifyRequest(request: NimbusRequestKit.NimbusRequest) {}
+    func modifyRequest(request: NimbusRequestKit.NimbusRequest) {
+        guard shouldModifyRequest else {
+            Nimbus.shared.logger.log("Skipping initial request modification for APS", level: .debug)
+
+            currentRequestInFlight = request
+            shouldModifyRequest = true
+            return
+        }
+        
+        Nimbus.shared.logger.log("Modifying NimbusRequest for APS", level: .debug)
+        
+        currentRequestInFlight = request
+        
+        let (adLoaders, apsResponses) = requestManager.loadAdsSync(with: adLoaders)
+        guard apsResponses.count > 0 else {
+            Nimbus.shared.logger.log("No APS ad payload to inject into the NimbusRequest", level: .debug)
+
+            return
+        }
+        
+        Nimbus.shared.logger.log("Refreshing ad loaders from APS responses", level: .debug)
+        self.adLoaders = adLoaders
+
+        Nimbus.shared.logger.log("Modifying NimbusRequest with APS payload", level: .debug)
+        apsResponses.forEach { request.addAPSResponse($0) }
+    }
     
     func didCompleteNimbusRequest(with ad: NimbusCoreKit.NimbusAd) {
         Nimbus.shared.logger.log("Completed NimbusRequest for APS", level: .debug)

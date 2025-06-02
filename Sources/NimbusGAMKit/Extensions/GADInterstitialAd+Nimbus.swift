@@ -9,7 +9,7 @@ import GoogleMobileAds
 import NimbusCoreKit
 import NimbusRenderKit
 
-extension InterstitialAd {
+extension GADInterstitialAd {
     private static var nimbusAdKey: Void?
 
     private var nimbusInterstitialAd: NimbusDynamicPriceInterstitialAd? {
@@ -30,7 +30,7 @@ extension InterstitialAd {
     public func applyDynamicPrice(
         ad: NimbusAd,
         requestManager: NimbusRequestManager = NimbusRequestManager(),
-        delegate: FullScreenContentDelegate? = nil
+        delegate: GADFullScreenContentDelegate? = nil
     ) {
         nimbusInterstitialAd = NimbusDynamicPriceInterstitialAd(
             ad: ad,
@@ -44,7 +44,7 @@ extension InterstitialAd {
     /// Call this method inside the `paidEventHandler` property.
     /// - Parameters:
     ///     - adValue: instance of GADAdValue
-    public func updatePrice(_ adValue: AdValue) {
+    public func updatePrice(_ adValue: GADAdValue) {
         nimbusInterstitialAd?.updatePrice(adValue)
     }
     
@@ -75,7 +75,7 @@ extension InterstitialAd {
             return
         }
         guard let _ = nimbusInterstitialAd else {
-            present(from: controller)
+            present(fromRootViewController: controller)
             return
         }
         guard validateDelegate() else { return }
@@ -86,7 +86,7 @@ extension InterstitialAd {
         // doesn't call this presentation method by observing this value
         // in delegate: NimbusDynamicPriceInterstitialAd.adWillRender()
         nimbusInterstitialAd?.didPresentGoogleController = true
-        present(from: controller)
+        present(fromRootViewController: controller)
 
         self.nimbusInterstitialAd?.present()
     }

@@ -20,7 +20,7 @@ enum NimbusCustomAdapterError: LocalizedError {
 
 let nimbusAdMobAdapterName = "NimbusCustomAdapter"
 
-public final class NimbusCustomAdapter: NSObject, MediationAdapter {
+public final class NimbusCustomAdapter: NSObject, GADMediationAdapter {
     private lazy var adLoader: NimbusAdMobAdLoaderType = NimbusAdMobAdLoader(
         dynamicPriceDecider: NimbusAdMobDynamicPriceDecider(),
         requestManager: NimbusAdMobRequestManager(
@@ -34,32 +34,32 @@ public final class NimbusCustomAdapter: NSObject, MediationAdapter {
         auctionNotifier: NimbusAuctionResultNotifier()
     )
     
-    public static func adapterVersion() -> VersionNumber {
+    public static func adapterVersion() -> GADVersionNumber {
         adSDKVersion()
     }
     
-    public static func adSDKVersion() -> VersionNumber {
+    public static func adSDKVersion() -> GADVersionNumber {
         let versionComponents = Nimbus.shared.version.components(separatedBy: ".")
         if versionComponents.count >= 3 {
             let majorVersion = Int(versionComponents[0]) ?? 0
             let minorVersion = Int(versionComponents[1]) ?? 0
             let patchVersion = Int(versionComponents[2]) ?? 0
-            return VersionNumber(
+            return GADVersionNumber(
                 majorVersion: majorVersion,
                 minorVersion: minorVersion,
                 patchVersion: patchVersion
             )
         }
         
-        return VersionNumber()
+        return GADVersionNumber()
     }
     
-    public static func networkExtrasClass() -> AdNetworkExtras.Type? {
+    public static func networkExtrasClass() -> GADAdNetworkExtras.Type? {
         NimbusGoogleAdNetworkExtras.self
     }
     
-    public static func setUp(
-        with configuration: MediationServerConfiguration,
+    public static func setUpWith(
+        _ configuration: GADMediationServerConfiguration,
         completionHandler: @escaping GADMediationAdapterSetUpCompletionBlock
     ) {
         let isNimbusSdkInitialized = Nimbus.shared.publisher != nil && Nimbus.shared.apiKey != nil
@@ -71,7 +71,7 @@ public final class NimbusCustomAdapter: NSObject, MediationAdapter {
     }
     
     public func loadBanner(
-        for adConfiguration: MediationBannerAdConfiguration,
+        for adConfiguration: GADMediationBannerAdConfiguration,
         completionHandler: @escaping GADMediationBannerLoadCompletionHandler
     ) {
         adLoader.loadBannerAd(
@@ -92,7 +92,7 @@ public final class NimbusCustomAdapter: NSObject, MediationAdapter {
     }
     
     public func loadInterstitial(
-        for adConfiguration: MediationInterstitialAdConfiguration,
+        for adConfiguration: GADMediationInterstitialAdConfiguration,
         completionHandler: @escaping GADMediationInterstitialLoadCompletionHandler
     ) {
         adLoader.loadInterstitialAd(
@@ -113,7 +113,7 @@ public final class NimbusCustomAdapter: NSObject, MediationAdapter {
     }
     
     public func loadRewardedAd(
-        for adConfiguration: MediationRewardedAdConfiguration,
+        for adConfiguration: GADMediationRewardedAdConfiguration,
         completionHandler: @escaping GADMediationRewardedLoadCompletionHandler
     ) {
         adLoader.loadRewardedAd(
@@ -135,7 +135,7 @@ public final class NimbusCustomAdapter: NSObject, MediationAdapter {
     }
     
     public func loadRewardedInterstitialAd(
-        for adConfiguration: MediationRewardedAdConfiguration,
+        for adConfiguration: GADMediationRewardedAdConfiguration,
         completionHandler: @escaping GADMediationRewardedLoadCompletionHandler
     ) {
         Nimbus.shared.logger.log("Loading rewarded interstitial ad for AdMob", level: .debug)
@@ -145,13 +145,13 @@ public final class NimbusCustomAdapter: NSObject, MediationAdapter {
     
     // MARK: Publisher callbacks
     
-    public static func notifyPrice(extras: NimbusGoogleAdNetworkExtras, adValue: AdValue) {
+    public static func notifyPrice(extras: NimbusGoogleAdNetworkExtras, adValue: GADAdValue) {
         eventManager.notifyPrice(extras: extras, adValue: adValue)
     }
     
     public static func notifyImpression(
         extras: NimbusGoogleAdNetworkExtras,
-        adNetworkResponseInfo: AdNetworkResponseInfo?
+        adNetworkResponseInfo: GADAdNetworkResponseInfo?
     ) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
             eventManager.notifyImpression(extras: extras, adNetworkResponseInfo: adNetworkResponseInfo)

@@ -25,6 +25,7 @@ struct NimbusMintegralError: NimbusError {
 /// Mintegral mute state must be set before the ad is loaded.
 /// That is why the volume property has no didSet hooks and only
 /// considers the state of the property in load() method.
+@available(iOS 13.0, *)
 final class NimbusMintegralAdController: NimbusAdController {
     
     // MARK: - Properties
@@ -67,7 +68,7 @@ final class NimbusMintegralAdController: NimbusAdController {
     
     @MainActor
     func load() {
-        guard let renderInfo = ad.renderInfo?.value as? NimbusMintegralRenderInfo else {
+        guard let renderInfo = ad.renderInfo as? NimbusMintegralRenderInfo else {
             sendNimbusError(NimbusMintegralError(message: "Mintegral render info is missing or invalid"))
             return
         }
@@ -124,7 +125,7 @@ final class NimbusMintegralAdController: NimbusAdController {
     @MainActor
     func presentIfNeeded(campaign: MTGCampaign? = nil) {
         guard started, adState == .ready else { return }
-        guard let renderInfo = ad.renderInfo?.value as? NimbusMintegralRenderInfo else {
+        guard let renderInfo = ad.renderInfo as? NimbusMintegralRenderInfo else {
             sendNimbusError(NimbusMintegralError(message: "Mintegral render info is missing or invalid"))
             return
         }
@@ -200,6 +201,7 @@ final class NimbusMintegralAdController: NimbusAdController {
 
 // MARK: - Banner Delegate
 
+@available(iOS 13.0, *)
 extension NimbusMintegralAdController: MTGBannerAdViewDelegate {
     func adViewLoadSuccess(_ adView: MTGBannerAdView!) {
         Task { @MainActor in
@@ -235,6 +237,7 @@ extension NimbusMintegralAdController: MTGBannerAdViewDelegate {
 
 // MARK: - Native Delegate
 
+@available(iOS 13.0, *)
 extension NimbusMintegralAdController: MTGBidNativeAdManagerDelegate {
     func nativeAdsLoaded(_ nativeAds: [Any]?, bidNativeManager: MTGBidNativeAdManager) {
         Task { @MainActor in
@@ -265,6 +268,7 @@ extension NimbusMintegralAdController: MTGBidNativeAdManagerDelegate {
     }
 }
 
+@available(iOS 13.0, *)
 extension NimbusMintegralAdController: MTGMediaViewDelegate {
     func nativeAdImpression(with type: MTGAdSourceType, mediaView: MTGMediaView) {
         Task { @MainActor in sendNimbusEvent(.impression) }
@@ -277,6 +281,7 @@ extension NimbusMintegralAdController: MTGMediaViewDelegate {
 
 // MARK: - Interstitial Delegate
 
+@available(iOS 13.0, *)
 extension NimbusMintegralAdController: MTGNewInterstitialBidAdDelegate {
     func newInterstitialBidAdLoadSuccess(_ adManager: MTGNewInterstitialBidAdManager) {
         Task { @MainActor in sendNimbusEvent(.loaded) }
@@ -319,6 +324,7 @@ extension NimbusMintegralAdController: MTGNewInterstitialBidAdDelegate {
 
 // MARK: - Rewarded Delegate
 
+@available(iOS 13.0, *)
 extension NimbusMintegralAdController: MTGRewardAdLoadDelegate, MTGRewardAdShowDelegate {
     func onVideoAdLoadSuccess(_ placementId: String?, unitId: String?) {
         Task { @MainActor in

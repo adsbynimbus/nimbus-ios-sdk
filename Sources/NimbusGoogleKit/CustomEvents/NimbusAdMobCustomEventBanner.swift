@@ -10,11 +10,11 @@ import GoogleMobileAds
 @_exported import NimbusKit
 
 /// :nodoc:
-public final class NimbusAdMobCustomEventBanner: NSObject, MediationBannerAd {
+public final class NimbusAdMobCustomEventBanner: NSObject, GADMediationBannerAd {
     private var adView: NimbusAdView?
     
     public var view: UIView { adView ?? UIView() }
-    private weak var delegate: MediationBannerAdEventDelegate?
+    private weak var delegate: GADMediationBannerAdEventDelegate?
     
     public override init() {
         super.init()
@@ -22,7 +22,7 @@ public final class NimbusAdMobCustomEventBanner: NSObject, MediationBannerAd {
     
     func render(
         ad: NimbusAd,
-        adConfiguration: MediationBannerAdConfiguration,
+        adConfiguration: GADMediationBannerAdConfiguration,
         completionHandler: @escaping GADMediationBannerLoadCompletionHandler
     ) {
         adView = NimbusAdView(adPresentingViewController: adConfiguration.topViewController)

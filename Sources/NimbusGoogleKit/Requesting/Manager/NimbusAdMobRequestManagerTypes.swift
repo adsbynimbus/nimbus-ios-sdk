@@ -12,39 +12,39 @@ import GoogleMobileAds
 
 protocol NimbusAdMobBannerRequestManagerType: AnyObject {
     func loadDynamicPriceBanner(
-        for adConfiguration: MediationBannerAdConfiguration,
+        for adConfiguration: GADMediationBannerAdConfiguration,
         extras: NimbusGoogleAdNetworkExtras,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     )
     
     func loadBanner(
-        for adConfiguration: MediationBannerAdConfiguration,
+        for adConfiguration: GADMediationBannerAdConfiguration,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     )
 }
 
 protocol NimbusAdMobInterstitialRequestManagerType: AnyObject {
     func loadDynamicPriceInterstitial(
-        for adConfiguration: MediationInterstitialAdConfiguration,
+        for adConfiguration: GADMediationInterstitialAdConfiguration,
         extras: NimbusGoogleAdNetworkExtras,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     )
     
     func loadInterstitial(
-        for adConfiguration: MediationInterstitialAdConfiguration,
+        for adConfiguration: GADMediationInterstitialAdConfiguration,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     )
 }
 
 protocol NimbusAdMobRewardedRequestManagerType: AnyObject {
     func loadDynamicPriceRewarded(
-        for adConfiguration: MediationRewardedAdConfiguration,
+        for adConfiguration: GADMediationRewardedAdConfiguration,
         extras: NimbusGoogleAdNetworkExtras,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     )
     
     func loadRewarded(
-        for adConfiguration: MediationRewardedAdConfiguration,
+        for adConfiguration: GADMediationRewardedAdConfiguration,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     )
 }

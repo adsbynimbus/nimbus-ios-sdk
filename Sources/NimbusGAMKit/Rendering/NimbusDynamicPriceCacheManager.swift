@@ -34,12 +34,12 @@ final class NimbusDynamicPriceCacheManager {
     /// Add methods
     
     /// :nodoc:
-    func addData(nimbusAd: NimbusAd, bannerView: BannerView) {
+    func addData(nimbusAd: NimbusAd, bannerView: GADBannerView) {
         dataCache[bannerView.hash] = GoogleAuctionData(nimbusAd: nimbusAd)
     }
     
     /// :nodoc:
-    func addData(nimbusAd: NimbusAd, fullScreenPresentingAd: FullScreenPresentingAd) {
+    func addData(nimbusAd: NimbusAd, fullScreenPresentingAd: GADFullScreenPresentingAd) {
         dataCache[fullScreenPresentingAd.hash] = GoogleAuctionData(nimbusAd: nimbusAd)
     }
     
@@ -51,12 +51,12 @@ final class NimbusDynamicPriceCacheManager {
     /// Get methods
     
     /// :nodoc:
-    func getData(for bannerView: BannerView) -> GoogleAuctionData? {
+    func getData(for bannerView: GADBannerView) -> GoogleAuctionData? {
         dataCache[bannerView.hash]
     }
     
     /// :nodoc:
-    func getData(for fullScreenPresentingAd: FullScreenPresentingAd) -> GoogleAuctionData? {
+    func getData(for fullScreenPresentingAd: GADFullScreenPresentingAd) -> GoogleAuctionData? {
         dataCache[fullScreenPresentingAd.hash]
     }
     
@@ -73,7 +73,7 @@ final class NimbusDynamicPriceCacheManager {
     /// Update methods
     
     /// :nodoc:
-    func updateBannerPrice(_ bannerView: BannerView, price: String) {
+    func updateBannerPrice(_ bannerView: GADBannerView, price: String) {
         if var data = dataCache[bannerView.hash] {
             data.price = price
             dataCache[bannerView.hash] = data
@@ -81,7 +81,7 @@ final class NimbusDynamicPriceCacheManager {
     }
     
     /// :nodoc:
-    func updateInterstitialPrice(_ fullScreenPresentingAd: FullScreenPresentingAd, price: String) {
+    func updateInterstitialPrice(_ fullScreenPresentingAd: GADFullScreenPresentingAd, price: String) {
         if var data = dataCache[fullScreenPresentingAd.hash] {
             data.price = price
             dataCache[fullScreenPresentingAd.hash] = data

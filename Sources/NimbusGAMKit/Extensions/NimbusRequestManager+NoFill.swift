@@ -11,9 +11,7 @@ import GoogleMobileAds
 
 public extension NimbusRequestManager {
     func notifyError(ad: NimbusAd, error: Error) {
-        let errorCode = RequestError(_nsError: (error as NSError)).code
-        
-        if errorCode == .noFill {
+        if (error as NSError).code == GADErrorCode.noFill.rawValue {
             notifyLoss(ad: ad, auctionData: NimbusAuctionData(auctionPrice: "-1"))
         }
     }

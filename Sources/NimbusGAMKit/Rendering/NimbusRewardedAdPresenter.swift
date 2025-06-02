@@ -17,15 +17,15 @@ public protocol NimbusRewardedAdPresenterDelegate: AnyObject {
     func didPresentAd()
     func didCloseAd()
     
-    func didEarnReward(reward: AdReward)
+    func didEarnReward(reward: GADAdReward)
     func didReceiveError(error: NimbusError)
 }
 
 public final class NimbusRewardedAdPresenter {
     
     private enum AdType {
-        case rewarded(ad: RewardedAd)
-        case rewardedInterstitial(ad: RewardedInterstitialAd)
+        case rewarded(ad: GADRewardedAd)
+        case rewardedInterstitial(ad: GADRewardedInterstitialAd)
     }
     
     public weak var delegate: NimbusRewardedAdPresenterDelegate?
@@ -39,7 +39,7 @@ public final class NimbusRewardedAdPresenter {
     public init(
         request: NimbusRequest,
         ad: NimbusAd,
-        rewardedAd: RewardedAd
+        rewardedAd: GADRewardedAd
     ) {
         self.ad = ad
         self.adType = .rewarded(ad: rewardedAd)
@@ -49,7 +49,7 @@ public final class NimbusRewardedAdPresenter {
     public init(
         request: NimbusRequest,
         ad: NimbusAd,
-        rewardedInterstitialAd: RewardedInterstitialAd
+        rewardedInterstitialAd: GADRewardedInterstitialAd
     ) {
         self.ad = ad
         self.adType = .rewardedInterstitial(ad: rewardedInterstitialAd)
@@ -88,12 +88,12 @@ public final class NimbusRewardedAdPresenter {
     private func showGoogleAd(presentingViewController: UIViewController) {
         switch adType {
         case let .rewarded(rewardedAd):
-            rewardedAd.present(from: presentingViewController) { [weak self] in
+            rewardedAd.present(fromRootViewController: presentingViewController) { [weak self] in
                 let reward = rewardedAd.adReward
                 self?.delegate?.didEarnReward(reward: reward)
             }
         case let .rewardedInterstitial(rewardedInterstitialAd):
-            rewardedInterstitialAd.present(from: presentingViewController) { [weak self] in
+            rewardedInterstitialAd.present(fromRootViewController: presentingViewController) { [weak self] in
                 let reward = rewardedInterstitialAd.adReward
                 self?.delegate?.didEarnReward(reward: reward)
             }

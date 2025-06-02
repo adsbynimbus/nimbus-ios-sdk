@@ -38,7 +38,7 @@ final class NimbusAdMobRequestManager: NimbusAdMobBannerRequestManagerType,
     }
     
     func loadDynamicPriceBanner(
-        for adConfiguration: MediationBannerAdConfiguration,
+        for adConfiguration: GADMediationBannerAdConfiguration,
         extras: NimbusGoogleAdNetworkExtras,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     ) {
@@ -55,7 +55,7 @@ final class NimbusAdMobRequestManager: NimbusAdMobBannerRequestManagerType,
     }
     
     func loadBanner(
-        for adConfiguration: MediationBannerAdConfiguration,
+        for adConfiguration: GADMediationBannerAdConfiguration,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     ) {
         logger.log("Loading AdMob Banner", level: .debug)
@@ -67,7 +67,7 @@ final class NimbusAdMobRequestManager: NimbusAdMobBannerRequestManagerType,
     }
     
     func loadDynamicPriceInterstitial(
-        for adConfiguration: MediationInterstitialAdConfiguration,
+        for adConfiguration: GADMediationInterstitialAdConfiguration,
         extras: NimbusGoogleAdNetworkExtras,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     ) {
@@ -84,7 +84,7 @@ final class NimbusAdMobRequestManager: NimbusAdMobBannerRequestManagerType,
     }
     
     func loadInterstitial(
-        for adConfiguration: MediationInterstitialAdConfiguration,
+        for adConfiguration: GADMediationInterstitialAdConfiguration,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     ) {
         logger.log("Loading AdMob Interstitial", level: .debug)
@@ -96,7 +96,7 @@ final class NimbusAdMobRequestManager: NimbusAdMobBannerRequestManagerType,
     }
     
     func loadDynamicPriceRewarded(
-        for adConfiguration: MediationRewardedAdConfiguration,
+        for adConfiguration: GADMediationRewardedAdConfiguration,
         extras: NimbusGoogleAdNetworkExtras,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     ) {
@@ -113,7 +113,7 @@ final class NimbusAdMobRequestManager: NimbusAdMobBannerRequestManagerType,
     }
     
     func loadRewarded(
-        for adConfiguration: MediationRewardedAdConfiguration,
+        for adConfiguration: GADMediationRewardedAdConfiguration,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     ) {
         logger.log("Loading AdMob Rewarded", level: .debug)
@@ -125,7 +125,7 @@ final class NimbusAdMobRequestManager: NimbusAdMobBannerRequestManagerType,
     }
     
     private func retrieveCachedAdOrLoad(
-        for adConfiguration: MediationAdConfiguration,
+        for adConfiguration: GADMediationAdConfiguration,
         extras: NimbusGoogleAdNetworkExtras,
         loadAd: (_: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void) -> Void,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
@@ -168,7 +168,7 @@ final class NimbusAdMobRequestManager: NimbusAdMobBannerRequestManagerType,
     
     private func completeDynamicPriceAdLoad(
         cachedItem: AdMobDynamicPriceCachedItem,
-        adConfiguration: MediationAdConfiguration,
+        adConfiguration: GADMediationAdConfiguration,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     ) {
         switch cachedItem.itemType {

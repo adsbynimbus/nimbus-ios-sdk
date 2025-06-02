@@ -9,28 +9,28 @@
 import GoogleMobileAds
 
 protocol NimbusGooglePositionCreatorType {
-    func create(for adConfiguration: MediationBannerAdConfiguration) -> String
-    func create(for adConfiguration: MediationInterstitialAdConfiguration) -> String
-    func create(for adConfiguration: MediationRewardedAdConfiguration) -> String
+    func create(for adConfiguration: GADMediationBannerAdConfiguration) -> String
+    func create(for adConfiguration: GADMediationInterstitialAdConfiguration) -> String
+    func create(for adConfiguration: GADMediationRewardedAdConfiguration) -> String
 }
 
 final class NimbusGooglePositionCreator: NimbusGooglePositionCreatorType {
     
-    func create(for adConfiguration: MediationBannerAdConfiguration) -> String {
+    func create(for adConfiguration: GADMediationBannerAdConfiguration) -> String {
         if let extras = adConfiguration.extras as? NimbusGoogleAdNetworkExtras {
             return extras.position
         }
         return "Nimbus Google Banner"
     }
     
-    func create(for adConfiguration: MediationInterstitialAdConfiguration) -> String {
+    func create(for adConfiguration: GADMediationInterstitialAdConfiguration) -> String {
         if let extras = adConfiguration.extras as? NimbusGoogleAdNetworkExtras {
             return extras.position
         }
         return "Nimbus Google Interstitial"
     }
     
-    func create(for adConfiguration: MediationRewardedAdConfiguration) -> String {
+    func create(for adConfiguration: GADMediationRewardedAdConfiguration) -> String {
         if let extras = adConfiguration.extras as? NimbusGoogleAdNetworkExtras {
             return extras.position
         }

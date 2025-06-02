@@ -10,12 +10,12 @@
 import GoogleMobileAds
 
 /// :nodoc:
-public final class NimbusAdMobCustomEventRewarded: NSObject, MediationRewardedAd {
+public final class NimbusAdMobCustomEventRewarded: NSObject, GADMediationRewardedAd {
     private var ad: NimbusAd?
     private var companionAd: NimbusCompanionAd?
     private var adController: AdController?
 
-    private weak var delegate: MediationRewardedAdEventDelegate?
+    private weak var delegate: GADMediationRewardedAdEventDelegate?
     
     public override init() {
         super.init()

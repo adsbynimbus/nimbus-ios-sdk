@@ -11,15 +11,15 @@ import GoogleMobileAds
 
 protocol NimbusAdMobAdLoaderType {
     func loadBannerAd(
-        for adConfiguration: MediationBannerAdConfiguration,
+        for adConfiguration: GADMediationBannerAdConfiguration,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     )
     func loadInterstitialAd(
-        for adConfiguration: MediationInterstitialAdConfiguration,
+        for adConfiguration: GADMediationInterstitialAdConfiguration,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     )
     func loadRewardedAd(
-        for adConfiguration: MediationRewardedAdConfiguration,
+        for adConfiguration: GADMediationRewardedAdConfiguration,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     )
 }
@@ -40,7 +40,7 @@ final class NimbusAdMobAdLoader: NimbusAdMobAdLoaderType {
     }
     
     func loadBannerAd(
-        for adConfiguration: MediationBannerAdConfiguration,
+        for adConfiguration: GADMediationBannerAdConfiguration,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     ) {
         let isDynamicPrice = dynamicPriceDecider.isDynamicPrice(adConfiguration: adConfiguration)
@@ -56,7 +56,7 @@ final class NimbusAdMobAdLoader: NimbusAdMobAdLoaderType {
     }
     
     func loadInterstitialAd(
-        for adConfiguration: MediationInterstitialAdConfiguration,
+        for adConfiguration: GADMediationInterstitialAdConfiguration,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     ) {
         let isDynamicPrice = dynamicPriceDecider.isDynamicPrice(adConfiguration: adConfiguration)
@@ -72,7 +72,7 @@ final class NimbusAdMobAdLoader: NimbusAdMobAdLoaderType {
     }
     
     func loadRewardedAd(
-        for adConfiguration: MediationRewardedAdConfiguration,
+        for adConfiguration: GADMediationRewardedAdConfiguration,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     ) {
         let isDynamicPrice = dynamicPriceDecider.isDynamicPrice(adConfiguration: adConfiguration)
@@ -88,7 +88,7 @@ final class NimbusAdMobAdLoader: NimbusAdMobAdLoaderType {
     }
  
     private func loadBannerAdForDynamicPrice(
-        for adConfiguration: MediationBannerAdConfiguration,
+        for adConfiguration: GADMediationBannerAdConfiguration,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     ) {
         guard let extras = adConfiguration.extras as? NimbusGoogleAdNetworkExtras else {
@@ -104,7 +104,7 @@ final class NimbusAdMobAdLoader: NimbusAdMobAdLoaderType {
     }
     
     private func loadInterstitialAdForDynamicPrice(
-        for adConfiguration: MediationInterstitialAdConfiguration,
+        for adConfiguration: GADMediationInterstitialAdConfiguration,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     ) {
         guard let extras = adConfiguration.extras as? NimbusGoogleAdNetworkExtras else {
@@ -120,7 +120,7 @@ final class NimbusAdMobAdLoader: NimbusAdMobAdLoaderType {
     }
  
     private func loadRewardedAdForDynamicPrice(
-        for adConfiguration: MediationRewardedAdConfiguration,
+        for adConfiguration: GADMediationRewardedAdConfiguration,
         completion: @escaping (Result<(NimbusAd, NimbusCompanionAd?), Error>) -> Void
     ) {
         guard let extras = adConfiguration.extras as? NimbusGoogleAdNetworkExtras else {

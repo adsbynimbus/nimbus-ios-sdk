@@ -55,6 +55,7 @@ public protocol NimbusMintegralAdRendererDelegate: AnyObject {
     func nativeAdViewForRendering(container: UIView, campaign: MTGCampaign) -> NimbusMintegralNativeAdViewType
 }
 
+@available(iOS 13.0, *)
 public final class NimbusMintegralAdRenderer: AdRenderer {
     /// Implement this delegate if you want to display native ads
     public weak var adRendererDelegate: NimbusMintegralAdRendererDelegate?

@@ -66,6 +66,8 @@ public final class NimbusLiveRampInterceptor {
     /// Delegate for listening LiveRamp callbacks
     public weak var delegate: NimbusLiveRampInterceptorDelegate?
     
+    var liveRampEnvelope: String?
+    
     private var canRetryInit: Bool = true
     
     /**
@@ -196,13 +198,19 @@ public final class NimbusLiveRampInterceptor {
         }
         
         LRAts.shared.getEnvelope(identifierData) { [weak self] envelope, error in
-            if let envelope {
-                NimbusRequestManager.attachLiveRamp(envelope: envelope)
-            }
-            
+            self?.liveRampEnvelope = envelope?.envelope
             self?.delegate?.didFetchLiveRampEnvelope(error: error)
             self?.delegate?.didFetchLiveRampEnvelope(envelope: envelope, error: error)
         }
+    }
+    
+    private var liveRampExtendedId: NimbusExtendedId? {
+        guard let liveRampEnvelope else { return nil }
+
+        return NimbusExtendedId(
+            source: "liveramp.com",
+            uids: [.init(id: liveRampEnvelope, extensions: ["rtiPartner": NimbusCodable("idl")])]
+        )
     }
 }
 
@@ -212,7 +220,11 @@ extension NimbusLiveRampInterceptor: NimbusRequestInterceptor {
     
     /// :nodoc:
     public func modifyRequest(request: NimbusRequest) {
-        // no-op
+        Nimbus.shared.logger.log("Modifying NimbusRequest for LiveRamp", level: .debug)
+        
+        if let liveRampExtendedId {
+            request.addExtendedId(liveRampExtendedId)
+        }
     }
 
     /// :nodoc:
@@ -220,24 +232,4 @@ extension NimbusLiveRampInterceptor: NimbusRequestInterceptor {
     
     /// :nodoc:
     public func didFailNimbusRequest(with error: NimbusError) {}
-}
-
-private extension NimbusRequestManager {
-    static func attachLiveRamp(envelope: LREnvelope) {
-        if NimbusRequestManager.extendedIds == nil { NimbusRequestManager.extendedIds = [] }
-        
-        if let unwrappedEnvelope = envelope.envelope {
-            NimbusRequestManager.extendedIds?.insert(
-                NimbusExtendedId(
-                    source: "liveramp.com",
-                    uids: [.init(id: unwrappedEnvelope, extensions: ["rtiPartner": NimbusCodable("idl")])]
-                )
-            )
-        }
-        
-        if let pairIds = envelope.pairIds {
-            let uids = pairIds.map { NimbusExtendedId.UID(id: $0, atype: 571187) }
-            NimbusRequestManager.extendedIds?.insert(NimbusExtendedId(source: "google.com", uids: uids))
-        }
-    }
 }

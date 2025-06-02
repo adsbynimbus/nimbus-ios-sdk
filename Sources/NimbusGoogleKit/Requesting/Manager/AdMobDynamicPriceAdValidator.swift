@@ -10,7 +10,7 @@ import GoogleMobileAds
 @_exported import NimbusKit
 
 protocol AdMobDynamicPriceAdValidatorType: AnyObject {
-    func validate(ad: NimbusAd, for adConfiguration: MediationAdConfiguration) throws
+    func validate(ad: NimbusAd, for adConfiguration: GADMediationAdConfiguration) throws
 }
 
 final class AdMobDynamicPriceAdValidator: AdMobDynamicPriceAdValidatorType {
@@ -29,7 +29,7 @@ final class AdMobDynamicPriceAdValidator: AdMobDynamicPriceAdValidatorType {
         self.logger = logger
     }
     
-    func validate(ad: NimbusAd, for adConfiguration: MediationAdConfiguration) throws {
+    func validate(ad: NimbusAd, for adConfiguration: GADMediationAdConfiguration) throws {
         // Directly parsing this to an Int does NOT work
         if let parameter = adConfiguration.credentials.settings["parameter"] as? String,
            let parameterAsInt = Int(parameter),

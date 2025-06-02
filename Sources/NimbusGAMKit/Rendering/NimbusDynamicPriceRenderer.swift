@@ -13,7 +13,7 @@ import UIKit
 
 /// Nimbus Renderer for GAM Dynamic Price
 @available(*, deprecated, message: "Please check out the Nimbus documentation to implement dynamic price.")
-public final class NimbusDynamicPriceRenderer: NSObject, AppEventDelegate {
+public final class NimbusDynamicPriceRenderer: NSObject, GADAppEventDelegate {
     
     struct InterstitialRenderData {
         let renderInfo: NimbusDynamicPriceRenderInfo
@@ -25,7 +25,7 @@ public final class NimbusDynamicPriceRenderer: NSObject, AppEventDelegate {
     
     private let cacheManager = NimbusDynamicPriceCacheManager()
     private var interstitialRenderData: InterstitialRenderData?
-    private weak var interstitialAd: FullScreenPresentingAd?
+    private weak var interstitialAd: GADFullScreenPresentingAd?
     private var adController: AdController?
     private weak var adView: UIView? // used for caching
     
@@ -39,11 +39,11 @@ public final class NimbusDynamicPriceRenderer: NSObject, AppEventDelegate {
     
     /// Will render methods
     
-    public func willRender(ad: NimbusAd, bannerView: BannerView) {
+    public func willRender(ad: NimbusAd, bannerView: GADBannerView) {
         cacheManager.addData(nimbusAd: ad, bannerView: bannerView)
     }
     
-    public func willRender(ad: NimbusAd, fullScreenPresentingAd: FullScreenPresentingAd) {
+    public func willRender(ad: NimbusAd, fullScreenPresentingAd: GADFullScreenPresentingAd) {
         interstitialAd = fullScreenPresentingAd
         cacheManager.addData(nimbusAd: ad, fullScreenPresentingAd: fullScreenPresentingAd)
     }
@@ -86,44 +86,51 @@ public final class NimbusDynamicPriceRenderer: NSObject, AppEventDelegate {
     
     /// Notify price methods
     
-    public func notifyBannerPrice(adValue: AdValue, bannerView: BannerView) {
+    public func notifyBannerPrice(adValue: GADAdValue, bannerView: GADBannerView) {
         let cpmValue = adValue.value.multiplying(byPowerOf10: 3)
         cacheManager.updateBannerPrice(bannerView, price: cpmValue.stringValue)
     }
     
-    public func notifyInterstitialPrice(adValue: AdValue, fullScreenPresentingAd: FullScreenPresentingAd) {
+    public func notifyInterstitialPrice(adValue: GADAdValue, fullScreenPresentingAd: GADFullScreenPresentingAd) {
         notifyFullScreenAdPrice(adValue: adValue, fullScreenPresentingAd: fullScreenPresentingAd)
     }
     
-    public func notifyRewardedPrice(adValue: AdValue, fullScreenPresentingAd: FullScreenPresentingAd) {
+    public func notifyRewardedPrice(adValue: GADAdValue, fullScreenPresentingAd: GADFullScreenPresentingAd) {
         notifyFullScreenAdPrice(adValue: adValue, fullScreenPresentingAd: fullScreenPresentingAd)
     }
     
-    public func notifyRewardedInterstitialPrice(adValue: AdValue, fullScreenPresentingAd: FullScreenPresentingAd) {
+    public func notifyRewardedInterstitialPrice(adValue: GADAdValue, fullScreenPresentingAd: GADFullScreenPresentingAd) {
         notifyFullScreenAdPrice(adValue: adValue, fullScreenPresentingAd: fullScreenPresentingAd)
     }
     
-    private func notifyFullScreenAdPrice(adValue: AdValue, fullScreenPresentingAd: FullScreenPresentingAd) {
+    private func notifyFullScreenAdPrice(adValue: GADAdValue, fullScreenPresentingAd: GADFullScreenPresentingAd) {
         let cpmValue = adValue.value.multiplying(byPowerOf10: 3)
         cacheManager.updateInterstitialPrice(fullScreenPresentingAd, price: cpmValue.stringValue)
     }
     
     /// Notify loss methods
     
-    public func notifyBannerLoss(bannerView: BannerView, error: Error) {
-        let errorCode = RequestError(_nsError: (error as NSError)).code
+    public func notifyBannerLoss(bannerView: GADBannerView, error: Error) {
+        guard let errorCode = GADErrorCode(rawValue: (error as NSError).code) else {
+            logger.log("NimbusDynamicPriceRenderer: GADErrorCode not found", level: .error)
+            return
+        }
         
-        guard errorCode == .noFill else { return }
+        guard errorCode == .noFill || errorCode == .mediationNoFill else {
+            return
+        }
         
         if let data = cacheManager.getData(for: bannerView) {
             notifyLoss(nimbusAd: data.nimbusAd)
         }
     }
     
-    public func notifyInterstitialLoss(fullScreenPresentingAd: FullScreenPresentingAd, error: Error) {
-        let errorCode = RequestError(_nsError: (error as NSError)).code
-        
-        guard errorCode == .noFill else { return }
+    public func notifyInterstitialLoss(fullScreenPresentingAd: GADFullScreenPresentingAd, error: Error) {
+        guard let errorCode = GADErrorCode(rawValue: (error as NSError).code),
+              errorCode == .noFill || errorCode == .mediationNoFill else {
+            logger.log("NimbusDynamicPriceRenderer: GADErrorCode not found", level: .error)
+            return
+        }
         
         if let data = cacheManager.getData(for: fullScreenPresentingAd) {
             notifyLoss(nimbusAd: data.nimbusAd)
@@ -140,7 +147,7 @@ public final class NimbusDynamicPriceRenderer: NSObject, AppEventDelegate {
     
     /// Notify impression methods
     
-    public func notifyBannerImpression(bannerView: BannerView) {
+    public func notifyBannerImpression(bannerView: GADBannerView) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             guard let self,
                   let data = self.cacheManager.getData(for: bannerView) else {
@@ -156,20 +163,20 @@ public final class NimbusDynamicPriceRenderer: NSObject, AppEventDelegate {
         }
     }
     
-    public func notifyInterstitialImpression(interstitialAd: InterstitialAd) {
+    public func notifyInterstitialImpression(interstitialAd: GADInterstitialAd) {
         notifyWinLoss(
             ad: interstitialAd,
             responseInfo: interstitialAd.responseInfo
         )
     }
     
-    private func updateNimbusWin(ad: FullScreenPresentingAd, isNimbusWin: Bool) {
+    private func updateNimbusWin(ad: GADFullScreenPresentingAd, isNimbusWin: Bool) {
         if isNimbusWin, let data = self.cacheManager.getData(for: ad) {
             cacheManager.updateNimbusDidWin(auctionId: data.nimbusAd.auctionId)
         }
     }
     
-    private func notifyWinLoss(ad: FullScreenPresentingAd, responseInfo: ResponseInfo) {
+    private func notifyWinLoss(ad: GADFullScreenPresentingAd, responseInfo: GADResponseInfo) {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
             guard let self,
                   let data = self.cacheManager.getData(for: ad) else {
@@ -185,7 +192,7 @@ public final class NimbusDynamicPriceRenderer: NSObject, AppEventDelegate {
         }
     }
     
-    private func notifyWinLoss(isNimbusWin: Bool, nimbusAd: NimbusAd, price: String, responseInfo: ResponseInfo?) {
+    private func notifyWinLoss(isNimbusWin: Bool, nimbusAd: NimbusAd, price: String, responseInfo: GADResponseInfo?) {
         if isNimbusWin {
             requestManager.notifyWin(ad: nimbusAd, auctionData: NimbusAuctionData())
         } else {
@@ -200,7 +207,7 @@ public final class NimbusDynamicPriceRenderer: NSObject, AppEventDelegate {
     /// Handle event methods
     
     @discardableResult
-    public func handleBannerEventForNimbus(bannerView: BannerView, name: String, info: String?) -> Bool {
+    public func handleBannerEventForNimbus(bannerView: GADBannerView, name: String, info: String?) -> Bool {
         guard name == "na_render",
               let renderInfo = NimbusDynamicPriceRenderInfo(info: info),
               let data = cacheManager.getData(for: renderInfo.auctionId) else {
@@ -251,7 +258,7 @@ public final class NimbusDynamicPriceRenderer: NSObject, AppEventDelegate {
     
     public func handleRewardedEventForNimbus(
         adMetadata: [GADAdMetadataKey : Any]?,
-        ad: RewardedAd
+        ad: GADRewardedAd
     ) -> Bool {
         let adSystem = adMetadata?[GADAdMetadataKey(rawValue: "AdSystem")] as? String
         let isNimbusWin = adSystem?.contains("Nimbus") ?? false
@@ -264,7 +271,7 @@ public final class NimbusDynamicPriceRenderer: NSObject, AppEventDelegate {
     
     public func handleRewardedInterstitialEventForNimbus(
         adMetadata: [GADAdMetadataKey : Any]?,
-        ad: RewardedInterstitialAd
+        ad: GADRewardedInterstitialAd
     ) -> Bool {
         let adSystem = adMetadata?[GADAdMetadataKey(rawValue: "AdSystem")] as? String
         let isNimbusWin = adSystem?.contains("Nimbus") ?? false
@@ -321,7 +328,7 @@ extension NimbusDynamicPriceRenderer: AdControllerDelegate {
         
         if event == .clicked {
             // TODO: Make a cleaner solution in a major release
-            if let bannerView = adView.superview as? AdManagerBannerView {
+            if let bannerView = adView.superview as? GAMBannerView {
                 bannerView.delegate?.bannerViewDidRecordClick?(bannerView)
             } else if let interstitialAd {
                 interstitialAd.fullScreenContentDelegate?.adDidRecordClick?(interstitialAd)

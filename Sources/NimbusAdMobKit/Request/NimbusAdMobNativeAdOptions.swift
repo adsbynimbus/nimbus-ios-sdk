@@ -12,15 +12,15 @@ import GoogleMobileAds
 public struct NimbusAdMobNativeAdOptions {
     let disableImageLoading: Bool
     let shouldRequestMultipleImages: Bool
-    let mediaAspectRatio: MediaAspectRatio
-    let preferredAdChoicesPosition: AdChoicesPosition
+    let mediaAspectRatio: GADMediaAspectRatio
+    let preferredAdChoicesPosition: GADAdChoicesPosition
     let customMuteThisAdRequested: Bool
     
     public init(
         disableImageLoading: Bool = false,
         shouldRequestMultipleImages: Bool = false,
-        mediaAspectRatio: MediaAspectRatio = .unknown,
-        preferredAdChoicesPosition: AdChoicesPosition = .topRightCorner,
+        mediaAspectRatio: GADMediaAspectRatio = .unknown,
+        preferredAdChoicesPosition: GADAdChoicesPosition = .topRightCorner,
         customMuteThisAdRequested: Bool = false
     ) {
         self.disableImageLoading = disableImageLoading
