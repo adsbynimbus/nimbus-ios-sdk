@@ -20,7 +20,7 @@ public class NimbusGAMDynamicPrice {
     public weak var requestDelegate: NimbusRequestManagerDelegate?
     
     /// The GAM request to add keywords to
-    private weak var request: GAMRequest?
+    private weak var request: AdManagerRequest?
     
     /// A provider for mapping a bid to keywords to apply to the MPAdView
     private let mapping: NimbusDynamicPriceMapping?
@@ -32,7 +32,7 @@ public class NimbusGAMDynamicPrice {
      - request: The GAM request to apply keywords to
      - mapping: A provider for mapping a bid to keywords to apply to the GAM request
      */
-    public init(request: GAMRequest, mapping: NimbusDynamicPriceMapping? = nil) {
+    public init(request: AdManagerRequest, mapping: NimbusDynamicPriceMapping? = nil) {
         self.request = request
         self.mapping = mapping
     }

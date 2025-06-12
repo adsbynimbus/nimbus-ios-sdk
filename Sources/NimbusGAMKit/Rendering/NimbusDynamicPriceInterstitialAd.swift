@@ -14,8 +14,8 @@ final class NimbusDynamicPriceInterstitialAd: NSObject {
     var didPresentGoogleController = false
     
     /// This is the publisher's original delegate. If set, we forward events to it.
-    private weak var clientDelegate: GADFullScreenContentDelegate?
-    private weak var gadInterstitialAd: GADInterstitialAd?
+    private weak var clientDelegate: FullScreenContentDelegate?
+    private weak var gadInterstitialAd: InterstitialAd?
     
     private var gadViewController: UIViewController? { rootViewController?.presentedViewController }
     
@@ -33,9 +33,9 @@ final class NimbusDynamicPriceInterstitialAd: NSObject {
     init(
         ad: NimbusAd,
         requestManager: NimbusRequestManager,
-        clientDelegate: GADFullScreenContentDelegate? = nil,
+        clientDelegate: FullScreenContentDelegate? = nil,
         rootViewController: UIViewController? = nil,
-        gadInterstitialAd: GADInterstitialAd? = nil
+        gadInterstitialAd: InterstitialAd? = nil
     ) {
         self.ad = ad
         self.requestManager = requestManager
@@ -46,7 +46,7 @@ final class NimbusDynamicPriceInterstitialAd: NSObject {
         super.init()
     }
     
-    func updatePrice(_ adValue: GADAdValue) {
+    func updatePrice(_ adValue: AdValue) {
         price = adValue.nimbusPrice
     }
     
@@ -165,21 +165,21 @@ extension NimbusDynamicPriceInterstitialAd: AdControllerDelegate {
 
 // MARK: - GADFullScreenContentDelegate
 
-extension NimbusDynamicPriceInterstitialAd: GADFullScreenContentDelegate {
-    func ad(_ ad: GADFullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
+extension NimbusDynamicPriceInterstitialAd: FullScreenContentDelegate {
+    func ad(_ ad: FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: Error) {
         clientDelegate?.ad?(ad, didFailToPresentFullScreenContentWithError: error)
     }
     
-    func adDidRecordImpression(_ ad: GADFullScreenPresentingAd) {
+    func adDidRecordImpression(_ ad: FullScreenPresentingAd) {
         clientDelegate?.adDidRecordImpression?(ad)
         scheduleLossNotification()
     }
     
-    func adDidRecordClick(_ ad: GADFullScreenPresentingAd) {
+    func adDidRecordClick(_ ad: FullScreenPresentingAd) {
         clientDelegate?.adDidRecordClick?(ad)
     }
     
-    func adWillPresentFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+    func adWillPresentFullScreenContent(_ ad: FullScreenPresentingAd) {
         clientDelegate?.adWillPresentFullScreenContent?(ad)
         
         if !didPresentGoogleController {
@@ -187,11 +187,11 @@ extension NimbusDynamicPriceInterstitialAd: GADFullScreenContentDelegate {
         }
     }
     
-    func adWillDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+    func adWillDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
         clientDelegate?.adWillDismissFullScreenContent?(ad)
     }
     
-    func adDidDismissFullScreenContent(_ ad: GADFullScreenPresentingAd) {
+    func adDidDismissFullScreenContent(_ ad: FullScreenPresentingAd) {
         clientDelegate?.adDidDismissFullScreenContent?(ad)
     }
 }

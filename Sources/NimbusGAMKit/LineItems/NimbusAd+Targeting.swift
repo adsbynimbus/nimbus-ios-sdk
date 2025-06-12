@@ -16,14 +16,14 @@ public extension NimbusAd {
     /// - Parameters:
     ///   - request: GAMRequest to add keywords to
     ///   - mapping: A mapping composed of multiple LinearPriceGranularities in ascending order. Default: NimbusGAMLinearPriceMapping.banner()
-    func applyDynamicPrice(into request: GAMRequest, mapping: NimbusGAMLinearPriceMapping = .banner()) {
+    func applyDynamicPrice(into request: AdManagerRequest, mapping: NimbusGAMLinearPriceMapping = .banner()) {
         applyDynamicPrice(into: request, keywords: mapping.getKeywords(ad: self))
     }
 }
 
 /// :nodoc:
 extension NimbusAd {
-    func applyDynamicPrice(into request: GAMRequest, keywords: String?) {
+    func applyDynamicPrice(into request: AdManagerRequest, keywords: String?) {
         if request.customTargeting == nil {
             request.customTargeting = [:]
         }
@@ -50,6 +50,6 @@ extension NimbusAd {
 }
 
 /// :nodoc:
-extension GAMRequest {
+extension AdManagerRequest {
     var hasDynamicPrice: Bool { customTargeting?["na_id"] != nil }
 }

@@ -8,7 +8,7 @@
 import GoogleMobileAds
 import NimbusKit
 
-extension GAMBannerView {
+extension AdManagerBannerView {
     private static var nimbusBannerAdKey: Void?
     private static var nimbusBannerProxyKey: Void?
     
@@ -54,7 +54,7 @@ extension GAMBannerView {
     ///     - delegate: pass GADBannerViewDelegate if you want to receive delegate messages about this banner. Do NOT set `bannerView.delegate` property yourself as it would override our proxy, resulting in Nimbus Dynamic Price not working correctly.
     public func applyDynamicPrice(
         requestManager: NimbusRequestManager = NimbusRequestManager(),
-        delegate: GADBannerViewDelegate? = nil,
+        delegate: BannerViewDelegate? = nil,
         ad: NimbusAd? = nil
     ) {
         nimbusBannerProxy = NimbusDynamicPriceBannerProxy(
@@ -74,7 +74,7 @@ extension GAMBannerView {
     ///     - gamRequest: Instance of GAMRequest
     ///     - mapping: Default is `NimbusGAMLinearPriceMapping.banner()`
     public func loadDynamicPrice(
-        gamRequest: GAMRequest,
+        gamRequest: AdManagerRequest,
         ad: NimbusAd? = nil,
         mapping: NimbusGAMLinearPriceMapping = .banner()
     ) {
@@ -91,7 +91,7 @@ extension GAMBannerView {
     /// Call this method inside the `paidEventHandler` property.
     /// - Parameters:
     ///     - adValue: instance of GADAdValue
-    public func updatePrice(_ adValue: GADAdValue) {
+    public func updatePrice(_ adValue: AdValue) {
         nimbusBannerAd?.updatePrice(adValue)
     }
     

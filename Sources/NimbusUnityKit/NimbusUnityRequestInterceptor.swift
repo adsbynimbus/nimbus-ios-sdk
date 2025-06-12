@@ -9,6 +9,26 @@
 @_exported import NimbusRequestKit
 import UnityAds
 
+enum NimbusUnityInterceptorError: NimbusError {
+    case notInitialized
+    case unsupportedDevice
+    case invalidAdType
+    case tokenNotAvailable
+    
+    var errorDescription: String? {
+        switch self {
+        case .notInitialized:
+            "UnityAds not initialized"
+        case .unsupportedDevice:
+            "UnityAds not supported on current device"
+        case .invalidAdType:
+            "NimbusRequest is not a rewarded ad request, skipping Unity interceptor"
+        case .tokenNotAvailable:
+            "UnityAds token is not available"
+        }
+    }
+}
+
 public class NimbusUnityRequestInterceptor: NSObject {
     
     var isSupported: Bool {
@@ -41,43 +61,25 @@ public class NimbusUnityRequestInterceptor: NSObject {
     }
 }
 
+extension NimbusUnityRequestInterceptor: NimbusRequestInterceptorAsync {
+    public func modifyRequest(request: NimbusRequest) async throws -> NimbusRequestDelta {
+        guard isInitialized else { throw NimbusUnityInterceptorError.notInitialized }
+        guard isSupported else { throw NimbusUnityInterceptorError.unsupportedDevice }
+        guard let token else { throw NimbusUnityInterceptorError.tokenNotAvailable }
+        guard request.impressions.first?.video?.isRewarded == true else {
+            throw NimbusUnityInterceptorError.invalidAdType
+        }
+        
+        return NimbusRequestDelta(userExtension: ("unity_buyeruid", NimbusCodable(token)))
+    }
+}
 
 // MARK: NimbusRequestInterceptor
 /// :nodoc:
 extension NimbusUnityRequestInterceptor: NimbusRequestInterceptor {
     
     /// :nodoc:
-    public func modifyRequest(request: NimbusRequest) {
-        Nimbus.shared.logger.log("Modifying NimbusRequest for Unity", level: .debug)
-        
-        guard request.impressions.first?.video?.isRewarded == true else {
-            Nimbus.shared.logger.log(
-                "NimbusRequest is not a rewarded ad request, skipping Unity ads modification",
-                level: .debug
-            )
-            return
-        }
-        
-        guard isSupported else {
-            Nimbus.shared.logger.log("UnityAds not supported on current device", level: .error)
-            return
-        }
-        guard isInitialized else {
-            Nimbus.shared.logger.log("UnityAds not initialized", level: .error)
-            return
-        }
-        
-        guard let token else {
-            Nimbus.shared.logger.log("UnityAds token absent", level: .error)
-            return
-        }
-        
-        if request.user == nil { request.user = NimbusUser() }
-        if request.user?.extensions == nil { request.user?.extensions = [:] }
-        request.user?.extensions?["unity_buyeruid"] = NimbusCodable(token)
-        
-        request.device.hardwareVersion = UIDevice.current.nimbusModelName
-    }
+    public func modifyRequest(request: NimbusRequest) {}
     
     /// :nodoc:
     public func didCompleteNimbusRequest(with response: NimbusAd) {

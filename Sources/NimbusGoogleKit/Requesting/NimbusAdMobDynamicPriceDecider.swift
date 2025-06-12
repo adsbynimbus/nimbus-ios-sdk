@@ -9,11 +9,11 @@
 import GoogleMobileAds
 
 protocol NimbusAdMobDynamicPriceDeciderType: AnyObject {
-    func isDynamicPrice(adConfiguration: GADMediationAdConfiguration) -> Bool
+    func isDynamicPrice(adConfiguration: MediationAdConfiguration) -> Bool
 }
 
 final class NimbusAdMobDynamicPriceDecider: NimbusAdMobDynamicPriceDeciderType {
-    func isDynamicPrice(adConfiguration: GADMediationAdConfiguration) -> Bool {
+    func isDynamicPrice(adConfiguration: MediationAdConfiguration) -> Bool {
         if !(adConfiguration.extras is NimbusGoogleAdNetworkExtras) {
             return false
         }

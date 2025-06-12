@@ -47,15 +47,17 @@ final class NimbusVungleAdLoader: NimbusVungleAdLoaderType {
         case .interstitial:
             loadInterstitialAd(placementId: placementId, markup: ad.markup)
         case .banner:
-            guard let adSize = ad.vungleAdSize else {
-                throw NimbusVungleError.failedToLoadAd(message: "Couldn't convert ad size to VungleAdSize, dimensions: \(String(describing: ad.adDimensions))")
+            guard let dimensions = ad.adDimensions else {
+                throw NimbusVungleError.failedToLoadAd(message: "Nimbus Ad dimensions are missing")
             }
+            
+            let adSize = VungleAdSize.VungleAdSizeFromCGSize(CGSize(width: dimensions.width, height: dimensions.height))
             loadBannerAd(placementId: placementId, markup: ad.markup, size: adSize)
         case .native:
             loadNativeAd(placementId: placementId, markup: ad.markup)
         default:
             throw NimbusVungleError.failedToLoadAd(
-                message: "No matching Vungle Ad auction type found. Size(\(ad.vungleAdSize?.size ?? .zero) - Type(\(ad.auctionType))"
+                message: "Invalid ad type to render Vungle ad: \(String(describing: adType))"
             )
         }
     }

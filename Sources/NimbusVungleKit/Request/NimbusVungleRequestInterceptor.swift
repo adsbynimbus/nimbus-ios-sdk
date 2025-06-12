@@ -92,28 +92,20 @@ public final class NimbusVungleRequestInterceptor {
 }
 
 // MARK: NimbusRequestInterceptor
+
+extension NimbusVungleRequestInterceptor: NimbusRequestInterceptorAsync {
+    public func modifyRequest(request: NimbusRequest) async throws -> NimbusRequestDelta {
+        guard vungleInitializerType.isInitialized else { throw NimbusVungleError.sdkNotInitialized }
+                
+        return NimbusRequestDelta(userExtension: ("vungle_buyeruid", NimbusCodable(vungleInitializerType.biddingToken)))
+    }
+}
+
 /// :nodoc:
 extension NimbusVungleRequestInterceptor: NimbusRequestInterceptor {
     
     /// :nodoc:
-    public func modifyRequest(request: NimbusRequest) {
-        logger.log("Modifying NimbusRequest for Vungle.", level: .debug)
-                
-        guard vungleInitializerType.isInitialized else {
-            logger.log("Vungle has been not initialized. Skipping Vungle modification.", level: .error)
-            return
-        }
-        
-        let token = vungleInitializerType.biddingToken
-        
-        if request.user == nil {
-            request.user = .init()
-        }
-        if request.user?.extensions == nil {
-            request.user?.extensions = [:]
-        }
-        request.user?.extensions?["vungle_buyeruid"] = NimbusCodable(token)
-    }
+    public func modifyRequest(request: NimbusRequest) {}
     
     /// :nodoc:
     public func didCompleteNimbusRequest(with ad: NimbusAd) {

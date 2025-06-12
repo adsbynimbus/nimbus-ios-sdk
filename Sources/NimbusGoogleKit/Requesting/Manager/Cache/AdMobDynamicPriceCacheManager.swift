@@ -12,7 +12,7 @@ import GoogleMobileAds
 
 protocol AdMobDynamicPriceCacheManagerType {
     func fetchItemFromCache(
-        for adConfiguration: GADMediationAdConfiguration,
+        for adConfiguration: MediationAdConfiguration,
         extras: NimbusGoogleAdNetworkExtras
     ) -> AdMobDynamicPriceCachedItem?
     func cacheItem(_ item: AdMobDynamicPriceCachedItem, extras: NimbusGoogleAdNetworkExtras)
@@ -35,7 +35,7 @@ final class AdMobDynamicPriceCacheManager: AdMobDynamicPriceCacheManagerType {
     }
     
     func fetchItemFromCache(
-        for adConfiguration: GADMediationAdConfiguration,
+        for adConfiguration: MediationAdConfiguration,
         extras: NimbusGoogleAdNetworkExtras
     ) -> AdMobDynamicPriceCachedItem? {
         return serialQueue.sync {
@@ -72,7 +72,7 @@ final class AdMobDynamicPriceCacheManager: AdMobDynamicPriceCacheManagerType {
     }
     
     private func refreshCachedItem(
-        for adConfiguration: GADMediationAdConfiguration,
+        for adConfiguration: MediationAdConfiguration,
         extras: NimbusGoogleAdNetworkExtras,
         cachedItem: AdMobDynamicPriceCachedItem?
     ) -> AdMobDynamicPriceCachedItem? {
@@ -86,7 +86,7 @@ final class AdMobDynamicPriceCacheManager: AdMobDynamicPriceCacheManagerType {
         return cachedItem
     }
     
-    private func isTopOfWaterfall(for adConfiguration: GADMediationAdConfiguration) -> Bool {
+    private func isTopOfWaterfall(for adConfiguration: MediationAdConfiguration) -> Bool {
         if let label = adConfiguration.credentials.settings["label"] as? String,
            label.lowercased().contains("top") {
             return true

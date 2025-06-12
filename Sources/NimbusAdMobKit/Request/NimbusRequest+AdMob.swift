@@ -24,9 +24,14 @@ public extension NimbusRequest {
      */
     @discardableResult
     func withAdMobBanner(adUnitId: String) -> NimbusRequest {
-        withAdMob(interceptor: NimbusAdMobRequestInterceptor(adUnitId: adUnitId, adType: .banner))
-    }
+        guard let impression = impressions.first, let banner = impression.banner, impression.video == nil else {
+            Nimbus.shared.logger.log("Invalid banner object for AdMob banner ad request: impression.banner must be present and impression.video must be nil", level: .debug)
+            return self
+        }
         
+        return withAdMob(interceptor: NimbusAdMobRequestInterceptor(adUnitId: adUnitId, adType: .banner))
+    }
+
     /**
      Include AdMob bidding in the current Native request.
      

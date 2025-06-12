@@ -27,7 +27,7 @@ public protocol NimbusAdMobAdRendererDelegate: AnyObject {
      
      - Returns: Your custom UIView (must inherit GADNativeAdView). DO NOT attach the view to the hierarchy yourself.
      */
-    func nativeAdViewForRendering(container: UIView, nativeAd: GADNativeAd) -> GADNativeAdView
+    func nativeAdViewForRendering(container: UIView, nativeAd: NativeAd) -> NativeAdView
 }
 
 public final class NimbusAdMobAdRenderer: AdRenderer {

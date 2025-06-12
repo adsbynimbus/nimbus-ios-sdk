@@ -18,10 +18,10 @@ struct NimbusAdMobError: NimbusError {
 }
 
 final class NimbusAdMobAdController: NimbusAdController,
-                                     GADBannerViewDelegate,
-                                     GADNativeAdLoaderDelegate,
-                                     GADFullScreenContentDelegate,
-                                     GADNativeAdDelegate {
+                                     BannerViewDelegate,
+                                     NativeAdLoaderDelegate,
+                                     FullScreenContentDelegate,
+                                     NativeAdDelegate {
     
     // MARK: - Properties
     
@@ -33,11 +33,11 @@ final class NimbusAdMobAdController: NimbusAdController,
     private weak var adRendererDelegate: NimbusAdMobAdRendererDelegate?
     
     // MARK: AdMob properties
-    private var bannerAd: GADBannerView?
-    private var interstitialAd: GADInterstitialAd?
-    private var rewardedAd: GADRewardedAd?
-    private var nativeAdLoader: GADAdLoader?
-    private var nativeAd: GADNativeAd?
+    private var bannerAd: BannerView?
+    private var interstitialAd: InterstitialAd?
+    private var rewardedAd: RewardedAd?
+    private var nativeAdLoader: AdLoader?
+    private var nativeAd: NativeAd?
     
     init(ad: NimbusAd,
          container: UIView,
@@ -69,16 +69,16 @@ final class NimbusAdMobAdController: NimbusAdController,
         
         switch adType {
         case .banner:
-            let bannerAd = GADBannerView()
+            let bannerAd = BannerView()
             bannerAd.translatesAutoresizingMaskIntoConstraints = false
             bannerAd.rootViewController = adPresentingViewController
             bannerAd.delegate = self
             self.bannerAd = bannerAd
             self.adState = .ready
-            bannerAd.load(withAdResponseString: ad.markup)
+            bannerAd.load(with: ad.markup)
             presentIfNeeded()
         case .interstitial:
-            GADInterstitialAd.load(withAdResponseString: ad.markup) { [weak self] gadInterstitial, error in
+            InterstitialAd.load(with: ad.markup) { [weak self] gadInterstitial, error in
                 if let gadInterstitial {
                     self?.interstitialAd = gadInterstitial
                     self?.interstitialAd?.fullScreenContentDelegate = self
@@ -94,7 +94,7 @@ final class NimbusAdMobAdController: NimbusAdController,
                 }
             }
         case .rewarded:
-            GADRewardedAd.load(withAdResponseString: ad.markup) { [weak self] gadRewarded, error in
+            RewardedAd.load(with: ad.markup) { [weak self] gadRewarded, error in
                 if let gadRewarded {
                     self?.rewardedAd = gadRewarded
                     self?.rewardedAd?.fullScreenContentDelegate = self
@@ -115,9 +115,9 @@ final class NimbusAdMobAdController: NimbusAdController,
                 return
             }
 
-            nativeAdLoader = GADAdLoader(rootViewController: adPresentingViewController)
+            nativeAdLoader = AdLoader(rootViewController: adPresentingViewController)
             nativeAdLoader?.delegate = self
-            nativeAdLoader?.load(withAdResponseString: ad.markup)
+            nativeAdLoader?.load(with: ad.markup)
         @unknown default:
             sendNimbusError(NimbusRenderError.invalidAdType)
         }
@@ -148,9 +148,9 @@ final class NimbusAdMobAdController: NimbusAdController,
                 nativeAdView.bottomAnchor.constraint(equalTo: container.bottomAnchor)
             ])
         } else if let interstitialAd {
-            interstitialAd.present(fromRootViewController: adPresentingViewController)
+            interstitialAd.present(from: adPresentingViewController)
         } else if let rewardedAd {
-            rewardedAd.present(fromRootViewController: adPresentingViewController) { [weak self] in
+            rewardedAd.present(from: adPresentingViewController) { [weak self] in
                 self?.logger.log("AdMob Event: user earned reward", level: .debug)
                 self?.sendNimbusEvent(.completed)
             }
@@ -175,44 +175,44 @@ final class NimbusAdMobAdController: NimbusAdController,
     
     // MARK: - GADBannerViewDelegate
     
-    func bannerViewDidReceiveAd(_ bannerView: GADBannerView) {
+    func bannerViewDidReceiveAd(_ bannerView: BannerView) {
         sendNimbusEvent(.loaded)
     }
     
-    func bannerViewDidRecordImpression(_ bannerView: GADBannerView) {
+    func bannerViewDidRecordImpression(_ bannerView: BannerView) {
         sendNimbusEvent(.impression)
     }
     
-    func bannerViewDidRecordClick(_ bannerView: GADBannerView) {
+    func bannerViewDidRecordClick(_ bannerView: BannerView) {
         sendNimbusEvent(.clicked)
     }
     
-    func bannerView(_ bannerView: GADBannerView, didFailToReceiveAdWithError error: any Error) {
+    func bannerView(_ bannerView: BannerView, didFailToReceiveAdWithError error: any Error) {
         sendNimbusError(NimbusAdMobError(message: error.localizedDescription))
     }
     
     // MARK: - GADFullScreenContentDelegate
     
-    func adDidRecordImpression(_ ad: any GADFullScreenPresentingAd) {
+    func adDidRecordImpression(_ ad: any FullScreenPresentingAd) {
         sendNimbusEvent(.impression)
     }
     
-    func adDidRecordClick(_ ad: any GADFullScreenPresentingAd) {
+    func adDidRecordClick(_ ad: any FullScreenPresentingAd) {
         sendNimbusEvent(.clicked)
     }
     
-    func ad(_ ad: any GADFullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: any Error) {
+    func ad(_ ad: any FullScreenPresentingAd, didFailToPresentFullScreenContentWithError error: any Error) {
         sendNimbusError(NimbusAdMobError(message: error.localizedDescription))
     }
     
-    func adDidDismissFullScreenContent(_ ad: any GADFullScreenPresentingAd) {
+    func adDidDismissFullScreenContent(_ ad: any FullScreenPresentingAd) {
         destroy()
         sendNimbusEvent(.destroyed)
     }
     
     // MARK: - GADNativeAdLoaderDelegate
     
-    func adLoader(_ adLoader: GADAdLoader, didReceive nativeAd: GADNativeAd) {
+    func adLoader(_ adLoader: AdLoader, didReceive nativeAd: NativeAd) {
         nativeAd.rootViewController = adPresentingViewController
         nativeAd.delegate = self
         self.nativeAd = nativeAd
@@ -220,29 +220,29 @@ final class NimbusAdMobAdController: NimbusAdController,
         presentIfNeeded()
     }
     
-    func adLoader(_ adLoader: GADAdLoader, didFailToReceiveAdWithError error: any Error) {
+    func adLoader(_ adLoader: AdLoader, didFailToReceiveAdWithError error: any Error) {
         sendNimbusError(NimbusAdMobError(message: "Failed to receive native ad, error: \(error.localizedDescription)"))
     }
     
     // MARK: - GADNativeAdDelegate
     
-    func nativeAdDidRecordImpression(_ nativeAd: GADNativeAd) {
+    func nativeAdDidRecordImpression(_ nativeAd: NativeAd) {
         sendNimbusEvent(.impression)
     }
     
-    func nativeAdDidRecordClick(_ nativeAd: GADNativeAd) {
+    func nativeAdDidRecordClick(_ nativeAd: NativeAd) {
         sendNimbusEvent(.clicked)
     }
     
-    func nativeAdIsMuted(_ nativeAd: GADNativeAd) {
+    func nativeAdIsMuted(_ nativeAd: NativeAd) {
         nimbusAdView?.viewabilityTracker?.volume = 0
     }
     
-    func adLoaderDidFinishLoading(_ adLoader: GADAdLoader) {
+    func adLoaderDidFinishLoading(_ adLoader: AdLoader) {
         sendNimbusEvent(.loaded)
     }
     
-    func adLoader(_ adLoader: GADAdLoader, didFailToLoadWithError error: Error) {
+    func adLoader(_ adLoader: AdLoader, didFailToLoadWithError error: Error) {
         sendNimbusError(NimbusAdMobError(message: "Failed to load native ad, error: \(error.localizedDescription)"))
     }
 }

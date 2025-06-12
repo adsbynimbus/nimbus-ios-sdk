@@ -8,7 +8,7 @@
 import GoogleMobileAds
 import NimbusCoreKit
 
-public extension GADAdLoader {
+public extension AdLoader {
     private static var nimbusAdKey: Void?
     
     private(set) var nimbusAd: NimbusAd? {
@@ -34,7 +34,7 @@ public extension GADAdLoader {
     ///     - ad: NimbusAd to render if Nimbus wins
     ///     - mapping: Default is `NimbusGAMLinearPriceMapping.banner()`
     func loadDynamicPrice(
-        gamRequest: GAMRequest,
+        gamRequest: AdManagerRequest,
         ad: NimbusAd? = nil,
         mapping: NimbusGAMLinearPriceMapping = .banner()
     ) {
