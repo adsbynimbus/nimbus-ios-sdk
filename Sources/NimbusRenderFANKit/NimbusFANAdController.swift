@@ -149,12 +149,66 @@ final class NimbusFANAdController: NimbusAdController,
     
     // MARK: - AdController overrides
 
+    override func onStart() {
+        presentIfNeeded()
+    }
+    
     override func destroy() {
         guard adState != .destroyed else { return }
         
         adState = .destroyed
         fbNativeAd?.unregisterView()
+        
+        fbAdView = nil
         fbNativeAd = nil
+        fbInterstitialAd = nil
+        fbRewardedVideoAd = nil
+    }
+    
+    func presentIfNeeded() {
+        guard started, adState == .ready else { return }
+        
+        adState = .resumed
+        
+        if let fbAdView, let container, fbAdView.isAdValid {
+            fbAdView.translatesAutoresizingMaskIntoConstraints = false
+            container.addSubview(fbAdView)
+            
+            NSLayoutConstraint.activate([
+                fbAdView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+                fbAdView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+                fbAdView.topAnchor.constraint(equalTo: container.topAnchor),
+                fbAdView.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+            ])
+            
+            self.fbAdView = nil
+        } else if let fbNativeAd, let container, fbNativeAd.isAdValid {
+            let fbNativeAdView: UIView
+            if let customView = adRendererDelegate?.customViewForRendering(container: container, nativeAd: fbNativeAd) {
+                fbNativeAdView = customView
+            } else {
+                fbNativeAdView = FBNativeAdView(nativeAd: fbNativeAd, with: .dynamic)
+            }
+
+            fbNativeAdView.translatesAutoresizingMaskIntoConstraints = false
+            container.addSubview(fbNativeAdView)
+            NSLayoutConstraint.activate([
+                fbNativeAdView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+                fbNativeAdView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+                fbNativeAdView.topAnchor.constraint(equalTo: container.topAnchor),
+                fbNativeAdView.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+            ])
+            
+            self.fbNativeAd = nil
+        } else if let fbInterstitialAd, fbInterstitialAd.isAdValid {
+            fbInterstitialAd.show(fromRootViewController: adPresentingViewController)
+            self.fbInterstitialAd = nil
+        } else if let fbRewardedVideoAd, let adPresentingViewController, fbRewardedVideoAd.isAdValid {
+            fbRewardedVideoAd.show(fromRootViewController: adPresentingViewController)
+            self.fbRewardedVideoAd = nil
+        } else {
+            sendNimbusError(NimbusRenderError.adRenderingFailed(message: "Meta ad \(String(describing: adType)) is invalid and could not be presented."))
+        }
     }
     
     // MARK: - FBNativeAdDelegate
@@ -163,35 +217,9 @@ final class NimbusFANAdController: NimbusAdController,
     func nativeAdDidLoad(_ nativeAd: FBNativeAd) {
         logger.log("Meta native ad loaded", level: .debug)
 
-        guard nativeAd.isAdValid else {
-            sendNimbusError(NimbusRenderError.adRenderingFailed(message: "Meta native ad is invalid"))
-            return
-        }
-
-        guard let container else {
-            sendNimbusError(NimbusRenderError.adRenderingFailed(message: "Container view not found for Meta native ad"))
-            return
-        }
-
-        let fbNativeAdView: UIView
-        if let customView = adRendererDelegate?.customViewForRendering(container: container, nativeAd: nativeAd) {
-            fbNativeAdView = customView
-        } else {
-            fbNativeAdView = FBNativeAdView(nativeAd: nativeAd, with: .dynamic)
-        }
-
-        fbNativeAdView.translatesAutoresizingMaskIntoConstraints = false
-        container.addSubview(fbNativeAdView)
-        NSLayoutConstraint.activate([
-            fbNativeAdView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            fbNativeAdView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            fbNativeAdView.topAnchor.constraint(equalTo: container.topAnchor),
-            fbNativeAdView.bottomAnchor.constraint(equalTo: container.bottomAnchor)
-        ])
-
+        adState = .ready
         sendNimbusEvent(.loaded)
-
-        fbNativeAd = nil
+        presentIfNeeded()
     }
 
     /// :nodoc:
@@ -223,19 +251,9 @@ final class NimbusFANAdController: NimbusAdController,
     func interstitialAdDidLoad(_ interstitialAd: FBInterstitialAd) {
         logger.log("Meta interstitial ad loaded", level: .debug)
 
-        guard interstitialAd.isAdValid else {
-            delegate?.didReceiveNimbusError(
-                controller: self,
-                error: NimbusRenderError.adRenderingFailed(message: "Meta interstitial ad is invalid")
-            )
-            return
-        }
-
+        adState = .ready
         sendNimbusEvent(.loaded)
-
-        interstitialAd.show(fromRootViewController: adPresentingViewController)
-
-        fbInterstitialAd = nil
+        presentIfNeeded()
     }
 
     /// :nodoc:
@@ -272,21 +290,9 @@ final class NimbusFANAdController: NimbusAdController,
     func rewardedVideoAdDidLoad(_ rewardedVideoAd: FBRewardedVideoAd) {
         logger.log("FBRewardedAd loaded", level: .debug)
 
-        guard rewardedVideoAd.isAdValid else {
-            sendNimbusError(NimbusRenderError.adRenderingFailed(message: "Meta rewarded ad is invalid"))
-            return
-        }
-        
-        guard let presentingVC = adPresentingViewController else {
-            sendNimbusError(NimbusRenderError.adRenderingFailed(message: "AdPresentingViewController is nil for Meta rewarded ad"))
-            return
-        }
-
+        adState = .ready
         sendNimbusEvent(.loaded)
-
-        rewardedVideoAd.show(fromRootViewController: presentingVC)
-
-        fbRewardedVideoAd = nil
+        presentIfNeeded()
     }
     
     /// :nodoc:
@@ -328,26 +334,9 @@ final class NimbusFANAdController: NimbusAdController,
     func adViewDidLoad(_ adView: FBAdView) {
         logger.log("FBAdView loaded", level: .debug)
 
-        guard adView.isAdValid else {
-            sendNimbusError(NimbusRenderError.adRenderingFailed(message: "Meta banner ad is invalid"))
-            return
-        }
-
-        guard let container else {
-            sendNimbusError(NimbusRenderError.adRenderingFailed(message: "Container view not found for Meta banner ad"))
-            return
-        }
-
-        adView.translatesAutoresizingMaskIntoConstraints = false
-        container.addSubview(adView)
-        NSLayoutConstraint.activate([
-            adView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            adView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            adView.topAnchor.constraint(equalTo: container.topAnchor),
-            adView.bottomAnchor.constraint(equalTo: container.bottomAnchor)
-        ])
-
+        adState = .ready
         sendNimbusEvent(.loaded)
+        presentIfNeeded()
     }
 
     /// :nodoc:
@@ -378,3 +367,5 @@ final class NimbusFANAdController: NimbusAdController,
         sendNimbusEvent(.clicked)
     }
 }
+
+// Internal: Do NOT implement delegate conformance as separate extensions as the methods won't not be found in runtime when built as a static library

@@ -285,3 +285,5 @@ final class NimbusVungleAdController: NimbusAdController,
         sendNimbusEvent(.completed)
     }
 }
+
+// Internal: Do NOT implement delegate conformance as separate extensions as the methods won't not be found in runtime when built as a static library

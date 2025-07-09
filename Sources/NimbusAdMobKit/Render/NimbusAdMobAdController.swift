@@ -246,3 +246,5 @@ final class NimbusAdMobAdController: NimbusAdController,
         sendNimbusError(NimbusAdMobError(message: "Failed to load native ad, error: \(error.localizedDescription)"))
     }
 }
+
+// Internal: Do NOT implement delegate conformance as separate extensions as the methods won't not be found in runtime when built as a static library
