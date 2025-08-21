@@ -11,7 +11,7 @@ import VungleAdsSDK
 import UIKit
 
 protocol NimbusVungleAdPresenterType {
-    func present(bannerAd: VungleBannerView?, ad: NimbusAd, container: NimbusAdView?, creativeScalingEnabled: Bool) throws
+    func present(bannerAd: VungleBannerView?, ad: NimbusAd, container: NimbusAdView?) throws
     func present(interstitialAd: VungleInterstitial?, adPresentingViewController: UIViewController?) throws
     func present(rewardedAd: VungleRewarded?, adPresentingViewController: UIViewController?) throws
     func present(
@@ -28,16 +28,8 @@ final class NimbusVungleAdPresenter: NimbusVungleAdPresenterType {
     func present(
         bannerAd: VungleBannerView?,
         ad: NimbusAd,
-        container: NimbusAdView?,
-        creativeScalingEnabled: Bool
+        container: NimbusAdView?
     ) throws {
-        guard let adDimensions = ad.adDimensions else {
-            throw NimbusVungleError.failedToPresentAd(
-                type: "banner",
-                message: "Ad dimensions is not set."
-            )
-        }
-        
         guard let container else {
             throw NimbusVungleError.failedToPresentAd(
                 type: "banner",
@@ -53,12 +45,6 @@ final class NimbusVungleAdPresenter: NimbusVungleAdPresenterType {
         }
         
         container.addSubview(bannerAd)
-        
-        if creativeScalingEnabled {
-            NimbusCreativeScaler().scaleCreativeIfNecessary(ad: ad, view: bannerAd)
-        }
-        
-        setupVungleBannerConstraints(container: container, adContainerView: bannerAd, adDimensions: adDimensions)
     }
     
     func present(
@@ -164,26 +150,5 @@ final class NimbusVungleAdPresenter: NimbusVungleAdPresenterType {
         }
         
         rewardedAd.present(with: adPresentingViewController)
-    }
-    
-    private func setupVungleBannerConstraints(container: UIView, adContainerView: UIView, adDimensions: NimbusAdDimensions) {
-        adContainerView.translatesAutoresizingMaskIntoConstraints = false
-        
-        let maxWidth = adContainerView.widthAnchor.constraint(lessThanOrEqualTo: container.widthAnchor)
-        let maxHeight = adContainerView.heightAnchor.constraint(lessThanOrEqualTo: container.heightAnchor)
-        let preferredWidthConstraint = adContainerView.widthAnchor.constraint(equalToConstant: CGFloat(adDimensions.width))
-        preferredWidthConstraint.priority = .defaultHigh
-        let preferredHeightConstraint = adContainerView.heightAnchor.constraint(equalToConstant: CGFloat(adDimensions.height))
-        preferredHeightConstraint.priority = .defaultHigh
-        
-        NSLayoutConstraint.activate([
-            adContainerView.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            adContainerView.centerYAnchor.constraint(equalTo: container.centerYAnchor),
-            maxWidth, maxHeight,
-            preferredWidthConstraint, preferredHeightConstraint
-        ])
-        
-        // Vungle seems to be doing an internal frame check where the ad does NOT render if the frame is zero
-        adContainerView.frame = .init(origin: .zero, size: CGSize(width: adDimensions.width, height: adDimensions.height))
     }
 }

@@ -171,16 +171,7 @@ final class NimbusFANAdController: NimbusAdController,
         adState = .resumed
         
         if let fbAdView, let container, fbAdView.isAdValid {
-            fbAdView.translatesAutoresizingMaskIntoConstraints = false
             container.addSubview(fbAdView)
-            
-            NSLayoutConstraint.activate([
-                fbAdView.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-                fbAdView.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-                fbAdView.topAnchor.constraint(equalTo: container.topAnchor),
-                fbAdView.bottomAnchor.constraint(equalTo: container.bottomAnchor)
-            ])
-            
             self.fbAdView = nil
         } else if let fbNativeAd, let container, fbNativeAd.isAdValid {
             let fbNativeAdView: UIView

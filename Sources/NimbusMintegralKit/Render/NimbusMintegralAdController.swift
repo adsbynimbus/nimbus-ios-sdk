@@ -95,7 +95,6 @@ final class NimbusMintegralAdController: NimbusAdController,
                 unitId: renderInfo.adUnitId,
                 rootViewController: adPresentingViewController
             )
-            bannerAd?.translatesAutoresizingMaskIntoConstraints = false
             bannerAd?.delegate = self
             bannerAd?.viewController = adPresentingViewController
             bannerAd?.loadBannerAd(withBidToken: ad.markup)
@@ -137,15 +136,8 @@ final class NimbusMintegralAdController: NimbusAdController,
         
         adState = .resumed
         
-        if let bannerAd, let container, let dimensions = ad.adDimensions {
+        if let bannerAd, let container {
             container.addSubview(bannerAd)
-            
-            NSLayoutConstraint.activate([
-                bannerAd.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-                bannerAd.centerYAnchor.constraint(equalTo: container.centerYAnchor),
-                bannerAd.widthAnchor.constraint(equalToConstant: CGFloat(dimensions.width)),
-                bannerAd.heightAnchor.constraint(equalToConstant: CGFloat(dimensions.height)),
-            ])
         } else if let nativeAdManager, let campaign, let adRendererDelegate, let container {
             let nativeView = adRendererDelegate.nativeAdViewForRendering(container: container, campaign: campaign)
             nativeView.translatesAutoresizingMaskIntoConstraints = false

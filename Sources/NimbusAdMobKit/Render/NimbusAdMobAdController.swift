@@ -70,7 +70,6 @@ final class NimbusAdMobAdController: NimbusAdController,
         switch adType {
         case .banner:
             let bannerAd = BannerView()
-            bannerAd.translatesAutoresizingMaskIntoConstraints = false
             bannerAd.rootViewController = adPresentingViewController
             bannerAd.delegate = self
             self.bannerAd = bannerAd
@@ -130,13 +129,6 @@ final class NimbusAdMobAdController: NimbusAdController,
         
         if let bannerAd, let container {
             container.addSubview(bannerAd)
-            
-            NSLayoutConstraint.activate([
-                bannerAd.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-                bannerAd.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-                bannerAd.topAnchor.constraint(equalTo: container.topAnchor),
-                bannerAd.bottomAnchor.constraint(equalTo: container.bottomAnchor)
-            ])
         } else if let nativeAd, let container, let adRendererDelegate {
             let nativeAdView = adRendererDelegate.nativeAdViewForRendering(container: container, nativeAd: nativeAd)
             container.addSubview(nativeAdView)

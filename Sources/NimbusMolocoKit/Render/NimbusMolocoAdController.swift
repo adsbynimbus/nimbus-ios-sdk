@@ -92,7 +92,6 @@ final class NimbusMolocoAdController: NimbusAdController,
                 return
             }
             
-            bannerAd.translatesAutoresizingMaskIntoConstraints = false
             bannerAd.load(bidResponse: ad.markup)
         case .interstitial:
             interstitialAd = Moloco.shared.createInterstitial(for: renderInfo.adUnitId, delegate: self)
@@ -121,15 +120,8 @@ final class NimbusMolocoAdController: NimbusAdController,
     func presentIfNeeded() {
         guard started, adState == .ready else { return }
         
-        if let bannerAd, let container, let dimensions = ad.adDimensions {
+        if let bannerAd, let container {
             container.addSubview(bannerAd)
-            
-            NSLayoutConstraint.activate([
-                bannerAd.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-                bannerAd.centerYAnchor.constraint(equalTo: container.centerYAnchor),
-                bannerAd.widthAnchor.constraint(equalToConstant: CGFloat(dimensions.width)),
-                bannerAd.heightAnchor.constraint(equalToConstant: CGFloat(dimensions.height)),
-            ])
         } else if let nativeAd = nativeAd, let adRendererDelegate, let container {
             guard let assets = nativeAd.assets else {
                 sendNimbusError(NimbusMolocoError(message: "NativeAd assets are missing"))

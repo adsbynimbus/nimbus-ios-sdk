@@ -18,7 +18,6 @@ final class NimbusVungleAdController: NimbusAdController,
     
     var adLoader: NimbusVungleAdLoaderType
     let adPresenter: NimbusVungleAdPresenterType
-    let creativeScalingEnabled: Bool
     
     weak var adRendererDelegate: NimbusVungleAdRendererDelegate?
     
@@ -31,7 +30,6 @@ final class NimbusVungleAdController: NimbusAdController,
         adPresenter: NimbusVungleAdPresenterType = NimbusVungleAdPresenter(),
         container: UIView,
         logger: Logger,
-        creativeScalingEnabled: Bool,
         delegate: (any AdControllerDelegate)?,
         adPresentingViewController: UIViewController?,
         isBlocking: Bool,
@@ -40,7 +38,6 @@ final class NimbusVungleAdController: NimbusAdController,
     ) {
         self.adLoader = adLoader ?? NimbusVungleAdLoader()
         self.adPresenter = adPresenter
-        self.creativeScalingEnabled = creativeScalingEnabled
         self.adRendererDelegate = adRendererDelegate
         
         super.init(
@@ -96,8 +93,7 @@ final class NimbusVungleAdController: NimbusAdController,
                 try adPresenter.present(
                     bannerAd: adLoader.bannerAd,
                     ad: ad,
-                    container: nimbusAdView,
-                    creativeScalingEnabled: creativeScalingEnabled
+                    container: nimbusAdView
                 )
             case .native:
                 try adPresenter.present(

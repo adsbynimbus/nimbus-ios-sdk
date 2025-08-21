@@ -39,6 +39,7 @@ public final class NimbusVungleAdRenderer: AdRenderer {
     
     /// Controls whether the creative scaling is enabled for static ads with dimensions
     /// :nodoc
+    @available(*, deprecated, message: "No-op. Creative scaling is always enabled. Set width/height constraints to the ad container to prevent any scaling")
     public var creativeScalingEnabled = true
     
     public init() {}
@@ -54,7 +55,6 @@ public final class NimbusVungleAdRenderer: AdRenderer {
             ad: ad,
             container: container,
             logger: Nimbus.shared.logger,
-            creativeScalingEnabled: creativeScalingEnabled,
             delegate: delegate,
             adPresentingViewController: adPresentingViewController,
             isBlocking: false,
@@ -81,7 +81,6 @@ public final class NimbusVungleAdRenderer: AdRenderer {
             ad: ad,
             container: adPresentingViewController.nimbusContainer,
             logger: Nimbus.shared.logger,
-            creativeScalingEnabled: creativeScalingEnabled,
             delegate: delegate,
             adPresentingViewController: adPresentingViewController,
             isBlocking: true,
