@@ -66,7 +66,7 @@ extension NimbusUnityRequestInterceptor: NimbusRequestInterceptorAsync {
         guard isInitialized else { throw NimbusUnityInterceptorError.notInitialized }
         guard isSupported else { throw NimbusUnityInterceptorError.unsupportedDevice }
         guard let token else { throw NimbusUnityInterceptorError.tokenNotAvailable }
-        guard request.impressions.first?.video?.isRewarded == true else {
+        guard request.impressions.first?.adUnitType == .rewarded else {
             throw NimbusUnityInterceptorError.invalidAdType
         }
         

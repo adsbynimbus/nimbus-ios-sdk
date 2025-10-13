@@ -7,6 +7,7 @@
 //
 
 @_exported import NimbusRequestKit
+import VungleAdsSDK
 
 public protocol NimbusVungleRequestInterceptorDelegate: AnyObject {
     func didInitializeVungle(with error: Error?)
@@ -73,7 +74,9 @@ public final class NimbusVungleRequestInterceptor {
         self.vungleInitializerType = vungleInitializerType
         self.delegate = delegate
         self.logger = logger
-                
+
+        VungleAds.setIntegrationName("vunglehbs", version: "29")
+        
         if vungleInitializerType.isInitialized {
             self.logger.log("Vungle provider has been already initialized", level: .info)
 
