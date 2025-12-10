@@ -158,8 +158,8 @@ let package = Package(
             checksum: "14bf337196be779f91f894c6bc919b3394cf599a6c3a2e3da434773906b68a68"),
         .binaryTarget(
             name: "MolocoSDK",
-            url: "https://moloco-ios-build.s3.amazonaws.com/moloco-sdk/MolocoSDK-3.11.0.zip",
-            checksum: "2acae1deebf68644dc7c4cb8575ca670c54ef2469149f4f8eabf651e1d3a87c6"),
+            url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/external/moloco/3.13.0/MolocoSDK.zip",
+            checksum: "408e4258d5d4bfdd2913344cdada9aca13e0500eaff81c4a2794d7a4ce83415b"),
         .binaryTarget(
             name: "InMobiSDK",
             url: "https://dl.inmobi.com/inmobi-sdk/IM/InMobi-iOS-SDK-10.8.6.zip",
