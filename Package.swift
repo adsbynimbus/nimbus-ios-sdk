@@ -195,25 +195,25 @@ package.targets += [
     .binaryTarget(
         name: "NimbusCoreKit",
         url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.32.1/NimbusCoreKit-2.32.1.zip",
-        checksum: "04c6e7f2fb324bae35a217197774e983d81f1b43e1de20661c9ae530d6a55632"),
+        checksum: "e4dd39cef2f44bfd6a5ed75cfc8f0eaca282b2166213722f473d8e2de160109f"),
     .binaryTarget(
         name: "NimbusKit",
         url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.32.1/NimbusKit-2.32.1.zip",
-        checksum: "f524584e203073806f4c400f355618ba61cfc4619541276d39d3373c5d95f1d1"),
+        checksum: "22a546abe00ec211269f4019c414a50a45d3c11e9e7e271f87c2bce05c4383a5"),
     .binaryTarget(
         name: "NimbusRequestKit",
         url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.32.1/NimbusRequestKit-2.32.1.zip",
-        checksum: "0110f35b73183f36f7484109bbd5997c2efd63b2514af41f8659d177735d3252"),
+        checksum: "386cfe4ecc7b2e2d36cee2c209385b13ec6e81b411a284d4f031a354eac5e177"),
     .binaryTarget(
         name: "NimbusRenderKit",
         url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.32.1/NimbusRenderKit-2.32.1.zip",
-        checksum: "a1034063e5097f5bba46006084bb44670755d65bab0102fe640fcc886195d950"),
+        checksum: "13345724f11b7d3e89c226542905fe6f83ebee5cafcb5af188ab81c18353f19a"),
     .binaryTarget(
         name: "NimbusRenderStaticKit",
         url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.32.1/NimbusRenderStaticKit-2.32.1.zip",
-        checksum: "766069d086d6cddf448337567e632a01392e808b0dd799097e44a9f29cfa5ffc"),
+        checksum: "ee5788f98119fabb723752852d036c470af8711c2f7757afe13e9979775ba2b1"),
     .binaryTarget(
         name: "NimbusRenderVideoKit",
         url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/2.32.1/NimbusRenderVideoKit-2.32.1.zip",
-        checksum: "3ef447528cc1b96136f5ad078fe14dcd5cc449c0ac1bb98d7b05b2ca3941f229"),
+        checksum: "2bb3ec8a9006cd30f14a4a473de45e7ce2b5f2c47303769e42a4908f7e7795a7"),
 ]
