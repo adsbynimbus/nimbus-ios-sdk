@@ -23,9 +23,6 @@ public final class NimbusFANRequestInterceptor {
     /// Facebook bidder token
     private let bidderToken: String
     
-    /// Supported FB Test ad type
-    private lazy var fbTestAdType = "IMG_16_9_LINK"
-    
     /**
      Initializes a NimbusFANRequestInterceptor instance
      
@@ -68,8 +65,8 @@ extension NimbusFANRequestInterceptor: NimbusRequestInterceptorAsync {
             "facebook_app_id": NimbusCodable(appId),
         ]
         
-        if isAppendingTestPayload {
-            extensions["facebook_test_ad_type"] = NimbusCodable(fbTestAdType)
+        if isAppendingTestPayload, let imp = request.impressions.first {
+            extensions["facebook_test_ad_type"] = NimbusCodable(imp.adUnitType.metaTestAdType)
         }
         
         return NimbusRequestDelta(
@@ -91,5 +88,14 @@ extension NimbusFANRequestInterceptor: NimbusRequestInterceptor {
     /// :nodoc:
     public func didFailNimbusRequest(with error: NimbusError) {
         Nimbus.shared.logger.log("Failed NimbusRequest for FAN", level: .error)
+    }
+}
+
+fileprivate extension AdUnitType {
+    var metaTestAdType: String {
+        switch self {
+        case .rewarded: "VID_HD_16_9_15S_LINK"
+        default: "IMG_16_9_LINK"
+        }
     }
 }

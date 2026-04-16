@@ -75,6 +75,8 @@ final class NimbusMolocoAdController: NimbusAdController,
             return
         }
         
+        let adParams = MolocoCreateAdParams(adUnit: renderInfo.adUnitId, mediation: Nimbus.shared.sdkName)
+        
         switch adType {
         case .banner:
             guard let adPresentingViewController else {
@@ -83,34 +85,44 @@ final class NimbusMolocoAdController: NimbusAdController,
             }
             
             bannerAd = Moloco.shared.createBanner(
-                for: renderInfo.adUnitId,
-                viewController: adPresentingViewController,
-                delegate: self
+                params: adParams,
+                viewController: adPresentingViewController
             )
+            
             guard let bannerAd else {
                 sendNimbusError(NimbusMolocoError(message: "Moloco.shared.createBanner returned nil"))
                 return
             }
             
+            bannerAd.delegate = self
             bannerAd.load(bidResponse: ad.markup)
         case .interstitial:
-            interstitialAd = Moloco.shared.createInterstitial(for: renderInfo.adUnitId, delegate: self)
+            interstitialAd = Moloco.shared.createInterstitial(params: adParams)
             guard let interstitialAd else {
-                
+                sendNimbusError(NimbusMolocoError(message: "Moloco.shared.createInterstitial returned nil"))
                 return
             }
+            
+            interstitialAd.interstitialDelegate = self
             interstitialAd.load(bidResponse: ad.markup)
         case .native:
-            nativeAd = Moloco.shared.createNativeAd(for: renderInfo.adUnitId, delegate: self)
+            nativeAd = Moloco.shared.createNativeAd(params: adParams)
             guard let nativeAd else {
+                sendNimbusError(NimbusMolocoError(message: "Moloco.shared.createNativeAd returned nil"))
                 return
             }
             
+            nativeAd.delegate = self
             nativeAd.load(bidResponse: ad.markup)
-            
         case .rewarded:
-            rewardedAd = Moloco.shared.createRewarded(for: renderInfo.adUnitId, delegate: self)
-            rewardedAd?.load(bidResponse: ad.markup)
+            rewardedAd = Moloco.shared.createRewarded(params: adParams)
+            guard let rewardedAd else {
+                sendNimbusError(NimbusMolocoError(message: "Moloco.shared.createRewarded returned nil"))
+                return
+            }
+            
+            rewardedAd.rewardedDelegate = self
+            rewardedAd.load(bidResponse: ad.markup)
         @unknown default:
             sendNimbusError(NimbusMolocoError(message: "unexpected ad type: \(adType)"))
         }
