@@ -4,7 +4,7 @@ import PackageDescription
 
 let package = Package(
     name: "NimbusKit",
-    platforms: [.iOS(.v13)],
+    platforms: [.iOS(.v15)],
 )
 
 package.products = [
@@ -16,7 +16,7 @@ package.products = [
 package.targets += [
   .binaryTarget(
     name: "NimbusKit",
-    url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/3.0.0-rc.3/NimbusKit-3.0.0-rc.3.zip",
-    checksum: "97d1874838f9279d45858dac7b7975135f04b474ccf3435ee49d09cf953c9c96"
+    url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/3.0.0-rc.4/NimbusKit-3.0.0-rc.4.zip",
+    checksum: "9fe4b0b09be5e70de3b2b9a43502129a5a8b6d9696a03ac5a60f91abfd51477e"
   ),
 ]
