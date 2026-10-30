@@ -2,47 +2,44 @@
 
 Welcome to Nimbus - ads by publishers, for publishers.
 
-## Introduction
-
-Nimbus iOS now offers preliminary support for Swift Package Manager. 
-
-Documentation can be found at https://docs.adsbynimbus.com/docs/sdk/ios
-
 ## Requirements
 
-- Xcode 13.3 or above
+- Xcode 26.6 or above
+- iOS 15+
 
-## Setup
+## Installation
 
-1. Navigate to Frameworks, Libraries, and Embedded Content for an iOS application target 
-2. Click the + button and select Add Package Dependency... under the Add Other dropdown
-3. Enter https://github.com/adsbynimbus/nimbus-ios-sdk in the package URL and select the main branch
-4. Select all the frameworks required by your integration type
+### Xcode Project
 
-### Nimbus Standalone
+1. In Xcode, go to **File → Add Package Dependencies…**
+2. Enter the repository URL:
+   ```
+   https://github.com/adsbynimbus/nimbus-ios-sdk
+   ```
+3. Set the dependency rule to **Up to Next Major Version** and enter `3.0.0` as the minimum.
+4. Click **Add Package** and select the **NimbusKit** library when prompted.
 
-- NimbusKit: The main framework of the Nimbus SDK
-- NimbusRenderKit: Adds support for rendering Nimbus Ads
-  - NimbusRenderStaticKit: Renderer for Nimbus static ads (display / banner ads)
-  - NimbusRenderVideoKit: Renderer for Nimbus video ads
-    - NimbusRenderVideoKit-WithoutGoogleInteractiveMediaAds: Use if GoogleInteractiveMediaAds is linked externally
-- NimbusRequestKit - Adds support for making requests to Nimbus
+### Package.swift
 
-### Nimbus Extensions
+If you're managing dependencies through a `Package.swift` file, add the following:
 
-- [NimbusFANKit](Sources/NimbusFANKit): Adds support for Meta Audience Network ads
-  - NimbusFANKit-WithoutFBAudienceNetwork: Use if FBAudienceNetwork is linked externally
-- [NimbusGAMKit](Sources/NimbusGAMKit): Mediation adapters and Dynamic Price support for Google Ad Manager
-- [NimbusLiveRampKit](Sources/NimbusLiveRampKit): Adds support for passing IDs using the LiveRamp SDK 
-- [NimbusRequestAPSKit](Sources/NimbusRequestAPSKit): Adds support for including Amazon demand in the Nimbus auction
-  - NimbusRequestAPSKit-WithoutDTBiOSSDK: Use if DTBiOSSDK is linked externally
-- [NimbusUnityKit](Sources/NimbusUnityKit): Adds support for Unity Rewarded Video Ads
-  - NimbusUnityKit-WithoutUnityAds: Use if UnityAds is linked externally
+```swift
+dependencies: [
+    .package(url: "https://github.com/adsbynimbus/nimbus-ios-sdk", from: "3.0.0")
+]
+```
 
-### Nimbus Dynamic Price
+Then add the product to your target:
 
-For additional information integrating Dynamic Price please see our [documentation](https://docs.adsbynimbus.com/docs/sdk/dynamic-price).
+```swift
+.product(name: "NimbusKit", package: "nimbus-ios-sdk")
+```
 
-## License
+## Documentation
 
-Copyright 2024 Nimbus Advertising Solutions Inc. Distributed under [GNU GPLv3](LICENSE).
+- [Nimbus iOS SDK Documentation](https://docs.adsbynimbus.com/docs) — integration guides, configuration, and API reference.
+- [DocC API Reference](https://iosdocs.adsbynimbus.com) — auto-generated documentation for the latest release.
+
+## Sample App
+
+See Nimbus in action in our public [sample app repository](https://github.com/adsbynimbus/nimbus-ios-sample), which demonstrates end-to-end integration including setup, bid requests, and ad rendering.
