@@ -16,7 +16,7 @@ package.products = [
 package.targets += [
   .binaryTarget(
     name: "NimbusKit",
-    url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/3.0.0/NimbusKit-3.0.0.zip",
-    checksum: "19be05dbcb60bee657b64d7189a6eebf6e90659247f53f9e5401063902b96205"
+    url: "https://adsbynimbus-public.s3.amazonaws.com/iOS/sdks/3.1.0/NimbusKit-3.1.0.zip",
+    checksum: "d46e05da3b9f020fa4941c83d6811320fcbf2c220c0beae4c8602595f516ed95"
   ),
 ]
